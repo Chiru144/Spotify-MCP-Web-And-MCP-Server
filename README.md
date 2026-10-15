@@ -65,9 +65,6 @@ Using these metrics, the AI calculates a track's "vibe profile". For example, a 
 
 For song suggestions, it wraps Spotify's native Recommendations API, which accepts seed constraints (genres, audio targets, and seed tracks/artists).
 
-> 📖 **Deep Dive & Parameter Guide:**
-> For the complete breakdown of core inputs, prompt scenarios (Scenario A: Vibe-Based Matching, Scenario B: Acoustic Type Matching), and capability status tables, see the interactive **[Web Tool Guide](http://127.0.0.1:8000/guide)** (`/guide`).
-
 ## Tools & Agent Skills Catalog
 
 This server registers **43 specialized FastMCP tools** and packages **7 dedicated agent skills** for autonomous AI workflows:
