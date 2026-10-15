@@ -784,7 +784,7 @@
             <p>The agent translates text prompts like <em>"Give me uplifting dance music like Dua Lipa"</em> into parameters:</p>
             <div class="code-preview">
               <span>get_recommendations(seed_genres=["pop"], target_valence=0.85, target_danceability=0.8)</span>
-              <button class="copy-btn" onclick="copySnippet('get_recommendations(seed_genres=[\"pop\"], target_valence=0.85, target_danceability=0.8)')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -825,7 +825,7 @@
             <p>Say: <em>"Find the soundtrack tracks for Oppenheimer"</em>. The agent calls this tool to retrieve songs, album URIs, and Spotify links.</p>
             <div class="code-preview">
               <span>search_movie_soundtracks(movie_title="Oppenheimer", limit=20)</span>
-              <button class="copy-btn" onclick="copySnippet('search_movie_soundtracks(movie_title=\"Oppenheimer\", limit=20)')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -866,7 +866,7 @@
             <p>Ask: <em>"What movies was Timothée Chalamet in and give me songs from them?"</em> The agent retrieves his filmography and discovers relevant OSTs.</p>
             <div class="code-preview">
               <span>search_actors_filmography(actor_name="Timothée Chalamet")</span>
-              <button class="copy-btn" onclick="copySnippet('search_actors_filmography(actor_name=\"Timothée Chalamet\")')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -907,7 +907,7 @@
             <p>The agent performs equivalent batch staging automatically when you ask: <em>"Create a playlist called Cyberpunk Night and add these 10 tracks."</em></p>
             <div class="code-preview">
               <span>create_playlist(name="Cyberpunk Night", description="Curated via MCP")</span>
-              <button class="copy-btn" onclick="copySnippet('create_playlist(name=\"Cyberpunk Night\", description=\"Curated via MCP\")')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -948,7 +948,7 @@
             <p>Prompt: <em>"Shuffle my Chill Vibes playlist into a new playlist."</em> The agent handles the track retrieval, random permutation, and playlist generation.</p>
             <div class="code-preview">
               <span>shuffle_playlist_tool(playlist_id="spotify:playlist:...", in_place=False)</span>
-              <button class="copy-btn" onclick="copySnippet('shuffle_playlist_tool(playlist_id=\"...\", in_place=False)')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -989,7 +989,7 @@
             <p>Say: <em>"Clean up my Roadtrip playlist and remove all duplicate songs."</em></p>
             <div class="code-preview">
               <span>deduplicate_playlist(playlist_id="spotify:playlist:...")</span>
-              <button class="copy-btn" onclick="copySnippet('deduplicate_playlist(playlist_id=\"...\")')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -1030,7 +1030,7 @@
             <p>Say: <em>"Merge my Workout playlist and Running playlist into Marathon Mix."</em></p>
             <div class="code-preview">
               <span>combine_playlists(playlist_ids=["id1", "id2"], new_name="Marathon Mix")</span>
-              <button class="copy-btn" onclick="copySnippet('combine_playlists(playlist_ids=[\"id1\", \"id2\"], new_name=\"Marathon Mix\")')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -1071,7 +1071,7 @@
             <p>Triggered by <code>playlist_vibe_sorter</code> skill. Say: <em>"Sort my Gym playlist by energy from high to low."</em></p>
             <div class="code-preview">
               <span>reorder_playlist_by_audio_features(playlist_id="...", feature="energy", order="desc")</span>
-              <button class="copy-btn" onclick="copySnippet('reorder_playlist_by_audio_features(playlist_id=\"...\", feature=\"energy\", order=\"desc\")')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -1112,7 +1112,7 @@
             <p>Control music hands-free: <em>"Play the next song"</em>, <em>"Turn the volume down to 40%"</em>, or <em>"What song is currently playing?"</em></p>
             <div class="code-preview">
               <span>set_volume(volume_percent=40)</span>
-              <button class="copy-btn" onclick="copySnippet('set_volume(volume_percent=40)')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
@@ -1210,7 +1210,15 @@
       document.getElementById('emptyResults').style.display = visibleCount === 0 ? 'block' : 'none';
     }
 
-    function copySnippet(text) {
+    function copySnippet(target) {
+      let text = '';
+      if (typeof target === 'string') {
+        text = target;
+      } else if (target && target.closest) {
+        const preview = target.closest('.code-preview');
+        const span = preview ? preview.querySelector('span') : target.previousElementSibling;
+        text = span ? span.textContent.trim() : (target.textContent || '');
+      }
       navigator.clipboard.writeText(text).then(() => {
         showToast('Copied to clipboard!');
       }).catch(() => {
