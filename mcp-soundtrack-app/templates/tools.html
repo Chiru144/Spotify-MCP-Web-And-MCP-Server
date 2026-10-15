@@ -140,7 +140,10 @@
   <div class="container">
     <header>
       <h1>Spotify Advanced Tools</h1>
-      <a href="/" class="back-btn">← Back to Soundtrack Curator</a>
+      <div style="display: flex; align-items: center; gap: 16px;">
+        <a href="/guide" class="back-btn" style="color: var(--spotify-green);">📖 Tools Guide</a>
+        <a href="/" class="back-btn">← Back to Soundtrack Curator</a>
+      </div>
     </header>
 
     <div class="tool-section">
@@ -211,6 +214,7 @@
         <button id="combineBtn" onclick="combinePlaylists()" style="width: 100%; margin-top: 12px;">Combine Playlists</button>
       </div>
     </div>
+
 
 
   </div>
@@ -340,6 +344,7 @@
         btn.textContent = 'Remove Duplicates'; btn.disabled = false;
       }
     }
+
 
 
     async function loadUserPlaylists() {

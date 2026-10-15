@@ -1,6 +1,44 @@
+# Environment & Secrets
 .env
-.cache
-__pycache__/
-*.pyc
+.env.*
+!.env.sample
+**/.env
+**/.env.*
+!**/.env.sample
 .spotipyoauthcache
+.cache
+.cache-*
+*.token
+
+# Python bytecode & runtime
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+build/
+dist/
+*.egg-info/
+
+# Virtual environments
 .venv/
+env/
+venv/
+ENV/
+
+# Testing & Coverage
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs & temporary files
+*.log
+out.txt
+*.tmp
+*.bak
+
+# OS & Editor files
+.DS_Store
+Thumbs.db
+Desktop.ini
+.vscode/
+.idea/

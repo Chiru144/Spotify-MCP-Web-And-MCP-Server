@@ -1,8 +1,11 @@
 from typing import Optional, List, Dict, Any
 import requests
+import os
+import urllib.parse
 from bs4 import BeautifulSoup
-from tools.core import get_spotify_client
+from tools.core import get_spotify_client, TMDB_BASE_URL
 import spotipy
+import re
 
 try:
     from ddgs import DDGS

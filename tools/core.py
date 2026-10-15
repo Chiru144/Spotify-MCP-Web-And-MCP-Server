@@ -51,7 +51,7 @@ SPOTIFY_SCOPES = [
     "user-read-email",
 ]
 
-TMDB_BASE_URL = "https://api.themoviedb.org/3"
+TMDB_BASE_URL = os.getenv("TMDB_BASE_URL", "https://api.themoviedb.org/3")
 
 
 def get_spotify_client() -> spotipy.Spotify:
@@ -65,7 +65,7 @@ def get_spotify_client() -> spotipy.Spotify:
     if not client_secret or "your_spotify_client_secret" in client_secret:
         raise ValueError("Missing SPOTIPY_CLIENT_SECRET in .env. Please configure your Spotify credentials.")
 
-    cache_path = str(Path(__file__).parent / ".spotipyoauthcache")
+    cache_path = str(Path(__file__).parent.parent / ".spotipyoauthcache")
 
     auth_manager = SpotifyOAuth(
         client_id=client_id,

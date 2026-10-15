@@ -396,7 +396,7 @@ def reorder_playlist_by_audio_features(playlist_id: str, feature: str = 'energy'
         return f"Error reordering playlist: {str(e)}"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def update_playlist(playlist_id: str, name: Optional[str] = None, description: Optional[str] = None, public: Optional[bool] = None) -> str:
     """Update a playlist's name, description, or public status."""
     try:
@@ -414,7 +414,7 @@ def update_playlist(playlist_id: str, name: Optional[str] = None, description: O
         return f"Error updating playlist: {str(e)}"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def get_playlist_tracks(playlist_id: str, limit: int = 100, offset: int = 0) -> str:
     """Get the tracks currently inside a specific playlist."""
     try:
@@ -435,7 +435,7 @@ def get_playlist_tracks(playlist_id: str, limit: int = 100, offset: int = 0) -> 
         return f"Error fetching playlist tracks: {str(e)}"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=True, idempotent_hint=True, open_world_hint=True))
 def remove_tracks_from_playlist(playlist_id: str, uris: list[str]) -> str:
     """Remove one or more tracks from a playlist by their URIs."""
     try:

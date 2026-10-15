@@ -785,14 +785,22 @@
     }
 
     /* Right Area: Sticky Send Box */
-    .send-box-wrapper {
+    .right-column-container {
       position: sticky;
       top: 96px;
       display: flex;
       flex-direction: column;
       gap: 16px;
       max-height: calc(100vh - 120px);
+    }
+
+    .send-box-wrapper {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
       overflow-y: auto;
+      flex: 1;
+      padding-right: 4px;
     }
 
     .send-box-wrapper::-webkit-scrollbar {
@@ -1463,6 +1471,7 @@
       </div>
 
       <a href="/tools" class="nav-link">Advanced Tools</a>
+      <a href="/guide" class="nav-link" style="color: var(--spotify-green);">📖 Tools Guide</a>
       <button class="nav-btn" onclick="openFetchPlaylistModal()" title="Fetch any Spotify playlist or browse your playlists">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
           <path d="M9 18V5l12-2v13"></path>
@@ -1560,6 +1569,10 @@
           </select>
         </div>
 
+        <button class="action-btn-secondary" onclick="openVibeMoodModal()" style="border-radius: 14px; border: 1px solid rgba(255, 255, 255, 0.12); padding: 10px 16px; display: flex; align-items: center; gap: 8px;">
+          ✨ Vibe
+        </button>
+
         <button class="search-btn" id="searchBtn" onclick="performSearch()">
           <span id="searchBtnText">Explore</span>
           <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
@@ -1594,8 +1607,38 @@
       </section>
 
       <!-- Right Column: Send Box (Staging Crate) -->
-      <aside class="send-box-wrapper">
-        <div class="send-box-card">
+      <aside class="right-column-container">
+        <!-- Floating Player Widget (Moved here) -->
+        <div class="floating-player" id="floatingPlayer">
+          <div class="fp-info">
+            <img src="" id="fpArt" class="fp-art" alt="cover">
+            <div class="fp-meta">
+              <div class="fp-title" id="fpTitle">Loading...</div>
+              <div class="fp-artist" id="fpArtist">-</div>
+            </div>
+          </div>
+          <div class="fp-progress-container">
+            <span id="fpTime">0:00</span>
+            <div class="fp-progress-bar" id="fpProgressBar" onclick="fpSeek(event)" style="cursor: pointer;">
+              <div class="fp-progress-fill" id="fpProgressFill"></div>
+            </div>
+            <span id="fpDuration">0:00</span>
+          </div>
+          <div class="fp-controls">
+            <button class="fp-btn" onclick="fpCommand('previous')" title="Previous">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <button class="fp-btn fp-playpause" id="fpPlayPause" onclick="fpTogglePlay()" title="Play/Pause">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            </button>
+            <button class="fp-btn" onclick="fpCommand('next')" title="Next">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+          </div>
+        </div>
+
+        <div class="send-box-wrapper">
+          <div class="send-box-card">
           
           <div class="send-box-header">
             <div class="send-box-title">
@@ -1710,6 +1753,7 @@
             </a>
           </div>
 
+        </div>
         </div>
       </aside>
 
@@ -1828,6 +1872,57 @@
     </div>
   </div>
 
+  <!-- Vibe & Mood Modal -->
+  <div class="modal-backdrop" id="vibeMoodModal" onclick="if(event.target===this) closeVibeMoodModal()">
+    <div class="modal-card" style="max-width: 600px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <span style="color: var(--spotify-green);">✨</span>
+          <span>Vibe & Mood Recommendations</span>
+        </div>
+        <button class="modal-close" onclick="closeVibeMoodModal()">&times;</button>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); line-height: 1.6;">
+          Generate song recommendations using up to 5 seed values (tracks, artists, genres) and fine-tune the vibe using audio feature sliders.
+        </p>
+
+        <div style="display: flex; gap: 12px; margin-bottom: 8px; flex-wrap: wrap;">
+          <input type="text" id="recSeedGenres" class="playlist-name-input" placeholder="Genres (e.g. pop, synthwave) comma-separated" style="flex: 1; min-width: 150px;" />
+          <input type="text" id="recSeedTracks" class="playlist-name-input" placeholder="Seed Track IDs comma-separated" style="flex: 1; min-width: 150px;" />
+          <input type="text" id="recSeedArtists" class="playlist-name-input" placeholder="Seed Artist IDs comma-separated" style="flex: 1; min-width: 150px;" />
+        </div>
+
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 8px;">
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="width: 110px; font-size: 12px; color: var(--text-muted);">Target Energy:</label>
+            <input type="range" id="recEnergy" min="0" max="100" value="50" style="flex: 1; accent-color: var(--spotify-green);" onchange="this.dataset.changed='1'; this.nextElementSibling.textContent = (this.value/100).toFixed(2)" />
+            <span style="font-size: 11px; width: 25px;">--</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="width: 110px; font-size: 12px; color: var(--text-muted);">Target Valence:</label>
+            <input type="range" id="recValence" min="0" max="100" value="50" style="flex: 1; accent-color: var(--spotify-green);" onchange="this.dataset.changed='1'; this.nextElementSibling.textContent = (this.value/100).toFixed(2)" />
+            <span style="font-size: 11px; width: 25px;">--</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="width: 110px; font-size: 12px; color: var(--text-muted);">Danceability:</label>
+            <input type="range" id="recDance" min="0" max="100" value="50" style="flex: 1; accent-color: var(--spotify-green);" onchange="this.dataset.changed='1'; this.nextElementSibling.textContent = (this.value/100).toFixed(2)" />
+            <span style="font-size: 11px; width: 25px;">--</span>
+          </div>
+          <div style="display: flex; align-items: center; gap: 8px;">
+            <label style="width: 110px; font-size: 12px; color: var(--text-muted);">Acousticness:</label>
+            <input type="range" id="recAcoustic" min="0" max="100" value="50" style="flex: 1; accent-color: var(--spotify-green);" onchange="this.dataset.changed='1'; this.nextElementSibling.textContent = (this.value/100).toFixed(2)" />
+            <span style="font-size: 11px; width: 25px;">--</span>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 12px;">
+        <button class="action-btn-secondary" onclick="closeVibeMoodModal()" style="padding: 8px 18px;">Cancel</button>
+        <button id="recBtn" class="action-btn-primary" onclick="fetchVibeRecommendations()" style="padding: 8px 18px;">Generate & Close</button>
+      </div>
+    </div>
+  </div>
+
   <script>
     // State management
     let currentMode = 'movies'; // 'movies', 'actors', 'singers', or 'songs'
@@ -1836,6 +1931,79 @@
     let currentArtist = null;
     let currentActor = null;
     let lastQuery = '';
+    
+    function openVibeMoodModal() {
+      document.getElementById('vibeMoodModal').classList.add('active');
+    }
+    function closeVibeMoodModal() {
+      document.getElementById('vibeMoodModal').classList.remove('active');
+    }
+
+    async function fetchVibeRecommendations() {
+      const genresStr = document.getElementById('recSeedGenres').value.trim();
+      const tracksStr = document.getElementById('recSeedTracks').value.trim();
+      const artistsStr = document.getElementById('recSeedArtists').value.trim();
+
+      const seed_genres = genresStr ? genresStr.split(',').map(s => s.trim()).filter(s => s) : [];
+      const seed_tracks = tracksStr ? tracksStr.split(',').map(s => s.trim()).filter(s => s) : [];
+      const seed_artists = artistsStr ? artistsStr.split(',').map(s => s.trim()).filter(s => s) : [];
+
+      if (!seed_genres.length && !seed_tracks.length && !seed_artists.length) {
+        return alert("Please provide at least one seed (genre, track, or artist).");
+      }
+
+      const payload = {
+        seed_genres, seed_tracks, seed_artists, limit: parseInt(document.getElementById('limitSelect').value) || 25
+      };
+
+      const getSliderVal = (id) => {
+        const el = document.getElementById(id);
+        if (el.value === el.defaultValue) return null; // Unchanged default
+        return parseInt(el.value) / 100.0;
+      };
+
+      if (document.getElementById('recEnergy').dataset.changed === '1') payload.target_energy = getSliderVal('recEnergy');
+      if (document.getElementById('recValence').dataset.changed === '1') payload.target_valence = getSliderVal('recValence');
+      if (document.getElementById('recDance').dataset.changed === '1') payload.target_danceability = getSliderVal('recDance');
+      if (document.getElementById('recAcoustic').dataset.changed === '1') payload.target_acousticness = getSliderVal('recAcoustic');
+
+      const btn = document.getElementById('recBtn');
+      btn.textContent = 'Generating...'; btn.disabled = true;
+
+      try {
+        const res = await fetch('/api/recommendations', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+        
+        if (data.success && data.recommendations) {
+          showToast(`Generated ${data.recommendations.length} recommendations`);
+          closeVibeMoodModal();
+          
+          // Switch to songs mode for display
+          switchMode('songs');
+          lastQuery = "Vibe Recommendations";
+          activeItems = data.recommendations;
+          currentArtist = null;
+          currentActor = null;
+          
+          document.getElementById('timelineTitle').innerHTML = `
+            Vibe Recommendations
+            <span class="timeline-badge" id="resultsCountBadge">${activeItems.length} Songs</span>
+          `;
+          document.getElementById('playlistNameInput').value = `Vibe & Mood Mix`;
+          applySortingAndRender();
+        } else {
+          alert(`Error: ${data.error}`);
+        }
+      } catch (e) {
+        alert('Error: ' + e.message);
+      } finally {
+        btn.textContent = 'Generate & Close'; btn.disabled = false;
+      }
+    }
 
     // Rank options mapping for Movies, Actors, Singers, and Songs
     const movieRankOptions = [
@@ -2087,7 +2255,7 @@
               if (movie && (!movie.tracks || movie.tracks.length === 0)) {
                 if (lastQuery !== query) break;
                 try {
-                  const res = await fetch(`/api/movie/tracks?movie_title=${encodeURIComponent(movie.title)}`);
+                  const res = await fetch(`/api/movie/tracks?movie_title=${encodeURIComponent(movie.title)}&release_year=${encodeURIComponent(movie.release_date ? movie.release_date.split('-')[0] : '')}`);
                   const data = await res.json();
                   movie.tracks = data.tracks || [];
                   
@@ -2440,7 +2608,11 @@
       toggleBtn.disabled = true;
 
       try {
-        const res = await fetch(`/api/movie/tracks?movie_title=${encodeURIComponent(movieTitle)}`);
+        let fetchUrl = `/api/movie/tracks?movie_title=${encodeURIComponent(movieTitle)}&release_year=${encodeURIComponent(movie.release_date ? movie.release_date.split('-')[0] : '')}`;
+        if (currentMode === 'actors' && currentActor && currentActor.name) {
+          fetchUrl += `&actor_name=${encodeURIComponent(currentActor.name)}`;
+        }
+        const res = await fetch(fetchUrl);
         const data = await res.json();
         movie.tracks = data.tracks || [];
         if (countSpan) countSpan.textContent = `(${movie.tracks.length} Songs)`;
@@ -3478,27 +3650,20 @@
   <!-- Floating Player Widget -->
   <style>
     .floating-player {
-      position: fixed;
-      bottom: 24px;
-      right: 24px;
       background: rgba(18, 24, 34, 0.95);
       border: 1px solid rgba(255, 255, 255, 0.1);
       border-radius: 12px;
       padding: 12px 16px;
-      display: flex;
+      display: none;
       flex-direction: column;
       gap: 8px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
       backdrop-filter: blur(10px);
-      z-index: 1000;
-      width: 300px;
-      transition: opacity 0.3s ease;
-      opacity: 0;
-      pointer-events: none;
+      width: 100%;
+      flex-shrink: 0;
     }
     .floating-player.visible {
-      opacity: 1;
-      pointer-events: auto;
+      display: flex;
     }
     .fp-info {
       display: flex;
@@ -3588,36 +3753,28 @@
     }
   </style>
 
-  <div class="floating-player" id="floatingPlayer">
-    <div class="fp-info">
-      <img src="" id="fpArt" class="fp-art" alt="cover">
-      <div class="fp-meta">
-        <div class="fp-title" id="fpTitle">Loading...</div>
-        <div class="fp-artist" id="fpArtist">-</div>
-      </div>
-    </div>
-    <div class="fp-progress-container">
-      <span id="fpTime">0:00</span>
-      <div class="fp-progress-bar">
-        <div class="fp-progress-fill" id="fpProgressFill"></div>
-      </div>
-      <span id="fpDuration">0:00</span>
-    </div>
-    <div class="fp-controls">
-      <button class="fp-btn" onclick="fpCommand('previous')" title="Previous">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
-      </button>
-      <button class="fp-btn fp-playpause" id="fpPlayPause" onclick="fpTogglePlay()" title="Play/Pause">
-        <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-      </button>
-      <button class="fp-btn" onclick="fpCommand('next')" title="Next">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
-      </button>
-    </div>
-  </div>
-
   <script>
     let fpIsPlaying = false;
+    let fpDurationMs = 0;
+
+    async function fpSeek(event) {
+      if (!fpDurationMs) return;
+      const bar = document.getElementById('fpProgressBar');
+      const rect = bar.getBoundingClientRect();
+      const clickX = event.clientX - rect.left;
+      const pct = Math.max(0, Math.min(1, clickX / rect.width));
+      const targetMs = Math.floor(pct * fpDurationMs);
+      
+      try {
+        await fetch('/api/player/seek', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ position_ms: targetMs })
+        });
+        document.getElementById('fpProgressFill').style.width = `${pct * 100}%`;
+        document.getElementById('fpTime').textContent = formatMs(targetMs);
+      } catch(err) {}
+    }
 
     function formatMs(ms) {
       if (!ms) return "0:00";
@@ -3646,6 +3803,7 @@
         
         document.getElementById('fpTime').textContent = formatMs(data.progress_ms);
         document.getElementById('fpDuration').textContent = formatMs(data.duration_ms);
+        fpDurationMs = data.duration_ms;
         
         const pct = (data.progress_ms / (data.duration_ms || 1)) * 100;
         document.getElementById('fpProgressFill').style.width = `${pct}%`;

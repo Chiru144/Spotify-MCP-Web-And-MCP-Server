@@ -110,7 +110,7 @@ def get_artist_network(artist_name_or_id: str) -> str:
         return f"Error mapping artist network: {str(e)}"
 
 
-@mcp.tool()
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def get_saved_tracks(limit: int = 50, offset: int = 0) -> str:
     """Get tracks from the user's Library (Saved Tracks)."""
     try:
@@ -127,5 +127,73 @@ def get_saved_tracks(limit: int = 50, offset: int = 0) -> str:
         return "\n".join(output)
     except Exception as e:
         return f"Error fetching saved tracks: {str(e)}"
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def get_recommendations(
+    limit: int = 10,
+    seed_tracks: Optional[List[str]] = None,
+    seed_artists: Optional[List[str]] = None,
+    seed_genres: Optional[List[str]] = None,
+    target_energy: Optional[float] = None,
+    target_valence: Optional[float] = None,
+    target_danceability: Optional[float] = None,
+    target_acousticness: Optional[float] = None,
+    target_instrumentalness: Optional[float] = None,
+    target_tempo: Optional[float] = None
+) -> str:
+    """Get track recommendations based on seeds and audio features.
+    
+    Args:
+        limit: Number of recommendations to return (default: 10, max: 100).
+        seed_tracks: List of Spotify track IDs or URIs.
+        seed_artists: List of Spotify artist IDs or URIs.
+        seed_genres: List of genres (e.g., 'synthwave', 'indie-pop').
+        target_energy: Target energy (0.0 to 1.0).
+        target_valence: Target valence (0.0 to 1.0).
+        target_danceability: Target danceability (0.0 to 1.0).
+        target_acousticness: Target acousticness (0.0 to 1.0).
+        target_instrumentalness: Target instrumentalness (0.0 to 1.0).
+        target_tempo: Target tempo in BPM.
+    """
+    try:
+        sp = get_spotify_client()
+        
+        # Ensure total seeds do not exceed 5
+        num_seeds = (len(seed_tracks) if seed_tracks else 0) + \
+                    (len(seed_artists) if seed_artists else 0) + \
+                    (len(seed_genres) if seed_genres else 0)
+        
+        if num_seeds == 0:
+            return "Error: You must provide at least one seed (track, artist, or genre)."
+        if num_seeds > 5:
+            return f"Error: Up to 5 seed values may be provided in any combination of seed_tracks, seed_artists, and seed_genres. You provided {num_seeds}."
+            
+        kwargs = {}
+        if target_energy is not None: kwargs["target_energy"] = target_energy
+        if target_valence is not None: kwargs["target_valence"] = target_valence
+        if target_danceability is not None: kwargs["target_danceability"] = target_danceability
+        if target_acousticness is not None: kwargs["target_acousticness"] = target_acousticness
+        if target_instrumentalness is not None: kwargs["target_instrumentalness"] = target_instrumentalness
+        if target_tempo is not None: kwargs["target_tempo"] = target_tempo
+
+        results = sp.recommendations(
+            seed_tracks=seed_tracks,
+            seed_artists=seed_artists,
+            seed_genres=seed_genres,
+            limit=min(limit, 100),
+            **kwargs
+        )
+        
+        tracks = results.get("tracks", [])
+        if not tracks:
+            return "No recommendations found for the given seeds and targets."
+            
+        output = [f"Found {len(tracks)} recommendations:"]
+        for i, t in enumerate(tracks, 1):
+            artists = ", ".join([a.get("name", "Unknown") for a in t.get("artists", [])])
+            output.append(f"{i}. {t.get('name')} by {artists} (URI: {t.get('uri')})")
+        return "\n".join(output)
+    except Exception as e:
+        return f"Error fetching recommendations: {str(e)}"
 
 

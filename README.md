@@ -20,6 +20,70 @@ This repository contains a FastMCP application that integrates Spotify and TMDB 
 - **Soundtrack Curator**: Integrated with TMDB and DuckDuckGo to automatically discover an actor's filmography, find the corresponding soundtracks, and build a dedicated Spotify playlist.
 - **Soundtrack Staging Studio**: A local web interface to visualize and manage your curated soundtracks.
 
+### Vibe & Mood Sorting (audio_features)
+
+Instead of arbitrary text labels, Gupta's tool pulls standard audio feature scores ($0.0$ to $1.0$) for tracks:
+- **Valence**: Positivity, musical cheerfulness, or sadness.
+- **Energy**: Intensity, loudness, and fast-paced activity.
+- **Danceability**: Rhythm stability, beat strength, and tempo consistency.
+- **Acousticness & Instrumentalness**: Acoustic instrument usage vs. purely vocal/electronic elements.
+
+Using these metrics, the AI calculates a track's "vibe profile". For example, a song with high valence and high energy is tagged by the LLM as "Upbeat Workout", while low valence and high acousticness is tagged as "Melancholic Chill".
+
+### Song & Type Suggestions (get_recommendations)
+
+For song suggestions, it wraps Spotify's native Recommendations API, which accepts seed constraints:
+- **Seed Genres**: Suggest songs by style (e.g., synthwave, indie-pop, lo-fi).
+- **Target Audio Features**: Request songs matching specific parameters (e.g., `target_energy=0.8`, `target_valence=0.4`).
+- **Seed Tracks/Artists**: Give 1-5 tracks or artists as reference points.
+
+Exposes Spotify's audio analysis metrics so the attached LLM (Claude/Cursor) can tag and categorize tracks.
+
+#### 1. The Core Inputs It Accepts
+
+To generate recommendations, the tool passes up to 5 Seed Anchors and a set of Target Metric Sliders:
+
+**Seed Anchors (1 to 5 total):**
+- `seed_tracks` (Track IDs)
+- `seed_artists` (Artist IDs)
+- `seed_genres` (e.g., synthwave, indie-pop, lo-fi, deep-house)
+
+**Target Audio Feature Constraints ($0.0$ to $1.0$ scale):**
+- `target_energy`: Intensity and activity level
+- `target_valence`: Positivity, happiness vs. sadness
+- `target_danceability`: Rhythm stability and tempo suitability
+- `target_acousticness`: Acoustic vs. electronic instrumentation
+- `target_tempo`: Specific target BPM
+
+#### 2. How Vibe & Type Recommendations Work in Practice
+
+When you prompt your AI client (like Claude Desktop or Cursor), the LLM translates your natural language into the `get_recommendations` call:
+
+**Scenario A: Vibe-Based Matching**
+- **Prompt**: "Give me 10 songs with a dark, energetic synthwave vibe like Blinding Lights by The Weeknd."
+- **Tool Call Executed**:
+  - `seed_tracks`: ["Blinding_Lights_ID"]
+  - `seed_genres`: ["synthwave"]
+  - `target_energy`: 0.85 (High energy)
+  - `target_valence`: 0.30 (Darker tone)
+
+**Scenario B: Mood/Acoustic Type Matching**
+- **Prompt**: "Find late-night study songs similar to Phoebe Bridgers, but purely instrumental."
+- **Tool Call Executed**:
+  - `seed_artists`: ["Phoebe_Bridgers_ID"]
+  - `target_instrumentalness`: 0.90 (Instrumental focus)
+  - `target_energy`: 0.20 (Quiet/Calm)
+  - `target_valence`: 0.25 (Melancholic vibe)
+
+#### 3. What It Does vs. What It Doesn't Do
+
+| Capability | Status | Explanation |
+|---|---|---|
+| **Numeric Vibe Targets** | Built-in | Accepts raw target values (valence, energy, danceability) directly from Spotify's audio analysis. |
+| **Genre Seeding** | Built-in | Accepts valid Spotify genres to narrow down recommendations. |
+| **Automatic Clustering** | Built-in | Pairs with tools like smart_shuffle or distance algorithms to organize the recommended tracks into a smooth flow. |
+| **Text Tag Matching** | LLM-Driven | Doesn't search plain-text tags like "#workout" directly; instead, the attached LLM maps text tags (e.g., "upbeat workout") to numeric parameters (energy=0.9, valence=0.8). |
+
 ## Prerequisites
 
 Before running the application, make sure you have the following installed:

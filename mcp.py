@@ -143,10 +143,26 @@ if __name__ == "__main__":
     check_and_authenticate()
     
     # Start the background web app so the UI is available
-    auto_open = os.getenv("OPEN_BROWSER", "true").strip().lower() not in ("0", "false", "no")
+    auto_open = os.getenv("OPEN_BROWSER", "false").strip().lower() in ("1", "true", "yes")
     server.start_background_web_app(default_port=8000, open_browser=auto_open)
     
-    # 2. Then start the standard MCP Server over stdio
+    # 2. Read the .md rules and print them to stderr so connecting agents can see them
+    rules_path = Path(__file__).parent / "SPOTIFY_RULES.md"
+    if rules_path.exists():
+        print("\n--- SPOTIFY MCP RULES ---", file=sys.stderr)
+        print(rules_path.read_text(encoding="utf-8"), file=sys.stderr)
+        print("-------------------------\n", file=sys.stderr)
+        
+    # Also read any skills if they exist
+    for sp in [Path(__file__).parent / "skills", Path(__file__).parent / ".agents" / "skills"]:
+        if sp.exists() and sp.is_dir():
+            print(f"--- LOADED SKILLS ({sp.name}) ---", file=sys.stderr)
+            for skill_file in sorted(sp.glob("*.md")):
+                print(f"Skill: {skill_file.name}", file=sys.stderr)
+                print(skill_file.read_text(encoding="utf-8"), file=sys.stderr)
+            print("---------------------\n", file=sys.stderr)
+    
+    # 3. Then start the standard MCP Server over stdio
     print("Starting fully integrated Spotify MCP Server via stdio...", file=sys.stderr)
     try:
         server.mcp.run()

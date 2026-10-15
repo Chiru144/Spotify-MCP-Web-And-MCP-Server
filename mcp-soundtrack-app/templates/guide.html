@@ -1,0 +1,1234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="description" content="Complete guide and documentation for Spotify MCP Tools, Soundtrack Curator Web Studio, and AI Agent skills." />
+  <title>Spotify MCP & Soundtrack Curator — Tool Guide & Documentation</title>
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet" />
+
+  <style>
+    :root {
+      --bg-dark: #080b10;
+      --bg-surface: #0f1622;
+      --bg-card: rgba(18, 24, 35, 0.75);
+      --bg-card-hover: rgba(24, 32, 47, 0.9);
+      --spotify-green: #1db954;
+      --spotify-green-hover: #1ed760;
+      --spotify-green-glow: rgba(29, 185, 84, 0.25);
+      --accent-blue: #38bdf8;
+      --accent-purple: #c084fc;
+      --accent-amber: #fbbf24;
+      --accent-rose: #fb7185;
+      --accent-emerald: #34d399;
+      --text-main: #f8fafc;
+      --text-muted: #94a3b8;
+      --text-dim: #64748b;
+      --border-subtle: rgba(255, 255, 255, 0.08);
+      --border-hover: rgba(255, 255, 255, 0.18);
+      --radius-sm: 8px;
+      --radius-md: 14px;
+      --radius-lg: 20px;
+      --radius-full: 9999px;
+      --transition-smooth: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: 'Plus Jakarta Sans', sans-serif;
+      background: var(--bg-dark);
+      background-image: 
+        radial-gradient(circle at 15% 10%, rgba(29, 185, 84, 0.08) 0%, transparent 40%),
+        radial-gradient(circle at 85% 25%, rgba(56, 189, 248, 0.07) 0%, transparent 45%),
+        radial-gradient(circle at 50% 85%, rgba(192, 132, 252, 0.05) 0%, transparent 50%);
+      background-attachment: fixed;
+      color: var(--text-main);
+      padding: 0;
+      margin: 0;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* Header & Navigation */
+    header {
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(8, 11, 16, 0.85);
+      backdrop-filter: blur(18px);
+      border-bottom: 1px solid var(--border-subtle);
+      padding: 16px 36px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+    }
+
+    .brand-link {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      text-decoration: none;
+      color: var(--text-main);
+    }
+
+    .brand-icon {
+      width: 36px;
+      height: 36px;
+      border-radius: var(--radius-md);
+      background: linear-gradient(135deg, var(--spotify-green), #15803d);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 4px 16px var(--spotify-green-glow);
+    }
+
+    .brand-title h1 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 19px;
+      font-weight: 700;
+      letter-spacing: -0.02em;
+    }
+
+    .brand-title span {
+      font-size: 11px;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      display: block;
+    }
+
+    .nav-actions {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+
+    .nav-btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 8px 16px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      font-weight: 600;
+      text-decoration: none;
+      color: var(--text-muted);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      transition: var(--transition-smooth);
+    }
+
+    .nav-btn:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
+      transform: translateY(-1px);
+    }
+
+    .nav-btn.primary {
+      background: var(--spotify-green);
+      color: #041006;
+      border: none;
+      font-weight: 700;
+    }
+
+    .nav-btn.primary:hover {
+      background: var(--spotify-green-hover);
+      box-shadow: 0 4px 16px var(--spotify-green-glow);
+    }
+
+    /* Container */
+    .container {
+      max-width: 1280px;
+      margin: 0 auto;
+      padding: 40px 32px 80px 32px;
+    }
+
+    /* Hero Section */
+    .hero {
+      text-align: center;
+      margin-bottom: 50px;
+    }
+
+    .hero-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(29, 185, 84, 0.12);
+      border: 1px solid rgba(29, 185, 84, 0.3);
+      padding: 6px 16px;
+      border-radius: var(--radius-full);
+      font-size: 12px;
+      font-weight: 600;
+      color: var(--spotify-green);
+      margin-bottom: 20px;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .hero h2 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 42px;
+      font-weight: 800;
+      letter-spacing: -0.03em;
+      margin-bottom: 16px;
+      background: linear-gradient(135deg, #fff 40%, var(--text-muted) 100%);
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+    }
+
+    .hero p {
+      font-size: 17px;
+      color: var(--text-muted);
+      max-width: 760px;
+      margin: 0 auto 30px auto;
+    }
+
+    /* Stat Badges */
+    .hero-stats {
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-pill {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      font-size: 13px;
+    }
+
+    .stat-pill strong {
+      color: var(--text-main);
+    }
+
+    /* Dual Paradigm Architecture Card */
+    .arch-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      margin-bottom: 48px;
+      backdrop-filter: blur(16px);
+      box-shadow: 0 16px 40px rgba(0, 0, 0, 0.35);
+    }
+
+    .arch-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 24px;
+      flex-wrap: wrap;
+      gap: 16px;
+    }
+
+    .arch-header h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 24px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .dual-columns {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 24px;
+    }
+
+    @media (max-width: 860px) {
+      .dual-columns {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .mode-box {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .mode-box.web::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--spotify-green), var(--accent-blue));
+    }
+
+    .mode-box.agent::before {
+      content: '';
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      height: 3px;
+      background: linear-gradient(90deg, var(--accent-purple), var(--accent-rose));
+    }
+
+    .mode-box h4 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 18px;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .mode-box ul {
+      list-style: none;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      font-size: 13px;
+      color: var(--text-muted);
+    }
+
+    .mode-box li {
+      display: flex;
+      align-items: flex-start;
+      gap: 10px;
+    }
+
+    .mode-box li span.bullet {
+      color: var(--spotify-green);
+      font-weight: 700;
+    }
+
+    /* Filter & Search Bar */
+    .filter-wrapper {
+      position: sticky;
+      top: 75px;
+      z-index: 90;
+      background: rgba(8, 11, 16, 0.9);
+      backdrop-filter: blur(16px);
+      padding: 16px 0;
+      margin-bottom: 32px;
+      border-bottom: 1px solid var(--border-subtle);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .filter-top-row {
+      display: flex;
+      gap: 16px;
+      align-items: center;
+      flex-wrap: wrap;
+    }
+
+    .search-box {
+      flex: 1;
+      min-width: 280px;
+      position: relative;
+    }
+
+    .search-box input {
+      width: 100%;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 12px 16px 12px 42px;
+      color: #fff;
+      font-family: inherit;
+      font-size: 14px;
+      outline: none;
+      transition: var(--transition-smooth);
+    }
+
+    .search-box input:focus {
+      border-color: var(--spotify-green);
+      box-shadow: 0 0 0 3px var(--spotify-green-glow);
+    }
+
+    .search-box svg {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--text-dim);
+    }
+
+    .category-tabs {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .category-tab {
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-full);
+      padding: 8px 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: var(--text-muted);
+      cursor: pointer;
+      transition: var(--transition-smooth);
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .category-tab:hover {
+      color: #fff;
+      background: rgba(255, 255, 255, 0.08);
+      border-color: var(--border-hover);
+    }
+
+    .category-tab.active {
+      background: var(--spotify-green);
+      color: #041006;
+      border-color: var(--spotify-green);
+      font-weight: 700;
+    }
+
+    /* Tool Grid */
+    .tool-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 24px;
+    }
+
+    .tool-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      transition: var(--transition-smooth);
+      position: relative;
+    }
+
+    .tool-card:hover {
+      background: var(--bg-card-hover);
+      border-color: var(--border-hover);
+      transform: translateY(-2px);
+      box-shadow: 0 16px 36px rgba(0, 0, 0, 0.4);
+    }
+
+    .tool-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 16px;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tool-identity {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .tool-icon {
+      width: 44px;
+      height: 44px;
+      border-radius: var(--radius-md);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 20px;
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+    }
+
+    .tool-title-group h3 {
+      font-family: 'Outfit', sans-serif;
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+      color: #fff;
+    }
+
+    .tool-code-name {
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: var(--text-dim);
+    }
+
+    .tool-badges {
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .badge {
+      font-size: 11px;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: var(--radius-full);
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+    }
+
+    .badge-mcp { background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); border: 1px solid rgba(56, 189, 248, 0.3); }
+    .badge-web { background: rgba(29, 185, 84, 0.15); color: var(--spotify-green); border: 1px solid rgba(29, 185, 84, 0.3); }
+    .badge-skill { background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); border: 1px solid rgba(192, 132, 252, 0.3); }
+    .badge-post { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); border: 1px solid rgba(251, 191, 36, 0.3); }
+
+    .tool-description {
+      color: var(--text-muted);
+      font-size: 14.5px;
+      margin-bottom: 20px;
+      line-height: 1.6;
+    }
+
+    .tool-flow-grid {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    @media (max-width: 800px) {
+      .tool-flow-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .flow-pane {
+      background: var(--bg-surface);
+      border: 1px solid var(--border-subtle);
+      border-radius: var(--radius-md);
+      padding: 16px;
+    }
+
+    .flow-pane-title {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      margin-bottom: 8px;
+      display: flex;
+      align-items: center;
+      gap: 6px;
+    }
+
+    .flow-pane.web .flow-pane-title { color: var(--spotify-green); }
+    .flow-pane.agent .flow-pane-title { color: var(--accent-purple); }
+
+    .flow-pane p {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .code-preview {
+      background: rgba(0, 0, 0, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.06);
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 12px;
+      color: #38bdf8;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .copy-btn {
+      background: rgba(255, 255, 255, 0.08);
+      border: none;
+      color: var(--text-muted);
+      border-radius: 6px;
+      padding: 4px 8px;
+      font-size: 11px;
+      font-family: inherit;
+      cursor: pointer;
+      transition: var(--transition-smooth);
+    }
+
+    .copy-btn:hover {
+      background: var(--spotify-green);
+      color: #000;
+      font-weight: 700;
+    }
+
+    .tool-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      border-top: 1px solid var(--border-subtle);
+      padding-top: 16px;
+      font-size: 12px;
+      color: var(--text-dim);
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .tool-file-path {
+      font-family: 'JetBrains Mono', monospace;
+      color: var(--text-muted);
+    }
+
+    /* Toast Notification */
+    .toast-container {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      z-index: 1000;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .toast {
+      background: rgba(15, 22, 34, 0.95);
+      border: 1px solid var(--spotify-green);
+      color: #fff;
+      padding: 12px 20px;
+      border-radius: var(--radius-md);
+      font-size: 13px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+      animation: slide-up 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    @keyframes slide-up {
+      from { transform: translateY(20px); opacity: 0; }
+      to { transform: translateY(0); opacity: 1; }
+    }
+
+    .empty-results {
+      text-align: center;
+      padding: 60px 20px;
+      color: var(--text-muted);
+      display: none;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Header -->
+  <header>
+    <a href="/" class="brand-link">
+      <div class="brand-icon">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <circle cx="12" cy="12" r="10"></circle>
+          <polygon points="10 8 16 12 10 16 10 8"></polygon>
+        </svg>
+      </div>
+      <div class="brand-title">
+        <h1>Spotify MCP Hub</h1>
+        <span>Tool Ecosystem & Architecture</span>
+      </div>
+    </a>
+
+    <div class="nav-actions">
+      <a href="/" class="nav-btn">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 12H5M12 19l-7-7 7-7"/></svg>
+        <span>Curator Studio</span>
+      </a>
+      <a href="/tools" class="nav-btn">
+        <span>🔀 Advanced Tools</span>
+      </a>
+      <a href="https://github.com/Chiru144/Spotify-MCP-Web-MCP-Server" target="_blank" class="nav-btn primary">
+        <span>GitHub Repo</span>
+      </a>
+    </div>
+  </header>
+
+  <!-- Main Container -->
+  <main class="container">
+
+    <!-- Hero -->
+    <section class="hero">
+      <div class="hero-badge">⚡ Full Capabilities Directory</div>
+      <h2>How Every Tool Works in Web & Agent</h2>
+      <p>
+        Explore the comprehensive index of all MCP tools, web studio features, and autonomous skills. 
+        Learn how requests flow from conversational LLMs or the interactive web interface into Spotify and TMDB APIs.
+      </p>
+
+      <div class="hero-stats">
+        <div class="stat-pill">
+          <span style="color: var(--spotify-green);">●</span>
+          <span><strong>20+</strong> MCP Tools</span>
+        </div>
+        <div class="stat-pill">
+          <span style="color: var(--accent-blue);">●</span>
+          <span><strong>Dual Paradigm</strong> (Web UI + AI Agent)</span>
+        </div>
+        <div class="stat-pill">
+          <span style="color: var(--accent-purple);">●</span>
+          <span><strong>Cross-Platform</strong> (Spotify + TMDB Sync)</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Dual Paradigm Architecture Explainer -->
+    <section class="arch-card">
+      <div class="arch-header">
+        <h3>
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="var(--spotify-green)" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect><line x1="8" y1="21" x2="16" y2="21"></line><line x1="12" y1="17" x2="12" y2="21"></line></svg>
+          Dual-Execution Paradigm: Web UI vs. MCP Agent
+        </h3>
+        <span style="font-size: 13px; color: var(--text-dim);">Unified Python Backend (FastMCP + FastAPI)</span>
+      </div>
+
+      <div class="dual-columns">
+        <div class="mode-box web">
+          <h4>🌐 Mode 1: Interactive Web Studio</h4>
+          <ul>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>Visual Interface:</strong> Run at <code>http://127.0.0.1:8000</code>. Users explore filmographies, audition song previews, and tweak audio sliders.</span>
+            </li>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>Send Box (Staging Crate):</strong> A local staging area to collect songs from multiple movies/artists before batch-exporting to Spotify.</span>
+            </li>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>REST Endpoints:</strong> Communicates via FastAPI endpoints (e.g. <code>/api/recommendations</code>, <code>/api/playlist/shuffle</code>).</span>
+            </li>
+          </ul>
+        </div>
+
+        <div class="mode-box agent">
+          <h4>🤖 Mode 2: MCP AI Agent (Claude, Cursor, Cline)</h4>
+          <ul>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>Natural Language:</strong> Users talk directly to the agent (e.g., <em>"Make a dark energetic synthwave mix"</em>).</span>
+            </li>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>Autonomous Reasoning:</strong> The LLM translates user vibe adjectives into numerical Spotify parameters (energy, valence, tempo).</span>
+            </li>
+            <li>
+              <span class="bullet">→</span>
+              <span><strong>Tool Chaining:</strong> Agent chains tools seamlessly: searches TMDB $\rightarrow$ gets audio features $\rightarrow$ creates playlist $\rightarrow$ adds tracks.</span>
+            </li>
+          </ul>
+        </div>
+      </div>
+    </section>
+
+    <!-- Filter & Search Toolbar -->
+    <div class="filter-wrapper">
+      <div class="filter-top-row">
+        <div class="search-box">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"></circle><line x1="21" y1="21" x2="16.65" y2="16.65"></line></svg>
+          <input type="text" id="toolSearchInput" placeholder="Search any tool, endpoint, parameter, or keyword (e.g. vibe, shuffle, tmdb)..." oninput="filterTools()" />
+        </div>
+      </div>
+
+      <div class="category-tabs">
+        <button class="category-tab active" data-cat="all" onclick="setCategory('all', this)">🌟 All Tools</button>
+        <button class="category-tab" data-cat="vibe" onclick="setCategory('vibe', this)">✨ Vibe & Taste</button>
+        <button class="category-tab" data-cat="tmdb" onclick="setCategory('tmdb', this)">🎬 Movie Soundtracks & TMDB</button>
+        <button class="category-tab" data-cat="playlist" onclick="setCategory('playlist', this)">🎵 Playlists & Staging</button>
+        <button class="category-tab" data-cat="playback" onclick="setCategory('playback', this)">🎛️ Playback & Devices</button>
+        <button class="category-tab" data-cat="agent" onclick="setCategory('agent', this)">🤖 Agent Skills</button>
+      </div>
+    </div>
+
+    <!-- Tool Catalog Cards -->
+    <div class="tool-grid" id="toolGrid">
+
+      <!-- TOOL: get_recommendations / Vibe Engine -->
+      <article class="tool-card" data-category="vibe" data-keywords="recommendations vibe mood seeds energy valence danceability acousticness taste">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">✨</div>
+            <div class="tool-title-group">
+              <h3>Vibe & Mood Recommendations</h3>
+              <span class="tool-code-name">get_recommendations / POST /api/recommendations</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Web Modal</span>
+            <span class="badge badge-post">POST API</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Generates a targeted set of tracks using Spotify's multi-seed recommender algorithm. Accepts up to 5 combined seeds (genres, track IDs, artist IDs) along with precise target audio characteristics (energy, valence, danceability, acousticness, tempo BPM).
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Click the <strong>✨ Vibe</strong> button in the top control bar to open the modal dialog. Enter comma-separated seed genres/tracks and tweak the audio sliders.</p>
+            <p>Submitting sends a payload to <code>/api/recommendations</code> and renders matching songs directly into the studio grid for previewing and staging.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>The agent translates text prompts like <em>"Give me uplifting dance music like Dua Lipa"</em> into parameters:</p>
+            <div class="code-preview">
+              <span>get_recommendations(seed_genres=["pop"], target_valence=0.85, target_danceability=0.8)</span>
+              <button class="copy-btn" onclick="copySnippet('get_recommendations(seed_genres=[\"pop\"], target_valence=0.85, target_danceability=0.8)')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/taste.py:132</strong></span>
+          <span>Supports: 5 seeds max (tracks/artists/genres) + 6 audio targets</span>
+        </div>
+      </article>
+
+      <!-- TOOL: search_movie_soundtracks -->
+      <article class="tool-card" data-category="tmdb" data-keywords="movie soundtrack tmdb film score songs album search ost">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🎬</div>
+            <div class="tool-title-group">
+              <h3>Movie Soundtrack Search</h3>
+              <span class="tool-code-name">search_movie_soundtracks(movie_title, limit)</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Web Search</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Cross-references The Movie Database (TMDB) with Spotify's catalog. Retrieves official movie metadata, release year, poster art, and pulls official OST and score albums with complete song tracklists.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Select <strong>🎬 Movies</strong> tab on the home screen, type any movie title (e.g. <em>Interstellar</em>, <em>Inception</em>), and hit Explore. Click any movie card to instantly expand its soundtrack tracks into your crate.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Say: <em>"Find the soundtrack tracks for Oppenheimer"</em>. The agent calls this tool to retrieve songs, album URIs, and Spotify links.</p>
+            <div class="code-preview">
+              <span>search_movie_soundtracks(movie_title="Oppenheimer", limit=20)</span>
+              <button class="copy-btn" onclick="copySnippet('search_movie_soundtracks(movie_title=\"Oppenheimer\", limit=20)')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/tmdb_helpers.py</strong></span>
+          <span>Requires: TMDB_API_KEY + Spotify Client Credentials</span>
+        </div>
+      </article>
+
+      <!-- TOOL: search_actors_filmography -->
+      <article class="tool-card" data-category="tmdb" data-keywords="actor actress filmography movies cast crew tmdb">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🎭</div>
+            <div class="tool-title-group">
+              <h3>Actor Filmography & Discography</h3>
+              <span class="tool-code-name">search_actors_filmography(actor_name)</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Web Mode</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Queries TMDB for an actor or actress's complete filmography, returning movies sorted by release date and popularity. Allows one-click discovery of the music from their entire cinematic career.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Switch to <strong>🎭 Actors</strong> mode in the top tab bar, search for an actor (e.g. <em>Ryan Gosling</em>, <em>Zendaya</em>), and browse their movies. Clicking any movie loads its associated Spotify soundtrack.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Ask: <em>"What movies was Timothée Chalamet in and give me songs from them?"</em> The agent retrieves his filmography and discovers relevant OSTs.</p>
+            <div class="code-preview">
+              <span>search_actors_filmography(actor_name="Timothée Chalamet")</span>
+              <button class="copy-btn" onclick="copySnippet('search_actors_filmography(actor_name=\"Timothée Chalamet\")')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/tmdb_helpers.py</strong></span>
+          <span>Integrated with TMDB People API</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Staging Studio / Send Box -->
+      <article class="tool-card" data-category="playlist" data-keywords="staging send box crate playlist builder save export">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">📦</div>
+            <div class="tool-title-group">
+              <h3>Send Box (Staging Crate)</h3>
+              <span class="tool-code-name">create_playlist + add_songs_to_playlist</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-web">Web Feature</span>
+            <span class="badge badge-mcp">MCP Batch</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          A persistent staging crate where users collect individual tracks across movies, singers, and vibe recommendations. Once staged, users can export the crate into a brand new Spotify playlist or append into an existing one with one click.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Click <strong>+ Send</strong> on any track card to stage it into the right-hand Send Box sidebar. Give your playlist a title and click <strong>Create Playlist</strong> to push directly into your Spotify account.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>The agent performs equivalent batch staging automatically when you ask: <em>"Create a playlist called Cyberpunk Night and add these 10 tracks."</em></p>
+            <div class="code-preview">
+              <span>create_playlist(name="Cyberpunk Night", description="Curated via MCP")</span>
+              <button class="copy-btn" onclick="copySnippet('create_playlist(name=\"Cyberpunk Night\", description=\"Curated via MCP\")')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py:15</strong></span>
+          <span>Scope: playlist-modify-public, playlist-modify-private</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Playlist Shuffler -->
+      <article class="tool-card" data-category="playlist" data-keywords="shuffle playlist random order in-place duplicate">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🔀</div>
+            <div class="tool-title-group">
+              <h3>Playlist Shuffler</h3>
+              <span class="tool-code-name">shuffle_playlist_tool / POST /api/playlist/shuffle</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Advanced Tools</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Randomizes track order in a playlist using cryptographic-grade random shuffling. Offers two execution modes: <strong>Create New Shuffled Playlist</strong> (non-destructive) or <strong>In-Place Reorder</strong> (for playlists you own).
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Navigate to <strong>/tools (Advanced Tools)</strong>, pick a playlist from the dropdown or paste a link, and choose whether to create a new playlist or shuffle in-place.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Prompt: <em>"Shuffle my Chill Vibes playlist into a new playlist."</em> The agent handles the track retrieval, random permutation, and playlist generation.</p>
+            <div class="code-preview">
+              <span>shuffle_playlist_tool(playlist_id="spotify:playlist:...", in_place=False)</span>
+              <button class="copy-btn" onclick="copySnippet('shuffle_playlist_tool(playlist_id=\"...\", in_place=False)')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py:80</strong></span>
+          <span>Endpoint: /api/playlist/shuffle</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Playlist Duplicate Remover -->
+      <article class="tool-card" data-category="playlist" data-keywords="dedupe duplicate remove clean playlist">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🧹</div>
+            <div class="tool-title-group">
+              <h3>Playlist Duplicate Remover</h3>
+              <span class="tool-code-name">deduplicate_playlist / POST /api/playlist/dedupe</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Advanced Tools</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Scans any Spotify playlist for identical songs (matching song title + artist name) and removes duplicate occurrences in-place, keeping only the first instance of each track.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Open <strong>/tools</strong>, select the target playlist in the <em>🧹 Playlist Duplicate Remover</em> card, and click <strong>Remove Duplicates</strong>.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Say: <em>"Clean up my Roadtrip playlist and remove all duplicate songs."</em></p>
+            <div class="code-preview">
+              <span>deduplicate_playlist(playlist_id="spotify:playlist:...")</span>
+              <button class="copy-btn" onclick="copySnippet('deduplicate_playlist(playlist_id=\"...\")')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py:120</strong></span>
+          <span>Endpoint: /api/playlist/dedupe</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Playlist Combiner -->
+      <article class="tool-card" data-category="playlist" data-keywords="combine merge merge playlists join multiple">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🔗</div>
+            <div class="tool-title-group">
+              <h3>Playlist Combiner</h3>
+              <span class="tool-code-name">combine_playlists / POST /api/playlist/combine</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">Advanced Tools</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Combines tracks from two or more playlists into a single unified playlist. Automatically handles pagination for large playlists and prevents duplicates across the combined result.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Under <strong>/tools</strong>, add rows for each playlist you wish to combine, specify a name for the new composite playlist, and click <strong>Combine Playlists</strong>.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Say: <em>"Merge my Workout playlist and Running playlist into Marathon Mix."</em></p>
+            <div class="code-preview">
+              <span>combine_playlists(playlist_ids=["id1", "id2"], new_name="Marathon Mix")</span>
+              <button class="copy-btn" onclick="copySnippet('combine_playlists(playlist_ids=[\"id1\", \"id2\"], new_name=\"Marathon Mix\")')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py:155</strong></span>
+          <span>Endpoint: /api/playlist/combine</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Audio Features & Vibe Sorter -->
+      <article class="tool-card" data-category="vibe" data-keywords="audio features valence energy tempo bpm sort flow reorder">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">📊</div>
+            <div class="tool-title-group">
+              <h3>Audio Features & Vibe Sorter</h3>
+              <span class="tool-code-name">get_audio_features / reorder_playlist_by_audio_features</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-skill">Agent Skill</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Inspects raw acoustic metrics (valence, energy, danceability, tempo BPM, acousticness, key, mode) and allows re-sorting any playlist so that the musical flow seamlessly builds up or chills down.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Audio feature radar and metric bars are computed dynamically during recommendation generation to match slider targets.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Triggered by <code>playlist_vibe_sorter</code> skill. Say: <em>"Sort my Gym playlist by energy from high to low."</em></p>
+            <div class="code-preview">
+              <span>reorder_playlist_by_audio_features(playlist_id="...", feature="energy", order="desc")</span>
+              <button class="copy-btn" onclick="copySnippet('reorder_playlist_by_audio_features(playlist_id=\"...\", feature=\"energy\", order=\"desc\")')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/taste.py:58</strong> &amp; <strong class="tool-file-path">tools/playlists.py</strong></span>
+          <span>Skill: skills/playlist-vibe-sorter.md</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Playback & Device Controls -->
+      <article class="tool-card" data-category="playback" data-keywords="playback play pause next volume devices connect">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🎛️</div>
+            <div class="tool-title-group">
+              <h3>Playback & Device Controls</h3>
+              <span class="tool-code-name">play_track, pause_playback, next_track, set_volume</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-web">UI Audio Player</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Full Spotify Connect integration for hardware and desktop control. Start, resume, pause playback, skip tracks, adjust volume, and switch active playback devices.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>The top navigation bar provides an interactive volume slider and user playback state indicator. Track cards feature inline 30s audio preview players.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Control music hands-free: <em>"Play the next song"</em>, <em>"Turn the volume down to 40%"</em>, or <em>"What song is currently playing?"</em></p>
+            <div class="code-preview">
+              <span>set_volume(volume_percent=40)</span>
+              <button class="copy-btn" onclick="copySnippet('set_volume(volume_percent=40)')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playback.py</strong></span>
+          <span>Scope: user-modify-playback-state, user-read-playback-state</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Browser Song Tagger Skill -->
+      <article class="tool-card" data-category="agent" data-keywords="tagger web browser tags duckduckgo genres agent skill">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🏷️</div>
+            <div class="tool-title-group">
+              <h3>Web & Browser Song Tagger</h3>
+              <span class="tool-code-name">browser_song_tagger skill</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-skill">Agent Skill</span>
+            <span class="badge badge-mcp">Autonomous</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          An autonomous agent skill that researches obscure songs via web search (DuckDuckGo or browser tools) to discover niche genres, cultural tags, and aesthetic sub-genres, then applies those tags to Spotify playlist metadata.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p>Tags extracted by the agent are reflected in playlist descriptions and used to populate seed genre inputs inside the Vibe Modal.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Ask: <em>"Check the web tags for 'Resonance' by HOME and add it to a matching tag playlist."</em> The agent searches the web, finds <code>Synthwave, Chillwave</code>, and stages it.</p>
+            <div class="code-preview">
+              <span>Agent conducts Web Search -> tags as Synthwave -> categorizes playlist</span>
+              <button class="copy-btn" onclick="copySnippet('Check the song tags from the browser for Resonance by HOME and tag it.')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">skills/browser-song-tagger.md</strong></span>
+          <span>Requires: DuckDuckGo Search / Browser tools</span>
+        </div>
+      </article>
+
+    </div>
+
+    <!-- Empty State for Search -->
+    <div class="empty-results" id="emptyResults">
+      <h3>No tools found matching your search</h3>
+      <p style="margin-top: 8px;">Try searching for "vibe", "tmdb", "shuffle", "volume", or reset your category filter.</p>
+    </div>
+
+  </main>
+
+  <div id="toastContainer" class="toast-container"></div>
+
+  <script>
+    let currentCategory = 'all';
+
+    function setCategory(cat, btn) {
+      currentCategory = cat;
+      document.querySelectorAll('.category-tab').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      filterTools();
+    }
+
+    function filterTools() {
+      const q = document.getElementById('toolSearchInput').value.toLowerCase().trim();
+      const cards = document.querySelectorAll('.tool-card');
+      let visibleCount = 0;
+
+      cards.forEach(card => {
+        const cat = card.dataset.category;
+        const keywords = card.dataset.keywords.toLowerCase();
+        const text = card.textContent.toLowerCase();
+
+        const matchCat = (currentCategory === 'all' || cat === currentCategory);
+        const matchSearch = (!q || keywords.includes(q) || text.includes(q));
+
+        if (matchCat && matchSearch) {
+          card.style.display = 'block';
+          visibleCount++;
+        } else {
+          card.style.display = 'none';
+        }
+      });
+
+      document.getElementById('emptyResults').style.display = visibleCount === 0 ? 'block' : 'none';
+    }
+
+    function copySnippet(text) {
+      navigator.clipboard.writeText(text).then(() => {
+        showToast('Copied to clipboard!');
+      }).catch(() => {
+        showToast('Failed to copy');
+      });
+    }
+
+    function showToast(msg) {
+      const c = document.getElementById('toastContainer');
+      const t = document.createElement('div');
+      t.className = 'toast';
+      t.innerHTML = `<span>✨</span><span>${msg}</span>`;
+      c.appendChild(t);
+      setTimeout(() => {
+        t.style.opacity = '0';
+        setTimeout(() => t.remove(), 300);
+      }, 3000);
+    }
+  </script>
+</body>
+</html>

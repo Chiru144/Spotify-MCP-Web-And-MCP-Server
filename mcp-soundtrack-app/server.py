@@ -179,7 +179,7 @@ def _get_tmdb_headers_and_params(extra_params: dict = None) -> tuple[dict, dict]
     return headers, params
 
 
-def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list[dict]:
+def fetch_soundtrack_tracks(movie_title: str, language_name: str = None, release_year: str = None, actor_name: str = None) -> list[dict]:
     """Searches Spotify for movie soundtrack tracks using client credentials or user client."""
     client = _get_valid_user_client() or public_sp
     if not client:
@@ -188,19 +188,49 @@ def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list
     try:
         clean_title = movie_title.strip()
         search_title = clean_title
-        if language_name:
+        if actor_name:
+            search_title = f"{clean_title} {actor_name}"
+        elif language_name:
             search_title = f"{clean_title} {language_name}"
             
+        year_filter = ""
+        if release_year and len(str(release_year)) >= 4:
+            year_filter = f" year:{str(release_year)[:4]}"
+            
         import difflib
-        def is_fuzzy_match(movie: str, target: str) -> bool:
-            movie = movie.lower()
-            target = target.lower()
-            if movie in target: return True
-            for m_word in movie.split():
-                if len(m_word) < 4: continue
-                for t_word in target.split():
-                    if difflib.SequenceMatcher(None, m_word, t_word).ratio() > 0.8:
-                        return True
+        import re
+        
+        def is_year_match(spotify_date: str, target_year: str) -> bool:
+            if not target_year or not spotify_date: return True
+            try:
+                s_y = int(spotify_date[:4])
+                t_y = int(str(target_year)[:4])
+                return abs(s_y - t_y) <= 5
+            except:
+                return True
+
+        def is_fuzzy_match(movie: str, target: str, lang: str = None) -> bool:
+            m_norm = re.sub(r'[^a-z0-9\s]', '', movie.lower()).strip()
+            t_norm = re.sub(r'[^a-z0-9\s]', '', target.lower()).strip()
+            if not m_norm or not t_norm: return False
+            
+            # If a language is requested, reject if the target explicitly contains a DIFFERENT common language
+            if lang:
+                lang_lower = lang.lower()
+                common_langs = {"hindi", "telugu", "tamil", "malayalam", "kannada", "english"}
+                target_words = set(t_norm.split())
+                for cl in common_langs:
+                    if cl != lang_lower and cl in target_words and lang_lower not in target_words:
+                        return False # Target specifies a different language
+            
+            if m_norm == t_norm: return True
+            if re.search(rf'\b{re.escape(m_norm)}\b', t_norm): return True
+            
+            m_solid = m_norm.replace(" ", "")
+            t_solid = t_norm.replace(" ", "")
+            if len(m_solid) > 4 and m_solid in t_solid: return True
+            
+            if difflib.SequenceMatcher(None, m_solid, t_solid).ratio() > 0.85: return True
             return False
             
         # Fetch user market to avoid playing regionally locked tracks which cause the client to pause
@@ -214,13 +244,45 @@ def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list
 
         # Strategy 1: Search for album with "soundtrack" or "OST"
         albums = []
-        for q in [f"album:{search_title} soundtrack", f"{search_title} soundtrack", f"{search_title} ost", search_title]:
+        queries = [
+            f"album:{search_title} soundtrack{year_filter}",
+            f"{search_title} soundtrack{year_filter}",
+            f"{search_title} ost{year_filter}",
+            f"{search_title}{year_filter}"
+        ]
+        
+        # If language or actor was included, also add queries without them in case the album isn't explicitly localized/tagged
+        if language_name or actor_name:
+            queries.extend([
+                f"album:{clean_title} soundtrack{year_filter}",
+                f"{clean_title} soundtrack{year_filter}",
+                f"{clean_title} ost{year_filter}",
+                f"{clean_title}{year_filter}"
+            ])
+
+        if year_filter:
+            queries.extend([
+                f"album:{search_title} soundtrack",
+                f"{search_title} soundtrack",
+                f"{search_title} ost",
+                search_title
+            ])
+            if language_name or actor_name:
+                queries.extend([
+                    f"album:{clean_title} soundtrack",
+                    f"{clean_title} soundtrack",
+                    f"{clean_title} ost",
+                    clean_title
+                ])
+            
+        for q in queries:
             res = client.search(q=q, type="album", limit=3, market=market)
             found = res.get("albums", {}).get("items", [])
             for album in found:
-                if is_fuzzy_match(clean_title, album.get("name", "")):
-                    albums = [album]
-                    break
+                if is_fuzzy_match(clean_title, album.get("name", ""), language_name):
+                    if is_year_match(album.get("release_date", ""), release_year):
+                        albums = [album]
+                        break
             if albums:
                 break
 
@@ -255,7 +317,31 @@ def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list
                 return formatted
 
         # Strategy 2: Fallback to direct track search for movie songs
-        fallback_queries = [f"{search_title} soundtrack", f"{search_title} theme", search_title]
+        fallback_queries = [
+            f"{search_title} soundtrack{year_filter}",
+            f"{search_title} theme{year_filter}",
+            f"{search_title}{year_filter}"
+        ]
+        
+        if language_name or actor_name:
+            fallback_queries.extend([
+                f"{clean_title} soundtrack{year_filter}",
+                f"{clean_title} theme{year_filter}",
+                f"{clean_title}{year_filter}"
+            ])
+            
+        if year_filter:
+            fallback_queries.extend([
+                f"{search_title} soundtrack", 
+                f"{search_title} theme", 
+                search_title
+            ])
+            if language_name or actor_name:
+                fallback_queries.extend([
+                    f"{clean_title} soundtrack", 
+                    f"{clean_title} theme", 
+                    clean_title
+                ])
         tracks_list = []
         seen_uris = set()
         for fq in fallback_queries:
@@ -268,8 +354,11 @@ def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list
                 track_name = t.get("name", "").lower()
                 album_name = t.get("album", {}).get("name", "").lower()
                 
-                # Stricter matching with fuzzy logic
-                if not is_fuzzy_match(clean_title, track_name) and not is_fuzzy_match(clean_title, album_name):
+                # Stricter matching with fuzzy logic and year
+                if not is_fuzzy_match(clean_title, track_name, language_name) and not is_fuzzy_match(clean_title, album_name, language_name):
+                    continue
+                    
+                if not is_year_match(t.get("album", {}).get("release_date", ""), release_year):
                     continue
                     
                 if uri and uri not in seen_uris:
@@ -298,11 +387,13 @@ def fetch_soundtrack_tracks(movie_title: str, language_name: str = None) -> list
 @app.get("/api/movie/tracks")
 def get_movie_soundtracks(
     movie_title: str = Query(..., description="Movie Title"),
-    lang: Optional[str] = Query(None, description="Language filter")
+    lang: Optional[str] = Query(None, description="Language filter"),
+    release_year: Optional[str] = Query(None, description="Release year of the movie"),
+    actor_name: Optional[str] = Query(None, description="Actor name")
 ):
     """Fetches official soundtrack tracks on demand when a movie card is clicked."""
     lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
-    tracks = fetch_soundtrack_tracks(movie_title, language_name=lang_map.get(lang))
+    tracks = fetch_soundtrack_tracks(movie_title, language_name=lang_map.get(lang), release_year=release_year, actor_name=actor_name)
     return {"movie_title": movie_title, "tracks": tracks}
 
 
@@ -1526,6 +1617,21 @@ def next_track():
     except Exception as e:
         return {"success": False, "error": str(e)}
 
+class SeekRequest(BaseModel):
+    position_ms: int
+
+@app.post("/api/player/seek")
+def seek_track(payload: SeekRequest):
+    user_client = _get_valid_user_client()
+    if not user_client: return {"success": False, "need_auth": True}
+    try:
+        user_client.seek_track(payload.position_ms)
+        return {"success": True}
+    except spotipy.exceptions.SpotifyException as e:
+        return {"success": False, "error": str(e.msg)}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
 @app.post("/api/player/previous")
 def prev_track():
     user_client = _get_valid_user_client()
@@ -1535,6 +1641,94 @@ def prev_track():
         return {"success": True}
     except Exception as e:
         return {"success": False, "error": str(e)}
+
+class RecommendationsRequest(BaseModel):
+    limit: int = 10
+    seed_tracks: Optional[List[str]] = None
+    seed_artists: Optional[List[str]] = None
+    seed_genres: Optional[List[str]] = None
+    target_energy: Optional[float] = None
+    target_valence: Optional[float] = None
+    target_danceability: Optional[float] = None
+    target_acousticness: Optional[float] = None
+    target_instrumentalness: Optional[float] = None
+    target_tempo: Optional[float] = None
+
+@app.post("/api/recommendations")
+def api_get_recommendations(payload: RecommendationsRequest):
+    """Fetches track recommendations based on seeds and target features."""
+    client = _get_valid_user_client() or public_sp
+    if not client:
+        return {"error": "Spotify credentials not configured", "recommendations": []}
+    
+    try:
+        kwargs = {}
+        if payload.target_energy is not None: kwargs["target_energy"] = payload.target_energy
+        if payload.target_valence is not None: kwargs["target_valence"] = payload.target_valence
+        if payload.target_danceability is not None: kwargs["target_danceability"] = payload.target_danceability
+        if payload.target_acousticness is not None: kwargs["target_acousticness"] = payload.target_acousticness
+        if payload.target_instrumentalness is not None: kwargs["target_instrumentalness"] = payload.target_instrumentalness
+        if payload.target_tempo is not None: kwargs["target_tempo"] = payload.target_tempo
+        
+        # Ensure we have at least 1 seed, and not more than 5
+        seed_tracks = payload.seed_tracks or []
+        seed_artists = payload.seed_artists or []
+        seed_genres = payload.seed_genres or []
+        
+        num_seeds = len(seed_tracks) + len(seed_artists) + len(seed_genres)
+        if num_seeds == 0:
+            # Default to some genre if nothing provided
+            seed_genres = ["pop"]
+            
+        if num_seeds > 5:
+            # Truncate to 5
+            total = []
+            total.extend([("track", t) for t in seed_tracks])
+            total.extend([("artist", a) for a in seed_artists])
+            total.extend([("genre", g) for g in seed_genres])
+            
+            total = total[:5]
+            seed_tracks = [item[1] for item in total if item[0] == "track"]
+            seed_artists = [item[1] for item in total if item[0] == "artist"]
+            seed_genres = [item[1] for item in total if item[0] == "genre"]
+
+        results = client.recommendations(
+            seed_tracks=seed_tracks if seed_tracks else None,
+            seed_artists=seed_artists if seed_artists else None,
+            seed_genres=seed_genres if seed_genres else None,
+            limit=min(payload.limit, 100),
+            **kwargs
+        )
+        
+        formatted = []
+        for t in results.get("tracks", []):
+            album = t.get("album", {})
+            artists = t.get("artists", [])
+            artist_names = ", ".join([a.get("name", "") for a in artists]) or "Unknown"
+            
+            formatted.append({
+                "id": t.get("id"),
+                "name": t.get("name"),
+                "artist": artist_names,
+                "album_name": album.get("name", ""),
+                "album_cover": album.get("images", [{}])[0].get("url") if album.get("images") else None,
+                "uri": t.get("uri"),
+                "spotify_url": t.get("external_urls", {}).get("spotify"),
+            })
+            
+        return {"success": True, "recommendations": formatted}
+    except spotipy.exceptions.SpotifyException as e:
+        return {"success": False, "error": str(e.msg)}
+    except Exception as e:
+        return {"success": False, "error": str(e)}
+
+@app.get("/guide", response_class=HTMLResponse)
+@app.get("/tools-guide", response_class=HTMLResponse)
+def serve_guide():
+    """Serves the tools guide & architecture documentation page."""
+    template_path = BASE_DIR / "templates" / "guide.html"
+    with open(template_path, "r", encoding="utf-8") as f:
+        return f.read()
 
 @app.get("/tools", response_class=HTMLResponse)
 def serve_tools():
