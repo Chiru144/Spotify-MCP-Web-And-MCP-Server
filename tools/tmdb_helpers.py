@@ -14,7 +14,7 @@ except ImportError:
 
 def tmdb_get_auth_headers() -> Dict[str, str]:
     """Return authorization headers for TMDB API."""
-    token = os.getenv("TMDB_READ_ACCESS_TOKEN") or os.getenv("TMDB_ACCESS_TOKEN")
+    token = os.getenv("TMDB_READ_ACCESS_TOKEN")
     headers = {"accept": "application/json"}
     if token:
         headers["Authorization"] = f"Bearer {token}"
@@ -23,7 +23,7 @@ def tmdb_get_auth_headers() -> Dict[str, str]:
 
 def tmdb_get_auth_params() -> Dict[str, str]:
     """Return query params if API key is used as fallback."""
-    token = os.getenv("TMDB_READ_ACCESS_TOKEN") or os.getenv("TMDB_ACCESS_TOKEN")
+    token = os.getenv("TMDB_READ_ACCESS_TOKEN")
     api_key = os.getenv("TMDB_API_KEY")
     params: Dict[str, str] = {}
     if not token and api_key:

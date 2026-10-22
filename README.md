@@ -184,7 +184,6 @@ SPOTIPY_REDIRECT_URI=http://localhost:8080 # Or your configured redirect URI
 # TMDB Credentials
 TMDB_API_KEY=your_tmdb_api_key
 TMDB_READ_ACCESS_TOKEN=your_tmdb_read_access_token
-TMDB_ACCESS_TOKEN=your_tmdb_access_token
 
 # Optional configuration
 OPEN_BROWSER=true

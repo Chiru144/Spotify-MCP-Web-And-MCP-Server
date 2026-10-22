@@ -26,7 +26,7 @@ recently_modified_counts = {}
 app = FastAPI(title="Soundtrack Curator & Staging Studio")
 
 TMDB_API_KEY = os.getenv("TMDB_API_KEY")
-TMDB_READ_ACCESS_TOKEN = os.getenv("TMDB_READ_ACCESS_TOKEN") or os.getenv("TMDB_ACCESS_TOKEN")
+TMDB_READ_ACCESS_TOKEN = os.getenv("TMDB_READ_ACCESS_TOKEN")
 
 # Helper to get valid non-placeholder credentials
 def _get_credential(key1: str, key2: str) -> str:
