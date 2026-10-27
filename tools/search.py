@@ -4,6 +4,7 @@ from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_durat
 import spotipy
 import difflib
 import re
+import sys
 
 from tools.tmdb_helpers import *
 
@@ -954,7 +955,7 @@ def fetch_soundtrack_tracks_with_client(
                 break
         return tracks_list
     except Exception as e:
-        print(f"Error fetching soundtrack for {movie_title}: {e}")
+        print(f"Error fetching soundtrack for {movie_title}: {e}", file=sys.stderr)
         return []
 
 

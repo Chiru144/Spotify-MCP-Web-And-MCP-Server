@@ -137,9 +137,9 @@ def start_oauth_callback_server(port: int = 8888):
         t = threading.Thread(target=server_8888.serve_forever, daemon=True, name="OAuth8888Listener")
         t.start()
         _oauth_server_started = True
-        print(f"[OAuth Helper] Callback listener active on http://127.0.0.1:{port}/callback")
+        print(f"[OAuth Helper] Callback listener active on http://127.0.0.1:{port}/callback", file=sys.stderr)
     except Exception as e:
-        print(f"[OAuth Helper] Note: Port {port} listener not started: {e}")
+        print(f"[OAuth Helper] Note: Port {port} listener not started: {e}", file=sys.stderr)
 
 # Automatically start background listener on port 8888
 start_oauth_callback_server(8888)
@@ -331,7 +331,7 @@ def search_movies_only(
         m_res = requests.get(movie_search_url, headers=headers, params=params, timeout=4).json()
         movies_raw = m_res.get("results", [])
     except Exception as e:
-        print(f"Movie search error: {e}")
+        print(f"Movie search error: {e}", file=sys.stderr)
         
     if not movies_raw:
         # Fallback if TMDB is blocked/down
@@ -461,7 +461,7 @@ def search_actors_only(
                 "known_for_department": prof_res.get("known_for_department", "Acting")
             }
     except Exception as e:
-        print(f"Actor search error: {e}")
+        print(f"Actor search error: {e}", file=sys.stderr)
 
     if not movies_raw:
         # Fallback if TMDB is blocked
@@ -639,7 +639,7 @@ def search_songs(
             "songs": formatted
         }
     except Exception as e:
-        print(f"Song search error: {e}")
+        print(f"Song search error: {e}", file=sys.stderr)
         return {"error": str(e), "songs": [], "total_results": 0}
 
 
@@ -908,7 +908,7 @@ def fetch_playlist_tracks(query: str = Query(..., description="Spotify Playlist 
                 else:
                     break
         except Exception as te:
-            print(f"Error reading playlist items: {te}")
+            print(f"Error reading playlist items: {te}", file=sys.stderr)
 
         return {
             "success": True,

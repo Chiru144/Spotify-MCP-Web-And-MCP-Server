@@ -92,3 +92,19 @@ def test_spotify_search_discovery_tools(mock_clients):
     assert "Spotify Recommendations" in res_recs
     assert "Smart Rec 1" in res_recs
 
+
+def test_fetch_tracks_for_movie_uses_soundtrack_album(mock_clients):
+    from tools import tmdb_helpers
+    sp = MagicMock()
+    sp.search.side_effect = lambda q, type, limit: (
+        {"albums": {"items": [{"id": "A1", "name": "Inception (Music from the Motion Picture)"}]}}
+        if type == "album" else {"tracks": {"items": []}}
+    )
+    sp.album_tracks.return_value = {"items": [
+        {"name": "Time", "uri": "spotify:track:1", "artists": [{"name": "Hans Zimmer", "id": "hz"}]}
+    ]}
+
+    tracks = tmdb_helpers.fetch_tracks_for_movie(sp, "Inception", max_songs=3)
+
+    assert sp.album_tracks.called
+    assert [t["uri"] for t in tracks] == ["spotify:track:1"]

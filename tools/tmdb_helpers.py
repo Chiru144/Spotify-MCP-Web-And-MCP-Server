@@ -371,6 +371,18 @@ def fetch_tracks_for_movie(sp: spotipy.Spotify, movie_name: str, max_songs: int 
     tracks: List[Dict[str, str]] = []
     seen_uris = set()
 
+    import difflib
+    def is_fuzzy_match(movie: str, target: str) -> bool:
+        movie = movie.lower()
+        target = target.lower()
+        if movie in target: return True
+        for m_word in movie.split():
+            if len(m_word) < 4: continue
+            for t_word in target.split():
+                if difflib.SequenceMatcher(None, m_word, t_word).ratio() > 0.8:
+                    return True
+        return False
+
     # Strategy 1: Search for movie soundtrack/album
     album_queries = [
         f'album:"{movie_name}"',
@@ -412,17 +424,6 @@ def fetch_tracks_for_movie(sp: spotipy.Spotify, movie_name: str, max_songs: int 
         f"{movie_name} theme",
         movie_name
     ]
-    import difflib
-    def is_fuzzy_match(movie: str, target: str) -> bool:
-        movie = movie.lower()
-        target = target.lower()
-        if movie in target: return True
-        for m_word in movie.split():
-            if len(m_word) < 4: continue
-            for t_word in target.split():
-                if difflib.SequenceMatcher(None, m_word, t_word).ratio() > 0.8:
-                    return True
-        return False
 
     for tq in track_queries:
         if len(tracks) >= max_songs:

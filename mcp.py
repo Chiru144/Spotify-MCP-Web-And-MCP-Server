@@ -113,7 +113,7 @@ def check_and_authenticate():
                         
                     root.after(0, manual_fallback)
                 except Exception as e:
-                    root.after(0, lambda: fail(e))
+                    root.after(0, lambda err=e: fail(err))
 
             def success():
                 messagebox.showinfo("Success", "Authenticated successfully! Starting MCP server...", parent=root)
