@@ -61,8 +61,11 @@ SPOTIFY_SCOPES = [
 TMDB_BASE_URL = os.getenv("TMDB_BASE_URL", "https://api.themoviedb.org/3")
 
 
-def get_spotify_client():
-    """Initialize and return an authenticated Spotipy client using PKCE OAuth (no client secret needed)."""
+def get_spotify_client(allow_interactive: bool = False):
+    """Initialize and return an authenticated Spotipy client using PKCE OAuth (no client secret needed).
+    In MCP server mode (allow_interactive=False), it never blocks on stdin. If unauthenticated,
+    it raises a clean PermissionError containing the authorization URL.
+    """
     import spotipy
     from spotipy.oauth2 import SpotifyPKCE
 
@@ -72,15 +75,38 @@ def get_spotify_client():
     if not client_id or "your_spotify_client_id" in client_id:
         raise ValueError("Missing SPOTIPY_CLIENT_ID in .env. Please configure your Spotify Client ID.")
 
-    cache_path = str(Path(__file__).parent.parent / ".spotipyoauthcache")
+    cache_file = Path(__file__).parent.parent / ".spotipyoauthcache"
+    cache_path = str(cache_file)
 
     auth_manager = SpotifyPKCE(
         client_id=client_id,
         redirect_uri=redirect_uri,
         scope=" ".join(SPOTIFY_SCOPES),
         cache_path=cache_path,
-        open_browser=True,
+        open_browser=allow_interactive,
     )
+
+    # Auto-healing: If cached token is expired and refresh token is rejected, clear cache
+    cached = auth_manager.cache_handler.get_cached_token()
+    token = None
+    if cached:
+        try:
+            token = auth_manager.validate_token(cached)
+        except Exception:
+            token = None
+            if cache_file.exists():
+                try:
+                    cache_file.unlink()
+                except Exception:
+                    pass
+
+    if not token and not allow_interactive:
+        auth_url = auth_manager.get_authorize_url()
+        raise PermissionError(
+            f"Spotify authentication required. Please connect your account by opening:\n{auth_url}\n"
+            f"Or visit http://127.0.0.1:8000 and click 'Connect to Spotify'."
+        )
+
     return spotipy.Spotify(auth_manager=auth_manager)
 
 

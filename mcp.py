@@ -30,7 +30,14 @@ def check_and_authenticate():
         open_browser=True,
     )
     
-    token_info = auth_manager.validate_token(auth_manager.cache_handler.get_cached_token())
+    token_info = None
+    try:
+        cached = auth_manager.cache_handler.get_cached_token()
+        if cached:
+            token_info = auth_manager.validate_token(cached)
+    except Exception:
+        token_info = None
+
     if not token_info:
         # Patch input so spotipy can't block the MCP stdin if it falls back to manual URL pasting
         builtins.input = gui_input

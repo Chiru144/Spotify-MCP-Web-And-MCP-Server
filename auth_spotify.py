@@ -23,7 +23,7 @@ def main():
     print("If it does not, copy the link shown and paste it into your browser.\n")
     
     try:
-        sp = get_spotify_client()
+        sp = get_spotify_client(allow_interactive=True)
         user = sp.current_user()
         print("=" * 65)
         print(" [SUCCESS] Successfully authenticated with Spotify!")
