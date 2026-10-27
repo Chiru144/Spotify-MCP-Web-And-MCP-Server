@@ -23,6 +23,9 @@ ROOT_DIR = BASE_DIR.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+# Spotify client that reports long rate limits instead of sleeping through them
+from tools.spotify_client import FailFastSpotify
+
 # Load environment variables (check root folder as primary single source of truth)
 env_parent = BASE_DIR.parent / ".env"
 env_local = BASE_DIR / ".env"
@@ -156,7 +159,7 @@ def _get_valid_user_client() -> Optional[spotipy.Spotify]:
         except Exception:
             token_info = None
     if token_info and token_info.get("access_token"):
-        return spotipy.Spotify(auth=token_info["access_token"])
+        return FailFastSpotify(auth=token_info["access_token"])
     return None
 
 
@@ -1017,7 +1020,7 @@ def shuffle_playlist(payload: PlaylistShuffleRequest):
                     from spotipy.oauth2 import SpotifyClientCredentials
                     client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
                     client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                    app_client = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
+                    app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
                     res = app_client.playlist_items(pid, limit=100)
                     while res:
                         items.extend(res.get("items", []))
@@ -1046,7 +1049,7 @@ def shuffle_playlist(payload: PlaylistShuffleRequest):
                 from spotipy.oauth2 import SpotifyClientCredentials
                 client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
                 client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                app_client = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
+                app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
                 playlist = app_client.playlist(pid)
             else:
                 raise e
@@ -1225,7 +1228,7 @@ def combine_playlists(payload: PlaylistCombineRequest):
                         from spotipy.oauth2 import SpotifyClientCredentials
                         client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
                         client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                        app_client = spotipy.Spotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
+                        app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
                         res = app_client.playlist_items(pid, limit=100)
                         while res:
                             items.extend(res.get("items", []))

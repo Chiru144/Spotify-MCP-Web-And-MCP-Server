@@ -66,7 +66,6 @@ def get_spotify_client(allow_interactive: bool = False):
     In MCP server mode (allow_interactive=False), it never blocks on stdin. If unauthenticated,
     it raises a clean PermissionError containing the authorization URL.
     """
-    import spotipy
     from spotipy.oauth2 import SpotifyPKCE
 
     client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
@@ -109,7 +108,8 @@ def get_spotify_client(allow_interactive: bool = False):
 
 
 
-    return spotipy.Spotify(auth_manager=auth_manager)
+    from tools.spotify_client import FailFastSpotify
+    return FailFastSpotify(auth_manager=auth_manager)
 
 
 def _clean_spotify_id(raw_id: str, id_type: str = "") -> str:
