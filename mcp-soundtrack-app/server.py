@@ -4118,6 +4118,7 @@ class ReorderFeaturesRequest(BaseModel):
     playlist_id: str
     feature: Optional[str] = "energy"
     ascending: Optional[bool] = False
+    order: Optional[str] = None
 
 class AudioFeaturesPayload(BaseModel):
     track_ids: List[str]
@@ -4163,10 +4164,11 @@ def reorder_by_features_endpoint(payload: ReorderFeaturesRequest):
     """Reorder a playlist based on audio features (energy, valence, danceability, tempo)."""
     try:
         from tools import playlists as tool_playlists
+        sort_order = "asc" if payload.ascending or (payload.order and payload.order.lower() in ("asc", "ascending")) else (payload.order or "desc")
         result = tool_playlists.reorder_playlist_by_audio_features(
             playlist_id=payload.playlist_id,
             feature=payload.feature or "energy",
-            ascending=bool(payload.ascending)
+            order=sort_order
         )
         is_success = not result.startswith("Error") and not result.startswith("Cannot")
         return {"success": is_success, "message": result}

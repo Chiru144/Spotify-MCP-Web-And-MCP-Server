@@ -345,14 +345,17 @@ def get_user_playlists(limit: int = 10) -> str:
 
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
-def reorder_playlist_by_audio_features(playlist_id: str, feature: str = 'energy', order: str = 'desc') -> str:
+def reorder_playlist_by_audio_features(playlist_id: str, feature: str = 'energy', order: str = 'desc', ascending: Optional[bool] = None) -> str:
     """Smart Reorder: Sorts a user's playlist by a given audio feature (energy, valence, danceability, etc).
     
     Args:
         playlist_id: Spotify playlist ID or URI.
         feature: The audio feature to sort by (e.g., 'energy', 'valence', 'danceability', 'tempo').
         order: 'asc' for ascending, 'desc' for descending.
+        ascending: Optional boolean (True for 'asc', False for 'desc'). Overrides order if provided.
     """
+    if ascending is not None:
+        order = 'asc' if ascending else 'desc'
     if feature not in ['energy', 'valence', 'danceability', 'tempo', 'acousticness', 'instrumentalness', 'liveness', 'speechiness']:
         return "Unsupported feature. Use energy, valence, danceability, tempo, etc."
     try:
