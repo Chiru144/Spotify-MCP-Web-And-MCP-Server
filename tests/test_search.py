@@ -108,3 +108,93 @@ def test_fetch_tracks_for_movie_uses_soundtrack_album(mock_clients):
 
     assert sp.album_tracks.called
     assert [t["uri"] for t in tracks] == ["spotify:track:1"]
+
+
+@pytest.mark.parametrize("movie, spotify_name, allow_plain, expected", [
+    ("Pushpa 2 - The Rule", "Pushpa 2 The Rule [TELUGU]", True, True),
+    ("Pushpa: The Rise", 'Srivalli (From "Pushpa - The Rise")(Telugu)', False, True),
+    ("Desamuduru", "Desamudhuru", True, True),
+    ("Sye Raa Narasimha Reddy", "Syeraa Narasimha Reddy (Telugu)", True, True),
+    ("96", 'Kaathalae Kaathalae (From "96")', False, True),
+    ("Happy", "Happy New Year", True, False),
+    ("Happy", "The Pursuit of Happyness (Original Motion Picture Soundtrack)", True, False),
+    ("Happy", "Happy", False, False),
+    ("Vikram", 'Yaanji (From "Vikram Vedha")', False, False),
+    ("Master", "Masterpiece (Original Motion Picture Soundtrack)", True, False),
+    ("Petta", "Naan Petta Makan (Original Motion Picture Soundtrack)", True, False),
+])
+def test_soundtrack_title_matches(movie, spotify_name, allow_plain, expected):
+    from tools.tmdb_helpers import soundtrack_title_matches
+    assert soundtrack_title_matches(movie, spotify_name, allow_plain=allow_plain) is expected
+
+
+def test_soundtrack_title_matches_rejects_dubbed_language():
+    from tools.tmdb_helpers import soundtrack_title_matches
+    assert not soundtrack_title_matches("Petta", "Petta (Hindi) [Original Motion Picture Soundtrack]", language="Tamil")
+    assert soundtrack_title_matches("Petta", "Petta (Original Motion Picture Soundtrack)", language="Tamil")
+
+
+HAPPY_ALBUM = {
+    "id": "1cIg99EUr991CKfuNiw3yG", "name": "Happy (Original Motion Picture Soundtrack)",
+    "album_type": "album", "total_tracks": 2, "release_date": "2006-03-01",
+    "tracks": {"items": [
+        {"name": "Oka Maaru", "uri": "spotify:track:h1", "artists": [{"name": "Yuvan Shankar Raja", "id": "y"}]},
+        {"name": "Happy Happy", "uri": "spotify:track:h2", "artists": [{"name": "Yuvan Shankar Raja", "id": "y"}]},
+    ]},
+}
+HAPPY_WEB_RESULT = [{
+    "title": "Happy (Original Motion Picture Soundtrack) - EP by Yuvan ... | Spotify",
+    "href": "https://open.spotify.com/album/1cIg99EUr991CKfuNiw3yG", "body": "",
+}]
+
+
+def test_fetch_tracks_for_movie_falls_back_to_web_search(mock_clients):
+    from tools import tmdb_helpers
+    sp = MagicMock()
+    sp.search.side_effect = lambda q, type, limit: (
+        {"albums": {"items": [{"id": "x", "name": "Happy New Year", "album_type": "album", "release_date": "2014"}]}}
+        if type == "album" else {"tracks": {"items": []}}
+    )
+    sp.album.return_value = HAPPY_ALBUM
+
+    with patch("tools.tmdb_helpers.ddg_web_search", return_value=HAPPY_WEB_RESULT):
+        tracks = tmdb_helpers.fetch_tracks_for_movie(sp, "Happy", max_songs=3, release_year="2006")
+
+    sp.album.assert_called_once_with("1cIg99EUr991CKfuNiw3yG", market=None)
+    assert [t["uri"] for t in tracks] == ["spotify:track:h1", "spotify:track:h2"]
+    assert tracks[0]["album"] == "Happy (Original Motion Picture Soundtrack)"
+
+
+def test_fetch_tracks_for_movie_prefers_full_album_over_single_and_score(mock_clients):
+    from tools import tmdb_helpers
+    sp = MagicMock()
+    sp.search.return_value = {"albums": {"items": [
+        {"id": "single", "name": 'Marana Mass (From "Petta")', "album_type": "single", "total_tracks": 1},
+        {"id": "score", "name": "Petta (Original Background Score)", "album_type": "album", "total_tracks": 30},
+        {"id": "ost", "name": "Petta (Original Motion Picture Soundtrack)", "album_type": "album", "total_tracks": 8},
+    ]}}
+    sp.album_tracks.side_effect = lambda album_id, limit: {"items": [{"name": album_id, "uri": f"spotify:track:{album_id}", "artists": []}]}
+
+    with patch("tools.tmdb_helpers.ddg_web_search") as web:
+        tracks = tmdb_helpers.fetch_tracks_for_movie(sp, "Petta", max_songs=3)
+
+    web.assert_not_called()
+    assert [t["uri"] for t in tracks] == ["spotify:track:ost", "spotify:track:single", "spotify:track:score"]
+
+
+def test_studio_soundtrack_lookup_uses_web_search_when_spotify_search_misses(mock_clients):
+    sp = MagicMock()
+    sp.me.return_value = {"country": "IN"}
+    sp.search.side_effect = lambda q, type, limit, market: (
+        {"albums": {"items": [{"id": "p", "name": "The Pursuit of Happyness (Original Motion Picture Soundtrack)",
+                               "album_type": "album", "release_date": "2006-12-12"}]}}
+        if type == "album" else {"tracks": {"items": []}}
+    )
+    sp.album.return_value = HAPPY_ALBUM
+    sp.album_tracks.return_value = HAPPY_ALBUM["tracks"]
+
+    with patch("tools.tmdb_helpers.ddg_web_search", return_value=HAPPY_WEB_RESULT):
+        tracks = search.fetch_soundtrack_tracks_with_client("Happy", language_name="Telugu", release_year="2006", sp=sp)
+
+    sp.album_tracks.assert_called_once_with("1cIg99EUr991CKfuNiw3yG", limit=20, market="IN")
+    assert {t["album_name"] for t in tracks} == {"Happy (Original Motion Picture Soundtrack)"}

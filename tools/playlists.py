@@ -35,6 +35,7 @@ def create_actor_playlist(
 
         # Step 1: Discover movies
         source_note = ""
+        movie_years: Dict[str, str] = {}
         if specific_movies:
             movie_list = [m.strip() for m in specific_movies.split(",") if m.strip()]
             source_note = "User-specified list"
@@ -45,13 +46,15 @@ def create_actor_playlist(
             if not movies:
                 return f"Could not find any movies online for actor '{actor_name}'."
             movie_list = [m["title"] for m in movies[:max_movies]]
+            movie_years = {m["title"]: (m.get("release_date") or "")[:4] for m in movies[:max_movies]}
 
         # Step 2: Fetch tracks for each movie
         all_tracks: List[Dict[str, str]] = []
         track_breakdown: List[str] = []
 
         for movie in movie_list:
-            m_tracks = fetch_tracks_for_movie(sp, movie, max_songs=max_songs_per_movie)
+            m_tracks = fetch_tracks_for_movie(sp, movie, max_songs=max_songs_per_movie,
+                                              release_year=movie_years.get(movie) or None)
             if m_tracks:
                 all_tracks.extend(m_tracks)
                 song_titles = ", ".join(f"'{t['title']}'" for t in m_tracks)

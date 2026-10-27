@@ -788,10 +788,21 @@ def fetch_soundtrack_tracks_with_client(
                 return True
 
         def is_fuzzy_match(movie: str, target: str, lang: str = None) -> bool:
-            m_norm = re.sub(r'[^a-z0-9\s]', '', movie.lower()).strip()
-            t_norm = re.sub(r'[^a-z0-9\s]', '', target.lower()).strip()
-            if not m_norm or not t_norm:
-                return False
+            return soundtrack_title_matches(movie, target, language=lang)
+
+        def format_track(t: Dict[str, Any], album: Dict[str, Any], popularity: int) -> Dict[str, Any]:
+            return {
+                "name": t.get("name"),
+                "artist": ", ".join(a.get("name", "Unknown") for a in t.get("artists", [])),
+                "artist_ids": [a.get("id") for a in t.get("artists", []) if a.get("id")],
+                "uri": t.get("uri"),
+                "duration_ms": t.get("duration_ms", 0),
+                "popularity": popularity,
+                "release_date": album.get("release_date", ""),
+                "spotify_url": t.get("external_urls", {}).get("spotify"),
+                "album_name": album.get("name", clean_title),
+                "album_cover": album.get("images", [{}])[0].get("url") if album.get("images") else None
+            }
             
             if lang:
                 lang_lower = lang.lower()
@@ -857,13 +868,23 @@ def fetch_soundtrack_tracks_with_client(
         for q in queries:
             res = client.search(q=q, type="album", limit=3, market=market)
             found = res.get("albums", {}).get("items", [])
-            for album in found:
-                if is_fuzzy_match(clean_title, album.get("name", ""), language_name):
-                    if is_year_match(album.get("release_date", ""), release_year):
-                        albums = [album]
-                        break
-            if albums:
+            albums += [
+                album for album in found
+                if is_fuzzy_match(clean_title, album.get("name", ""), language_name)
+                and is_year_match(album.get("release_date", ""), release_year)
+                and album.get("id") not in {a.get("id") for a in albums}
+            ]
+            if any(is_full_soundtrack_album(a) for a in albums):
                 break
+        albums.sort(key=soundtrack_album_rank)
+
+        # No full soundtrack album on Spotify search: look for its Spotify page via web search
+        web = {"album": None, "tracks": []}
+        if not albums or not is_full_soundtrack_album(albums[0]):
+            web = web_find_spotify_soundtrack(client, clean_title, release_year=release_year,
+                                              language=language_name, market=market)
+            if web["album"]:
+                albums.insert(0, web["album"])
 
         if albums:
             album = albums[0]
@@ -893,6 +914,10 @@ def fetch_soundtrack_tracks_with_client(
                 })
             if formatted:
                 return formatted
+
+        web_tracks = [format_track(t, t.get("album", {}), t.get("popularity", 0)) for t in web["tracks"]]
+        if web_tracks:
+            return web_tracks
 
         fallback_queries = [
             f"{search_title} soundtrack{year_filter}",
@@ -930,7 +955,8 @@ def fetch_soundtrack_tracks_with_client(
                 track_name = t.get("name", "").lower()
                 album_name = t.get("album", {}).get("name", "").lower()
                 
-                if not is_fuzzy_match(clean_title, track_name, language_name) and not is_fuzzy_match(clean_title, album_name, language_name):
+                if (not soundtrack_title_matches(clean_title, track_name, allow_plain=False, language=language_name)
+                        and not is_fuzzy_match(clean_title, album_name, language_name)):
                     continue
                     
                 if not is_year_match(t.get("album", {}).get("release_date", ""), release_year):
