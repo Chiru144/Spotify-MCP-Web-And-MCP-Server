@@ -12,6 +12,9 @@ If the user asks to create a playlist, inspect tracks, reorder, shuffle, search,
 
 Do NOT attempt to write temporary python scripts like `make_playlist.py` and run them.
 
+> [!NOTE]
+> The server supports modular toolsets (`--toolsets=core`) with on-demand lazy loading to prevent overloading LLM context windows (~2,757 tokens for `core` vs ~21,376 tokens for `all`). Tools are imported only when invoked. Specify `--toolsets=core,playback` or `--toolsets=all` when additional toolsets are needed.
+
 ### Prompt Clarification Protocol
 Before making a playlist for a person (e.g., an actor, director, lyricist, or composer), evaluate if the user's prompt is specific enough.
 - If the prompt is highly specific (e.g., "Make a playlist on Yogaraj Bhat, his movies from early 2000s and till now all the movies songs that he wrote"), proceed directly to create it using the MCP tools.

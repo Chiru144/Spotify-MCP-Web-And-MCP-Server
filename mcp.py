@@ -161,7 +161,7 @@ if __name__ == "__main__":
             print("---------------------\n", file=sys.stderr)
     
     # 3. Then start the standard MCP Server over stdio
-    print("Starting fully integrated Spotify MCP Server via stdio...", file=sys.stderr)
+    print(f"Starting Spotify MCP Server via stdio with toolsets: {', '.join(server.active_toolsets)} ({len(server.registered_tools)} tools exposed)...", file=sys.stderr)
     try:
         server.mcp.run()
     except KeyboardInterrupt:

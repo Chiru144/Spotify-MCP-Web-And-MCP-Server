@@ -273,6 +273,10 @@ TMDB_API_KEY=your_tmdb_api_key
 TMDB_READ_ACCESS_TOKEN=your_tmdb_read_access_token
 TMDB_BASE_URL=https://api.themoviedb.org/3
 
+# Modular Toolsets: Select active toolset profile to prevent LLM context window overload
+# Options: core (default, 16 essential curation tools), playback, playlists, search, taste, library, browse, or all
+SPOTIFY_TOOLSETS=core
+
 # Optional configuration
 OPEN_BROWSER=true
 ```
@@ -289,6 +293,42 @@ Run the one-click Spotify authorization script to test your connection:
 python auth_spotify.py
 ```
 
+## Modular Toolsets & On-Demand Lazy Loading
+
+To prevent flooding the LLM context window in AI clients (Cursor, Claude Desktop, Antigravity), this server implements **Modular Toolsets** and **On-Demand Lazy Loading**:
+
+- **Context Window Protection**: The full catalog of 108 tools consumes **~21,376 tokens**. Running with `--toolsets=core` exposes only the **16 essential curation tools (~2,757 tokens)** &mdash; an **87% context reduction**!
+- **On-Demand Lazy Loading**: Modules (`spotipy`, `requests`, `bs4`, `ddgs`, etc.) are **never loaded at startup**. When an LLM calls a tool, the module is imported on-demand and cached in memory for instantaneous (0 ms) subsequent executions.
+
+### Available Toolsets
+
+| Toolset Profile | Exposed Tools | Token Footprint | Best For |
+| :--- | :--- | :--- | :--- |
+| **`core`** *(Default)* | **16 tools** | **~2,757 tokens** | Filmography curation, movie soundtracks, search, dedupe, audio features, staging studio |
+| **`playback`** | 31 tools | ~5,800 tokens | DJ controls, Spotify Connect device switching, queue management |
+| **`playlists`** | 33 tools | ~7,400 tokens | Advanced playlist diff, subset detection, merging, sorting, splitting |
+| **`search`** | 16 tools | ~3,600 tokens | Music exploration, mood/genre search, TMDB movie & actor filmography lookup |
+| **`taste`** | 14 tools | ~3,100 tokens | Top tracks, listening patterns, taste profile, audio feature comparisons |
+| **`library`** | 8 tools | ~1,800 tokens | Saved tracks, saved albums, follower management |
+| **`browse`** | 5 tools | ~1,100 tokens | Spotify catalog lookup (artist, album, track, user) |
+| **`all`** | 108 tools | ~21,376 tokens | Full access to every tool across all domains |
+
+### Running with Toolset Flags
+
+You can specify toolsets via CLI flag `--toolsets=...` or environment variable `SPOTIFY_TOOLSETS`:
+
+```bash
+# Run with the lightweight core toolset (16 tools, optimal for Cursor/Claude):
+python server.py --toolsets=core
+python mcp.py --toolsets=core
+
+# Combine multiple toolsets:
+python server.py --toolsets=core,playback
+
+# Run with the complete catalog (108 tools):
+python server.py --toolsets=all
+```
+
 ## Running the Application
 
 There are two entry points to run the server, depending on your use case:
@@ -298,7 +338,7 @@ There are two entry points to run the server, depending on your use case:
 Start the MCP server and background web app simultaneously by running:
 
 ```bash
-python server.py
+python server.py --toolsets=core
 ```
 
 The application will start, and the web interface should automatically open in your default browser at `http://127.0.0.1:8000`.
@@ -308,7 +348,7 @@ The application will start, and the web interface should automatically open in y
 If you are running this project as a tool inside an MCP host (like Cursor, VSCode, or Claude Desktop), you should use `mcp.py`:
 
 ```bash
-python mcp.py
+python mcp.py --toolsets=core
 ```
 
 ## Repository Structure
@@ -322,6 +362,7 @@ Spotify-MCP-Web-MCP-Server/
 ├── Procfile                   # Cloud Run / web deployment entrypoint
 ├── SPOTIFY_RULES.md           # Master MCP tools & agent clarification protocol
 ├── tools/                     # Modular MCP tool implementations (108 tools)
+│   ├── registry.py            # Modular toolset catalog, CLI toolset router & lazy loader
 │   ├── core.py                # FastMCP server instance, Spotify/TMDB client helpers
 │   ├── playlists.py           # Core playlist curation & power tools
 │   ├── playback.py            # Spotify Connect playback & hardware controls

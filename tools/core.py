@@ -4,8 +4,6 @@ import threading
 import urllib.parse
 from pathlib import Path
 from typing import Optional, List, Dict, Any
-import requests
-from bs4 import BeautifulSoup
 from dotenv import load_dotenv
 
 # Prevent local mcp.py from shadowing the installed 'mcp' package
@@ -23,14 +21,6 @@ from mcp.types import ToolAnnotations
 
 if removed_current and current_dir not in sys.path:
     sys.path.append(current_dir)
-import spotipy
-from spotipy.oauth2 import SpotifyPKCE
-
-# Import DuckDuckGo Search (support both ddgs and duckduckgo_search packages)
-try:
-    from ddgs import DDGS
-except ImportError:
-    from duckduckgo_search import DDGS
 
 # Load environment variables from .env file located alongside server.py
 env_path = Path(__file__).parent.parent / ".env"
@@ -38,6 +28,18 @@ load_dotenv(dotenv_path=env_path)
 
 # Initialize FastMCP server
 mcp = FastMCP("Spotify Actor Filmography MCP")
+
+# Smart tool decorator: allows modular toolsets to control registration
+_orig_tool = mcp.tool
+
+def _smart_tool(*args, **kwargs):
+    if os.getenv("MCP_DIRECT_REGISTRATION", "false").lower() in ("1", "true"):
+        return _orig_tool(*args, **kwargs)
+    if len(args) == 1 and callable(args[0]) and not kwargs:
+        return args[0]
+    return lambda fn: fn
+
+mcp.tool = _smart_tool
 
 # Define Spotify Scopes needed for playlist creation and playback control
 SPOTIFY_SCOPES = [
@@ -59,8 +61,11 @@ SPOTIFY_SCOPES = [
 TMDB_BASE_URL = os.getenv("TMDB_BASE_URL", "https://api.themoviedb.org/3")
 
 
-def get_spotify_client() -> spotipy.Spotify:
+def get_spotify_client():
     """Initialize and return an authenticated Spotipy client using PKCE OAuth (no client secret needed)."""
+    import spotipy
+    from spotipy.oauth2 import SpotifyPKCE
+
     client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
     redirect_uri = os.getenv("SPOTIPY_REDIRECT_URI") or os.getenv("SPOTIFY_REDIRECT_URI") or "http://127.0.0.1:8888/callback"
 
@@ -77,5 +82,6 @@ def get_spotify_client() -> spotipy.Spotify:
         open_browser=True,
     )
     return spotipy.Spotify(auth_manager=auth_manager)
+
 
 
