@@ -6,7 +6,7 @@ from tkinter import messagebox, simpledialog
 from pathlib import Path
 
 import server
-from spotipy.oauth2 import SpotifyOAuth
+from spotipy.oauth2 import SpotifyPKCE
 
 def gui_input(prompt):
     """Monkey-patch input() so if Spotipy asks for a URL, it shows a popup dialog instead of hanging stdio."""
@@ -19,13 +19,11 @@ def gui_input(prompt):
 
 def check_and_authenticate():
     client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
-    client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
     redirect_uri = os.getenv("SPOTIPY_REDIRECT_URI") or os.getenv("SPOTIFY_REDIRECT_URI") or "http://127.0.0.1:8888/callback"
     cache_path = str(Path(server.__file__).parent / ".spotipyoauthcache")
 
-    auth_manager = SpotifyOAuth(
+    auth_manager = SpotifyPKCE(
         client_id=client_id,
-        client_secret=client_secret,
         redirect_uri=redirect_uri,
         scope=" ".join(server.SPOTIFY_SCOPES),
         cache_path=cache_path,
@@ -94,7 +92,7 @@ def check_and_authenticate():
                         httpd.server_close()
                         
                         if code_received[0]:
-                            auth_manager.get_access_token(code_received[0], as_dict=False)
+                            auth_manager.get_access_token(code_received[0])
                             root.after(0, success)
                             return
                             
@@ -123,7 +121,7 @@ def check_and_authenticate():
                 if url:
                     try:
                         code = auth_manager.parse_response_code(url)
-                        auth_manager.get_access_token(code, as_dict=False)
+                        auth_manager.get_access_token(code)
                         success()
                     except Exception as e:
                         fail(e)

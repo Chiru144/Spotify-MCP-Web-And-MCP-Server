@@ -991,6 +991,9 @@
         <button class="category-tab" data-cat="tmdb" onclick="setCategory('tmdb', this)">🎬 Movie Soundtracks & TMDB</button>
         <button class="category-tab" data-cat="playlist" onclick="setCategory('playlist', this)">🎵 Playlists & Staging</button>
         <button class="category-tab" data-cat="playback" onclick="setCategory('playback', this)">🎛️ Playback & Devices</button>
+        <button class="category-tab" data-cat="stats" onclick="setCategory('stats', this)">📊 Stats & Analytics</button>
+        <button class="category-tab" data-cat="library" onclick="setCategory('library', this)">📚 Library & Liked Media</button>
+        <button class="category-tab" data-cat="browse" onclick="setCategory('browse', this)">🔎 Catalog & Entity Inspection</button>
         <button class="category-tab" data-cat="agent" onclick="setCategory('agent', this)">🤖 Agent Skills</button>
       </div>
     </div>
@@ -1426,6 +1429,205 @@
         </div>
       </article>
 
+      <!-- TOOL: Playlist Operations (12 Tools) -->
+      <article class="tool-card" data-category="playlist" data-keywords="playlist get_my_playlists get_playlist get_playlist_tracks create_playlist add_to_playlist remove_from_playlist reorder_playlist update_playlist follow_playlist unfollow_playlist get_playlist_cover check_playlist_followers spotify_get_my_playlists spotify_get_playlist spotify_get_playlist_tracks spotify_create_playlist spotify_add_to_playlist spotify_remove_from_playlist spotify_reorder_playlist spotify_update_playlist spotify_follow_playlist spotify_unfollow_playlist spotify_get_playlist_cover spotify_check_playlist_followers">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">📁</div>
+            <div class="tool-title-group">
+              <h3>Playlist Operations (12 Spotify Tools)</h3>
+              <span class="tool-code-name">spotify_get_my_playlists, spotify_get_playlist, spotify_get_playlist_tracks, spotify_create_playlist, spotify_add_to_playlist, spotify_remove_from_playlist, spotify_reorder_playlist, spotify_update_playlist, spotify_follow_playlist, spotify_unfollow_playlist, spotify_get_playlist_cover, spotify_check_playlist_followers</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">12 MCP Tools</span>
+            <span class="badge badge-web">UI Playlist Inspector</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Complete programmatic lifecycle management for Spotify playlists. Fetch user libraries, inspect full playlist metadata, paginate tracks, create empty playlists, add or remove tracks, move and reorder track positions in real-time, modify descriptions/privacy, follow or unfollow playlists, retrieve cover art, and check follower statuses.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p><strong>Advanced Tools (/tools):</strong> Open the <em>Playlist Manager & Track Inspector</em> section to inspect any playlist, view cover art, edit name and description, toggle follow/unfollow, move tracks up/down with live reordering, remove unwanted songs, or add new track URIs.</p>
+            <p style="margin-top: 8px;"><strong>Soundtrack Studio (/):</strong> Use the <em>Fetch Playlist</em> modal to browse your playlists, view all songs, and stage them directly into your Send Box.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Autonomous and prompt-driven playlist management examples:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_my_playlists(limit=20)  # Browse your library</span>
+              <button class="copy-btn" onclick="copySnippet('List my Spotify playlists')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_create_playlist(name='Cinematic Soundscapes', public=True)</span>
+              <button class="copy-btn" onclick="copySnippet('Create a public playlist called Cinematic Soundscapes')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_reorder_playlist(playlist_id='...', range_start=5, insert_before=0)</span>
+              <button class="copy-btn" onclick="copySnippet('Move track number 6 to the top of my playlist')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_follow_playlist(playlist_id='...')  # Save to library</span>
+              <button class="copy-btn" onclick="copySnippet('Follow this Spotify playlist and save it to my library')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_remove_from_playlist(playlist_id='...', uris=['spotify:track:...'])</span>
+              <button class="copy-btn" onclick="copySnippet('Remove track from my playlist')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py</strong></span>
+          <span>Scope: playlist-read-private, playlist-modify-public, playlist-modify-private</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Playlist Power Tools (8 Tools) -->
+      <article class="tool-card" data-category="playlist" data-keywords="power tools merge split artist deduplicate dedupe export diff compare overlaps subsets absorb missing spotify_merge_playlists spotify_split_playlist_by_artist spotify_deduplicate_playlist spotify_export_playlist spotify_playlist_diff spotify_find_playlist_overlaps spotify_find_playlist_subsets spotify_absorb_playlist">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">⚡</div>
+            <div class="tool-title-group">
+              <h3>Playlist Power Tools (8 Spotify Tools)</h3>
+              <span class="tool-code-name">spotify_merge_playlists, spotify_split_playlist_by_artist, spotify_deduplicate_playlist, spotify_export_playlist, spotify_playlist_diff, spotify_find_playlist_overlaps, spotify_find_playlist_subsets, spotify_absorb_playlist</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">8 MCP Tools</span>
+            <span class="badge badge-web">Web Power Suite</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Advanced algorithmic playlist manipulation and intelligence suite. Merge multiple playlists into new or existing destinations, split tracks into sub-playlists by artist, perform deep multi-strategy deduplication, export full playlist data and audio features to structured JSON, compare playlists side-by-side with Jaccard similarity metrics, detect cross-playlist track overlaps, discover redundant subset playlists, and absorb missing songs without duplicates.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI</div>
+            <p><strong>Power Tools (/tools):</strong> Open the <em>⚡ Playlist Power Tools</em> tabbed console to visually merge playlists, split by artist with preview breakdown, run dry-run or live deduplication, compare playlists with Venn metric badges, detect library-wide overlaps and redundant subsets, absorb unique songs, and download complete JSON backups.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <p>Execute advanced playlist workflows directly through natural language:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_merge_playlists(playlist_ids=['id1', 'id2'], new_name='Mega Mix')</span>
+              <button class="copy-btn" onclick="copySnippet('Merge my Summer and Workout playlists into Mega Mix')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_split_playlist_by_artist(playlist_id='...', min_tracks_per_artist=3)</span>
+              <button class="copy-btn" onclick="copySnippet('Split my playlist into sub-playlists by artist')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_deduplicate_playlist(playlist_id='...', strategy='name_and_artist')</span>
+              <button class="copy-btn" onclick="copySnippet('Remove all duplicate tracks from my playlist')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_playlist_diff(playlist_id_a='...', playlist_id_b='...')</span>
+              <button class="copy-btn" onclick="copySnippet('Compare my Roadtrip and Vacation playlists to find shared songs')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_find_playlist_overlaps(limit=20, min_overlap=3)</span>
+              <button class="copy-btn" onclick="copySnippet('Scan my playlists for overlapping songs')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_find_playlist_subsets(threshold=1.0)  # Detect 100% subsets</span>
+              <button class="copy-btn" onclick="copySnippet('Find redundant playlists that are complete subsets of another')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_absorb_playlist(source_playlist_id='...', target_playlist_id='...')</span>
+              <button class="copy-btn" onclick="copySnippet('Absorb missing tracks from my Discover playlist into my Favorites')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_export_playlist(playlist_id='...', include_audio_features=True)</span>
+              <button class="copy-btn" onclick="copySnippet('Export my playlist and its audio features to JSON')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/playlists.py</strong></span>
+          <span>REST Endpoints: /api/playlist/merge, /split_by_artist, /deduplicate, /export, /diff, /overlaps, /subsets, /absorb</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Search, Recommendations & Discovery -->
+      <article class="tool-card" data-category="search" data-keywords="search recommendations discovery related artists network mood valence energy tempo genre seed deep cuts album singles catalog">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🔮</div>
+            <div class="tool-title-group">
+              <h3>Search, Recommendations & Discovery (7 Spotify Tools)</h3>
+              <span class="tool-code-name">spotify_search, spotify_related_artists, spotify_discover_by_artist, spotify_discover_by_mood, spotify_genre_explorer, spotify_discover_deep_cuts, spotify_get_recommendations</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">7 MCP Tools</span>
+            <span class="badge badge-web">Web Discovery Suite</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Complete catalog search across tracks, artists, albums, and playlists; finding similar artists and deriving track recommendations from related artist networks; mood-based discovery across valence, energy, and danceability; exploring Spotify recommendation genre seeds; digging for non-single album deep cuts; and direct seed-based recommendation generation.
+        </p>
+
+        <div class="two-col-grid">
+          <div class="col-box">
+            <h4>🖥️ How to Use in Web Studio</h4>
+            <ul class="steps-list">
+              <li>Open <strong>Advanced Tools</strong> (<a href="/tools" style="color: var(--spotify-green);">/tools</a>) and switch to the <strong>Search, Recommendations & Discovery Studio</strong>.</li>
+              <li>Use <strong>Universal Search</strong> to search tracks, artists, albums, and playlists with one query.</li>
+              <li>Use <strong>Related Artists</strong> & <strong>Artist Network</strong> to discover similar musicians and their sound.</li>
+              <li>Click <strong>Mood Discovery</strong> to select emotional presets (Happy, Chill, Energetic, Focus, Party, Dark, Workout) or tweak custom audio sliders.</li>
+              <li>Browse <strong>Genre Explorer</strong> to sample official Spotify genre seeds.</li>
+              <li>Run <strong>Deep Cuts Finder</strong> on an artist or album to unearth obscure, non-single hidden album gems with low popularity thresholds.</li>
+            </ul>
+          </div>
+
+          <div class="col-box">
+            <h4>🤖 How to Use with AI Agent (Prompts)</h4>
+            <div class="code-preview">
+              <span>spotify_search(query='Daft Punk', types=['track', 'artist', 'album'])</span>
+              <button class="copy-btn" onclick="copySnippet('Search Spotify for tracks and albums by Daft Punk')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_related_artists(artist='Hans Zimmer')</span>
+              <button class="copy-btn" onclick="copySnippet('Find artists similar to Hans Zimmer on Spotify')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_discover_by_artist(artist='Coldplay', limit=15)</span>
+              <button class="copy-btn" onclick="copySnippet('Recommend tracks derived from Coldplay related artist network')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_discover_by_mood(mood='chill', target_valence=0.5, target_energy=0.3)</span>
+              <button class="copy-btn" onclick="copySnippet('Discover chill, low energy tracks on Spotify')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_genre_explorer(genres=['synthwave', 'lo-fi'], limit=15)</span>
+              <button class="copy-btn" onclick="copySnippet('Sample tracks across synthwave and lo-fi genres')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_discover_deep_cuts(artist_or_album='Radiohead', max_popularity=35)</span>
+              <button class="copy-btn" onclick="copySnippet('Find obscure album-only deep cuts by Radiohead with popularity under 35')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_get_recommendations(seed_genres=['jazz'], target_energy=0.4, limit=20)</span>
+              <button class="copy-btn" onclick="copySnippet('Get 20 jazz recommendations with target energy 0.4')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source File: <strong class="tool-file-path">tools/search.py</strong></span>
+          <span>REST Endpoints: /api/spotify/search, /api/artist/related, /api/discover/by_artist, /api/discover/by_mood, /api/genres/explore, /api/discover/deep_cuts, /api/recommendations</span>
+        </div>
+      </article>
+
       <!-- TOOL: Audio Features & Vibe Sorter -->
       <article class="tool-card" data-category="vibe" data-keywords="audio features valence energy tempo bpm sort flow reorder">
         <div class="tool-card-header">
@@ -1468,43 +1670,65 @@
       </article>
 
       <!-- TOOL: Playback & Device Controls -->
-      <article class="tool-card" data-category="playback" data-keywords="playback play pause next volume devices connect">
+      <article class="tool-card" data-category="playback" data-keywords="playback play pause resume next previous seek volume devices queue transfer repeat shuffle status now_playing spotify_status spotify_now_playing spotify_play spotify_pause spotify_resume spotify_skip_next spotify_skip_previous spotify_add_to_queue spotify_get_queue spotify_get_devices spotify_transfer_playback spotify_set_volume spotify_seek spotify_set_repeat spotify_toggle_shuffle">
         <div class="tool-card-header">
           <div class="tool-identity">
             <div class="tool-icon">🎛️</div>
             <div class="tool-title-group">
-              <h3>Playback & Device Controls</h3>
-              <span class="tool-code-name">play_track, pause_playback, next_track, set_volume</span>
+              <h3>Playback Control & Status (15 Spotify Tools)</h3>
+              <span class="tool-code-name">spotify_status, spotify_now_playing, spotify_play, spotify_pause, spotify_resume, spotify_skip_next, spotify_skip_previous, spotify_add_to_queue, spotify_get_queue, spotify_get_devices, spotify_transfer_playback, spotify_set_volume, spotify_seek, spotify_set_repeat, spotify_toggle_shuffle</span>
             </div>
           </div>
           <div class="tool-badges">
-            <span class="badge badge-mcp">MCP Tool</span>
-            <span class="badge badge-web">UI Audio Player</span>
+            <span class="badge badge-mcp">15 MCP Tools</span>
+            <span class="badge badge-web">Interactive UI Player</span>
           </div>
         </div>
 
         <p class="tool-description">
-          Full Spotify Connect integration for hardware and desktop control. Start, resume, pause playback, skip tracks, adjust volume, and switch active playback devices.
+          Full Spotify Connect integration for hardware, mobile, and desktop playback control. Manage play, pause, resume, track navigation, queue inspection, device transfers, volume, seeking, repeat modes, and shuffle toggling hands-free through AI agents or through the interactive floating Web UI player.
         </p>
 
         <div class="tool-flow-grid">
           <div class="flow-pane web">
             <div class="flow-pane-title">🌐 In the Web UI</div>
-            <p>The top navigation bar provides an interactive volume slider and user playback state indicator. Track cards feature inline 30s audio preview players.</p>
+            <p><strong>Floating Player Widget:</strong> Displays currently playing album art, song title, artist, live time elapsed, interactive click-to-seek timeline bar, play/pause, skip previous/next, shuffle toggle, repeat mode (off/all/1), active device badge, and quick device & queue modal triggers.</p>
+            <p style="margin-top: 8px;"><strong>Device Picker Modal:</strong> Scans all active Spotify Connect devices (desktop, phone, smart speakers) and allows one-click playback transfer.</p>
+            <p style="margin-top: 8px;"><strong>Live Queue Inspector:</strong> Real-time view of currently playing track and upcoming queue songs, with instant play and batch queueing from your Send Box.</p>
           </div>
           <div class="flow-pane agent">
             <div class="flow-pane-title">🤖 In the AI Agent</div>
-            <p>Control music hands-free: <em>"Play the next song"</em>, <em>"Turn the volume down to 40%"</em>, or <em>"What song is currently playing?"</em></p>
+            <p>Control Spotify hands-free using natural language prompts or direct tool calls:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_now_playing()  # Returns title, artist, progress & device</span>
+              <button class="copy-btn" onclick="copySnippet('What track is playing right now on Spotify?')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_play(uri="spotify:track:...")  # Play track or context</span>
+              <button class="copy-btn" onclick="copySnippet('Play the movie soundtrack on Spotify')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_set_volume(volume_percent=45)  # Set volume 0-100</span>
+              <button class="copy-btn" onclick="copySnippet('Set my Spotify volume to 45%')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_toggle_shuffle(state=True)  # Toggle shuffle</span>
+              <button class="copy-btn" onclick="copySnippet('Turn on shuffle for my Spotify playback')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_transfer_playback(device_id="...", play=True)</span>
+              <button class="copy-btn" onclick="copySnippet('Switch playback to my Living Room speaker')">Copy</button>
+            </div>
             <div class="code-preview">
-              <span>set_volume(volume_percent=40)</span>
-              <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
+              <span>spotify_get_queue()  # Inspect queue & up next songs</span>
+              <button class="copy-btn" onclick="copySnippet('Show me what tracks are next in my Spotify queue')">Copy</button>
             </div>
           </div>
         </div>
 
         <div class="tool-footer">
           <span>Source File: <strong class="tool-file-path">tools/playback.py</strong></span>
-          <span>Scope: user-modify-playback-state, user-read-playback-state</span>
+          <span>Scope: user-modify-playback-state, user-read-playback-state, user-read-currently-playing</span>
         </div>
       </article>
 
@@ -1546,6 +1770,176 @@
         <div class="tool-footer">
           <span>Source File: <strong class="tool-file-path">skills/browser-song-tagger.md</strong></span>
           <span>Requires: DuckDuckGo Search / Browser tools</span>
+        </div>
+      <!-- TOOL: Stats, Analytics & Insights Suite -->
+      <article class="tool-card" data-category="stats" data-keywords="stats analytics insights top tracks artists recently played listening patterns taste profile archetype compare playlists freshness stale">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">📊</div>
+            <div class="tool-title-group">
+              <h3>Stats, Analytics & Insights Studio</h3>
+              <span class="tool-code-name">spotify_top_tracks, spotify_top_artists, spotify_recently_played, spotify_listening_patterns, spotify_taste_profile, spotify_playlist_compare, spotify_playlist_freshness</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">7 MCP Tools</span>
+            <span class="badge badge-web">Web Studio</span>
+            <span class="badge badge-get">REST APIs</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          A full-fidelity listening telemetry and comparative audio analytics studio. Inspect personal short, medium, and long term track/artist affinity, hourly volume curves, listener taste archetypes, multi-playlist audio feature distributions, and library playlist freshness audits.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI (/tools)</div>
+            <p>Access the <strong>📊 Stats, Analytics & Insights Studio</strong> with interactive tabs for Top Tracks, Top Artists, Recently Played, Listening Patterns (with 24-hr bar chart), Taste Profile (with Archetype Card & Obscurity Index), Multi-Playlist Compare, and Freshness Audit.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the MCP AI Agent</div>
+            <p>Call granular analytical tools directly:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_top_tracks(time_range="medium_term", limit=10)</span>
+              <button class="copy-btn" onclick="copySnippet('Show my top 10 songs over the past 6 months')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_listening_patterns(limit=50)  # Peak hours & days</span>
+              <button class="copy-btn" onclick="copySnippet('What are my peak Spotify listening hours and repeat tracks?')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_taste_profile(time_range="medium_term")  # Archetype</span>
+              <button class="copy-btn" onclick="copySnippet('Analyze my musical taste profile and obscure artist affinity')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_playlist_compare(playlist_ids=["id1", "id2"])</span>
+              <button class="copy-btn" onclick="copySnippet('Compare the audio features of these two playlists')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_playlist_freshness(stale_days_threshold=60)</span>
+              <button class="copy-btn" onclick="copySnippet('Check which of my Spotify playlists are stale or unmaintained')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source Files: <strong class="tool-file-path">tools/taste.py</strong>, <strong class="tool-file-path">mcp-soundtrack-app/server.py</strong></span>
+          <span>Scope: user-top-read, user-read-recently-played, playlist-read-private</span>
+        </div>
+      <!-- TOOL: Library & Saved Media Suite -->
+      <article class="tool-card" data-category="library" data-keywords="library liked songs saved tracks albums save remove check favorite love">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">📚</div>
+            <div class="tool-title-group">
+              <h3>Library & Liked Media Studio</h3>
+              <span class="tool-code-name">spotify_get_saved_tracks, spotify_save_tracks, spotify_remove_saved_tracks, spotify_check_saved_tracks, spotify_get_saved_albums, spotify_save_albums, spotify_remove_saved_albums, spotify_check_saved_albums</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">8 MCP Tools</span>
+            <span class="badge badge-web">Web Studio</span>
+            <span class="badge badge-get">REST APIs</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Complete management of your Spotify personal library. Read, batch-save, unlike, and verify membership of individual tracks in your Liked Songs, or manage your saved album collection.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI (/tools)</div>
+            <p>Access the <strong>📚 Library & Saved Media Studio</strong> with dedicated tabs for browsing Liked Songs, batch-saving tracks, checking like status, browsing saved albums, and managing your album library.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the MCP AI Agent</div>
+            <p>Interact with user library items programmatically:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_saved_tracks(limit=20, offset=0)</span>
+              <button class="copy-btn" onclick="copySnippet('List my latest 20 saved tracks from my Liked Songs')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_save_tracks(track_ids=["spotify:track:..."])</span>
+              <button class="copy-btn" onclick="copySnippet('Save this song to my Liked Songs')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_check_saved_tracks(track_ids=["id1", "id2"])</span>
+              <button class="copy-btn" onclick="copySnippet('Check if these tracks are already in my Liked Songs')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_saved_albums(limit=10)</span>
+              <button class="copy-btn" onclick="copySnippet('Show my saved albums in Spotify')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_save_albums(album_ids=["spotify:album:..."])</span>
+              <button class="copy-btn" onclick="copySnippet('Add this album to my Spotify library')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source Files: <strong class="tool-file-path">tools/library.py</strong>, <strong class="tool-file-path">mcp-soundtrack-app/server.py</strong></span>
+          <span>Scope: user-library-read, user-library-modify</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Catalog & Entity Inspection (Browse) Suite -->
+      <article class="tool-card" data-category="browse" data-keywords="browse catalog track album artist user discography isrc preview inspect copyright follower metadata">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🔎</div>
+            <div class="tool-title-group">
+              <h3>Catalog & Entity Inspection (Browse) Studio</h3>
+              <span class="tool-code-name">spotify_get_track, spotify_get_album, spotify_get_artist, spotify_get_artist_albums, spotify_get_user</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">5 MCP Tools</span>
+            <span class="badge badge-web">Web Studio</span>
+            <span class="badge badge-get">REST APIs</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          Deep-dive inspection into Spotify catalog entities. Inspect detailed track metadata (ISRC codes, 30s audio previews, popularity metrics), full album information (record label, legal copyrights, full tracklists), artist profiles (global followers, genre tags, popularity index), complete discographies (albums, singles, compilations), and public user profiles with their public playlists.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🌐 In the Web UI (/tools)</div>
+            <p>Access the <strong>🔎 Catalog & Entity Inspection Studio</strong> with dedicated tabs for Track Details (with audio preview playback), Album Details (with copyright and tracklist), Artist Profile, Discography, and User Profile.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the MCP AI Agent</div>
+            <p>Inspect any Spotify entity directly by ID, URI, or name:</p>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_track(track_id="spotify:track:4cOdK2wGLETKBW3PvgPWqT")</span>
+              <button class="copy-btn" onclick="copySnippet('Get full metadata and ISRC for Bohemian Rhapsody')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_album(album_id="spotify:album:4aawyAB9vmqN3uQ7FjRGTy")</span>
+              <button class="copy-btn" onclick="copySnippet('Inspect album copyrights, label, and full tracklist')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_artist(artist_id="Radiohead")</span>
+              <button class="copy-btn" onclick="copySnippet('Get genres, follower count, and popularity for Radiohead')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_get_artist_albums(artist_id="Daft Punk", include_groups="album,single")</span>
+              <button class="copy-btn" onclick="copySnippet('List all albums and singles by Daft Punk')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_get_user(user_id="spotify:user:wizzler")</span>
+              <button class="copy-btn" onclick="copySnippet('Fetch public profile information and playlists for this user')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source Files: <strong class="tool-file-path">tools/browse.py</strong>, <strong class="tool-file-path">mcp-soundtrack-app/server.py</strong></span>
+          <span>Scope: Public Catalog & User Profile Inspection</span>
         </div>
       </article>
 

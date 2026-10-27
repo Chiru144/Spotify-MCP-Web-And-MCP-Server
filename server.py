@@ -1,8 +1,11 @@
 from tools.core import mcp, SPOTIFY_SCOPES, get_spotify_client
-from tools import playback, playlists, taste, search, web_app, tmdb_helpers, prompts
+from tools import playback, playlists, taste, search, library, browse, web_app, tmdb_helpers, prompts
 from tools.web_app_internal import start_background_web_app
 import os
 import sys
+
+# ASGI application for Cloud Run / Uvicorn HTTP & SSE transport
+app = mcp.sse_app()
 
 if __name__ == "__main__":
     import threading

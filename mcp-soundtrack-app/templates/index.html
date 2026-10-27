@@ -1461,14 +1461,35 @@
       </div>
     </a>
 
-    <div style="display: flex; align-items: center; gap: 12px;">
-      <div style="display: flex; align-items: center; gap: 8px; margin-right: 12px;">
+    <div style="display: flex; align-items: center; gap: 10px;">
+      <div style="display: flex; align-items: center; gap: 8px; margin-right: 6px;">
         <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--text-muted)" stroke-width="2">
           <polygon points="11 5 6 9 2 9 2 15 6 15 11 19 11 5"></polygon>
           <path d="M15.54 8.46a5 5 0 0 1 0 7.07"></path>
         </svg>
-        <input type="range" id="volumeSlider" min="0" max="100" value="50" style="width: 80px; accent-color: var(--spotify-green); cursor: pointer;" onchange="setVolume(this.value)" title="Volume">
+        <input type="range" id="volumeSlider" min="0" max="100" value="50" style="width: 80px; accent-color: var(--spotify-green); cursor: pointer;" oninput="setVolume(this.value)" title="Playback Volume (0-100)">
       </div>
+
+      <button class="nav-btn" id="navDevicesBtn" onclick="openDevicesModal()" title="Spotify Connect Devices">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+          <line x1="8" y1="21" x2="16" y2="21"></line>
+          <line x1="12" y1="17" x2="12" y2="21"></line>
+        </svg>
+        <span id="navDeviceName">Devices</span>
+      </button>
+
+      <button class="nav-btn" id="navQueueBtn" onclick="openQueueModal()" title="View Spotify Playback Queue">
+        <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <line x1="8" y1="6" x2="21" y2="6"></line>
+          <line x1="8" y1="12" x2="21" y2="12"></line>
+          <line x1="8" y1="18" x2="21" y2="18"></line>
+          <line x1="3" y1="6" x2="3.01" y2="6"></line>
+          <line x1="3" y1="12" x2="3.01" y2="12"></line>
+          <line x1="3" y1="18" x2="3.01" y2="18"></line>
+        </svg>
+        <span>Queue</span>
+      </button>
 
       <a href="/tools" class="nav-link">Advanced Tools</a>
       <a href="/guide" class="nav-link" style="color: var(--spotify-green);">📖 Tools Guide</a>
@@ -1481,7 +1502,7 @@
         <span>Fetch Playlist</span>
       </button>
 
-      <div class="user-pill" id="userStatusPill">
+      <div class="user-pill" id="userStatusPill" onclick="openDevicesModal()" style="cursor: pointer;" title="Spotify connection status & active device">
         <div class="status-dot"></div>
         <span id="userNameDisplay">Spotify Ready</span>
       </div>
@@ -1608,31 +1629,77 @@
 
       <!-- Right Column: Send Box (Staging Crate) -->
       <aside class="right-column-container">
-        <!-- Floating Player Widget (Moved here) -->
+        <!-- Floating Player Widget (Full Spotify Playback Control) -->
         <div class="floating-player" id="floatingPlayer">
           <div class="fp-info">
             <img src="" id="fpArt" class="fp-art" alt="cover">
             <div class="fp-meta">
               <div class="fp-title" id="fpTitle">Loading...</div>
               <div class="fp-artist" id="fpArtist">-</div>
+              <div class="fp-device-status" id="fpDeviceStatus" onclick="openDevicesModal()" title="Click to view & switch Spotify Connect devices">
+                <span class="fp-status-dot"></span>
+                <span id="fpDeviceName">Spotify Connect</span>
+              </div>
+            </div>
+            <div class="fp-quick-actions">
+              <button class="fp-icon-btn" id="fpDevicesBtn" onclick="openDevicesModal()" title="Spotify Connect Devices">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+                  <line x1="8" y1="21" x2="16" y2="21"></line>
+                  <line x1="12" y1="17" x2="12" y2="21"></line>
+                </svg>
+              </button>
+              <button class="fp-icon-btn" id="fpQueueBtn" onclick="openQueueModal()" title="View Spotify Playback Queue">
+                <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                  <line x1="8" y1="6" x2="21" y2="6"></line>
+                  <line x1="8" y1="12" x2="21" y2="12"></line>
+                  <line x1="8" y1="18" x2="21" y2="18"></line>
+                  <line x1="3" y1="6" x2="3.01" y2="6"></line>
+                  <line x1="3" y1="12" x2="3.01" y2="12"></line>
+                  <line x1="3" y1="18" x2="3.01" y2="18"></line>
+                </svg>
+              </button>
             </div>
           </div>
           <div class="fp-progress-container">
             <span id="fpTime">0:00</span>
-            <div class="fp-progress-bar" id="fpProgressBar" onclick="fpSeek(event)" style="cursor: pointer;">
+            <div class="fp-progress-bar" id="fpProgressBar" onclick="fpSeek(event)" style="cursor: pointer;" title="Click anywhere to seek">
               <div class="fp-progress-fill" id="fpProgressFill"></div>
             </div>
             <span id="fpDuration">0:00</span>
           </div>
           <div class="fp-controls">
-            <button class="fp-btn" onclick="fpCommand('previous')" title="Previous">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            <!-- Shuffle Toggle Button -->
+            <button class="fp-btn fp-sub-btn" id="fpShuffleBtn" onclick="fpToggleShuffle()" title="Toggle Shuffle Mode">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="16 3 21 3 21 8"></polyline>
+                <line x1="4" y1="20" x2="21" y2="3"></line>
+                <polyline points="21 16 21 21 16 21"></polyline>
+                <line x1="15" y1="15" x2="21" y2="21"></line>
+                <line x1="4" y1="4" x2="9" y2="9"></line>
+              </svg>
             </button>
-            <button class="fp-btn fp-playpause" id="fpPlayPause" onclick="fpTogglePlay()" title="Play/Pause">
+            <!-- Skip Previous Button -->
+            <button class="fp-btn" id="fpPrevBtn" onclick="fpCommand('previous')" title="Previous Track">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 6h2v12H6zm3.5 6l8.5 6V6z"/></svg>
+            </button>
+            <!-- Play / Pause Button -->
+            <button class="fp-btn fp-playpause" id="fpPlayPause" onclick="fpTogglePlay()" title="Play / Pause">
               <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
             </button>
-            <button class="fp-btn" onclick="fpCommand('next')" title="Next">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            <!-- Skip Next Button -->
+            <button class="fp-btn" id="fpNextBtn" onclick="fpCommand('next')" title="Next Track">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M6 18l8.5-6L6 6v12zM16 6v12h2V6h-2z"/></svg>
+            </button>
+            <!-- Repeat Toggle Button -->
+            <button class="fp-btn fp-sub-btn" id="fpRepeatBtn" onclick="fpCycleRepeat()" title="Repeat Mode (Off / Playlist / Track)" style="position: relative;">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <polyline points="17 1 21 5 17 9"></polyline>
+                <path d="M3 11V9a4 4 0 0 1 4-4h14"></path>
+                <polyline points="7 23 3 19 7 15"></polyline>
+                <path d="M21 13v2a4 4 0 0 1-4 4H3"></path>
+              </svg>
+              <span class="repeat-one-indicator" id="fpRepeatOne" style="display: none;">1</span>
             </button>
           </div>
         </div>
@@ -1919,6 +1986,89 @@
       <div class="modal-footer" style="padding: 16px 24px; border-top: 1px solid var(--border-subtle); display: flex; justify-content: flex-end; gap: 12px;">
         <button class="action-btn-secondary" onclick="closeVibeMoodModal()" style="padding: 8px 18px;">Cancel</button>
         <button id="recBtn" class="action-btn-primary" onclick="fetchVibeRecommendations()" style="padding: 8px 18px;">Generate & Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotify Connect Devices Modal -->
+  <div class="modal-backdrop" id="devicesModal" onclick="if(event.target===this) closeDevicesModal()">
+    <div class="modal-card" style="max-width: 520px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--spotify-green)" stroke-width="2">
+            <rect x="2" y="3" width="20" height="14" rx="2" ry="2"></rect>
+            <line x1="8" y1="21" x2="16" y2="21"></line>
+            <line x1="12" y1="17" x2="12" y2="21"></line>
+          </svg>
+          <span>Spotify Connect Devices</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="modal-close" onclick="loadDevices()" title="Refresh devices" style="font-size: 16px; display: flex; align-items: center; justify-content: center;">🔄</button>
+          <button class="modal-close" onclick="closeDevicesModal()">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body">
+        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px;">
+          Available Spotify Connect hardware & software players. Select any device to transfer playback:
+        </p>
+        <div id="devicesListContainer" style="display: flex; flex-direction: column; gap: 8px; max-height: 380px; overflow-y: auto;">
+          <div style="text-align: center; color: var(--text-muted); padding: 24px;">Scanning devices...</div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" onclick="closeDevicesModal()" style="padding: 8px 18px;">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Spotify Live Playback Queue Modal -->
+  <div class="modal-backdrop" id="queueModal" onclick="if(event.target===this) closeQueueModal()">
+    <div class="modal-card" style="max-width: 650px;">
+      <div class="modal-header">
+        <div class="modal-title">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="var(--spotify-green)" stroke-width="2">
+            <line x1="8" y1="6" x2="21" y2="6"></line>
+            <line x1="8" y1="12" x2="21" y2="12"></line>
+            <line x1="8" y1="18" x2="21" y2="18"></line>
+            <line x1="3" y1="6" x2="3.01" y2="6"></line>
+            <line x1="3" y1="12" x2="3.01" y2="12"></line>
+            <line x1="3" y1="18" x2="3.01" y2="18"></line>
+          </svg>
+          <span>Spotify Playback Queue</span>
+        </div>
+        <div style="display: flex; gap: 8px; align-items: center;">
+          <button class="modal-close" onclick="loadQueue()" title="Refresh Queue" style="font-size: 16px; display: flex; align-items: center; justify-content: center;">🔄</button>
+          <button class="modal-close" onclick="closeQueueModal()">&times;</button>
+        </div>
+      </div>
+      <div class="modal-body" style="display: flex; flex-direction: column; gap: 16px; max-height: 520px; overflow-y: auto;">
+        <!-- Currently Playing -->
+        <div>
+          <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--spotify-green); letter-spacing: 0.05em; margin-bottom: 8px;">
+            Now Playing
+          </div>
+          <div id="queueNowPlayingContainer" style="background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 12px; display: flex; align-items: center; gap: 12px;">
+            <div style="color: var(--text-muted); font-size: 13px;">No track currently playing</div>
+          </div>
+        </div>
+
+        <!-- Upcoming Queue -->
+        <div>
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
+            <div style="font-size: 11px; text-transform: uppercase; font-weight: 700; color: var(--text-muted); letter-spacing: 0.05em;">
+              Up Next in Queue <span id="queueUpcomingCount" style="color: var(--spotify-green); margin-left: 4px;">(0)</span>
+            </div>
+            <button class="clear-btn" onclick="sendBoxToQueueDirect()" style="color: #38bdf8; font-size: 12px; font-weight: 600;" title="Send all staged Send Box songs to the queue now">
+              + Add Send Box to Queue
+            </button>
+          </div>
+          <div id="queueListContainer" style="display: flex; flex-direction: column; gap: 6px;">
+            <div style="text-align: center; color: var(--text-muted); padding: 24px;">Loading queue...</div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="action-btn-secondary" onclick="closeQueueModal()" style="padding: 8px 18px;">Close</button>
       </div>
     </div>
   </div>
@@ -3647,7 +3797,7 @@
         .replace(/'/g, '&#039;');
     }
   </script>
-  <!-- Floating Player Widget -->
+  <!-- Floating Player Widget & Modal Enhancements -->
   <style>
     .floating-player {
       background: rgba(18, 24, 34, 0.95);
@@ -3658,7 +3808,7 @@
       flex-direction: column;
       gap: 8px;
       box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
-      backdrop-filter: blur(10px);
+      backdrop-filter: blur(12px);
       width: 100%;
       flex-shrink: 0;
     }
@@ -3676,6 +3826,7 @@
       border-radius: 6px;
       object-fit: cover;
       background: #1e293b;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.3);
     }
     .fp-meta {
       flex: 1;
@@ -3696,66 +3847,227 @@
       white-space: nowrap;
       overflow: hidden;
       text-overflow: ellipsis;
+      margin-bottom: 2px;
+    }
+    .fp-device-status {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 11px;
+      color: var(--spotify-green);
+      cursor: pointer;
+      opacity: 0.9;
+      transition: opacity 0.2s;
+    }
+    .fp-device-status:hover {
+      opacity: 1;
+      text-decoration: underline;
+    }
+    .fp-status-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: var(--spotify-green);
+      box-shadow: 0 0 6px var(--spotify-green);
+      animation: fpPulse 2s infinite;
+    }
+    @keyframes fpPulse {
+      0% { opacity: 0.6; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.15); }
+      100% { opacity: 0.6; transform: scale(0.9); }
+    }
+    .fp-quick-actions {
+      display: flex;
+      gap: 6px;
+      align-items: center;
+    }
+    .fp-icon-btn {
+      background: rgba(255, 255, 255, 0.06);
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      color: var(--text-muted);
+      width: 28px;
+      height: 28px;
+      border-radius: 8px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .fp-icon-btn:hover {
+      color: #fff;
+      border-color: rgba(255, 255, 255, 0.25);
+      background: rgba(255, 255, 255, 0.12);
     }
     .fp-controls {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 16px;
+      gap: 12px;
       margin-top: 4px;
     }
     .fp-btn {
       background: transparent;
       border: none;
-      color: #fff;
+      color: #cbd5e1;
       cursor: pointer;
       display: flex;
       align-items: center;
       justify-content: center;
-      padding: 4px;
+      padding: 6px;
       border-radius: 50%;
       transition: transform 0.2s, color 0.2s;
+      position: relative;
     }
     .fp-btn:hover {
-      transform: scale(1.1);
+      transform: scale(1.12);
+      color: #fff;
+    }
+    .fp-sub-btn {
+      color: #64748b;
+    }
+    .fp-sub-btn.active {
+      color: var(--spotify-green) !important;
+      filter: drop-shadow(0 0 6px rgba(29, 185, 84, 0.6));
+    }
+    .repeat-one-indicator {
+      position: absolute;
+      top: 1px;
+      right: 2px;
+      font-size: 9px;
+      font-weight: 800;
       color: var(--spotify-green);
+      line-height: 1;
     }
     .fp-playpause {
       background: #fff;
       color: #000;
-      width: 32px;
-      height: 32px;
+      width: 34px;
+      height: 34px;
+      box-shadow: 0 4px 14px rgba(0, 0, 0, 0.4);
     }
     .fp-playpause:hover {
       background: var(--spotify-green);
       color: #000;
+      box-shadow: 0 4px 16px rgba(29, 185, 84, 0.5);
     }
     .fp-progress-container {
       display: flex;
       align-items: center;
       gap: 8px;
-      font-size: 10px;
+      font-size: 11px;
+      font-family: monospace;
       color: var(--text-muted);
       margin-top: 4px;
     }
     .fp-progress-bar {
       flex: 1;
       height: 4px;
-      background: rgba(255, 255, 255, 0.2);
+      background: rgba(255, 255, 255, 0.15);
       border-radius: 2px;
       overflow: hidden;
+      transition: height 0.15s;
+    }
+    .fp-progress-bar:hover {
+      height: 6px;
     }
     .fp-progress-fill {
       height: 100%;
       background: var(--spotify-green);
       width: 0%;
-      transition: width 1s linear;
+      transition: width 0.3s linear;
+    }
+
+    /* Device Card Styles */
+    .device-card {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border-radius: var(--radius-md);
+      background: rgba(255, 255, 255, 0.03);
+      border: 1px solid var(--border-subtle);
+      transition: all 0.2s ease;
+    }
+    .device-card:hover {
+      background: rgba(255, 255, 255, 0.06);
+      border-color: rgba(255, 255, 255, 0.2);
+    }
+    .device-card.active {
+      border-color: var(--spotify-green);
+      background: rgba(29, 185, 84, 0.08);
+    }
+    .device-icon-box {
+      width: 36px;
+      height: 36px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.06);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 18px;
+    }
+    .device-card.active .device-icon-box {
+      background: var(--spotify-green);
+      color: #000;
+    }
+
+    /* Queue Item Styles */
+    .queue-track-item {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      border-radius: 8px;
+      background: rgba(255, 255, 255, 0.02);
+      border: 1px solid rgba(255, 255, 255, 0.04);
+      transition: all 0.15s;
+    }
+    .queue-track-item:hover {
+      background: rgba(255, 255, 255, 0.05);
+      border-color: rgba(255, 255, 255, 0.12);
+    }
+    .queue-track-index {
+      font-size: 12px;
+      font-family: monospace;
+      color: var(--text-muted);
+      width: 20px;
+      text-align: center;
+    }
+    .queue-track-thumb {
+      width: 38px;
+      height: 38px;
+      border-radius: 4px;
+      object-fit: cover;
+      background: #1e293b;
+    }
+    .queue-track-meta {
+      flex: 1;
+      min-width: 0;
+    }
+    .queue-track-name {
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .queue-track-artists {
+      font-size: 11px;
+      color: var(--text-muted);
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
     }
   </style>
 
   <script>
     let fpIsPlaying = false;
     let fpDurationMs = 0;
+    let fpShuffleState = false;
+    let fpRepeatState = 'off'; // 'off', 'context', or 'track'
+    let currentConnectedDevice = null;
 
     async function fpSeek(event) {
       if (!fpDurationMs) return;
@@ -3790,8 +4102,20 @@
         const data = await res.json();
         const fp = document.getElementById('floatingPlayer');
         
-        if (!data.success || !data.track) {
+        if (!data.success) {
           fp.classList.remove('visible');
+          return;
+        }
+
+        if (data.user) {
+          document.getElementById('userNameDisplay').textContent = data.user;
+        }
+
+        if (!data.track) {
+          fp.classList.remove('visible');
+          if (data.device) {
+            document.getElementById('navDeviceName').textContent = data.device.name || 'Devices';
+          }
           return;
         }
 
@@ -3808,14 +4132,60 @@
         const pct = (data.progress_ms / (data.duration_ms || 1)) * 100;
         document.getElementById('fpProgressFill').style.width = `${pct}%`;
 
+        // Update active device info
+        if (data.device) {
+          currentConnectedDevice = data.device;
+          const devName = data.device.name || 'Spotify Device';
+          document.getElementById('fpDeviceName').textContent = devName;
+          document.getElementById('navDeviceName').textContent = devName;
+          if (data.device.volume_percent !== undefined && data.device.volume_percent !== null) {
+            const vSlider = document.getElementById('volumeSlider');
+            if (document.activeElement !== vSlider) {
+              vSlider.value = data.device.volume_percent;
+            }
+          }
+        }
+
+        // Update Play/Pause icon
         fpIsPlaying = data.is_playing;
         const ppIcon = document.getElementById('fpPlayPause');
         if (fpIsPlaying) {
-          // Pause Icon
           ppIcon.innerHTML = `<svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M6 19h4V5H6v14zm8-14v14h4V5h-4z"/></svg>`;
         } else {
-          // Play Icon
           ppIcon.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>`;
+        }
+
+        // Update Shuffle State
+        fpShuffleState = !!data.shuffle_state;
+        const shuffleBtn = document.getElementById('fpShuffleBtn');
+        if (shuffleBtn) {
+          if (fpShuffleState) {
+            shuffleBtn.classList.add('active');
+            shuffleBtn.title = "Shuffle is ON (Click to turn off)";
+          } else {
+            shuffleBtn.classList.remove('active');
+            shuffleBtn.title = "Shuffle is OFF (Click to turn on)";
+          }
+        }
+
+        // Update Repeat State
+        fpRepeatState = data.repeat_state || 'off';
+        const repeatBtn = document.getElementById('fpRepeatBtn');
+        const repeatOneBadge = document.getElementById('fpRepeatOne');
+        if (repeatBtn && repeatOneBadge) {
+          if (fpRepeatState === 'track') {
+            repeatBtn.classList.add('active');
+            repeatOneBadge.style.display = 'block';
+            repeatBtn.title = "Repeat Track 1 (Click to turn off)";
+          } else if (fpRepeatState === 'context') {
+            repeatBtn.classList.add('active');
+            repeatOneBadge.style.display = 'none';
+            repeatBtn.title = "Repeat Playlist/Context (Click to repeat 1)";
+          } else {
+            repeatBtn.classList.remove('active');
+            repeatOneBadge.style.display = 'none';
+            repeatBtn.title = "Repeat is OFF (Click to repeat all)";
+          }
         }
 
       } catch (err) {
@@ -3826,7 +4196,7 @@
     async function fpCommand(cmd) {
       try {
         await fetch(`/api/player/${cmd}`, { method: 'POST' });
-        setTimeout(fetchPlayerState, 500);
+        setTimeout(fetchPlayerState, 400);
       } catch (err) { }
     }
 
@@ -3836,6 +4206,228 @@
       } else {
         await fpCommand('resume');
       }
+    }
+
+    async function fpToggleShuffle() {
+      const nextShuffle = !fpShuffleState;
+      try {
+        const res = await fetch('/api/player/shuffle', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: nextShuffle })
+        });
+        const d = await res.json();
+        if (d.success) {
+          fpShuffleState = nextShuffle;
+          showToast(`Shuffle mode turned ${nextShuffle ? 'ON' : 'OFF'}`);
+          setTimeout(fetchPlayerState, 400);
+        } else {
+          showToast(d.error || "Failed to toggle shuffle", true);
+        }
+      } catch (err) {
+        showToast("Error toggling shuffle", true);
+      }
+    }
+
+    async function fpCycleRepeat() {
+      // cycle: off -> context -> track -> off
+      let nextState = 'context';
+      if (fpRepeatState === 'context') nextState = 'track';
+      else if (fpRepeatState === 'track') nextState = 'off';
+
+      try {
+        const res = await fetch('/api/player/repeat', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ state: nextState })
+        });
+        const d = await res.json();
+        if (d.success) {
+          fpRepeatState = nextState;
+          const label = nextState === 'context' ? 'Repeat All' : nextState === 'track' ? 'Repeat Track (1)' : 'Repeat Off';
+          showToast(`Repeat mode set to: ${label}`);
+          setTimeout(fetchPlayerState, 400);
+        } else {
+          showToast(d.error || "Failed to set repeat mode", true);
+        }
+      } catch (err) {
+        showToast("Error updating repeat mode", true);
+      }
+    }
+
+    // Devices Modal Handling
+    function openDevicesModal() {
+      document.getElementById('devicesModal').classList.add('active');
+      loadDevices();
+    }
+
+    function closeDevicesModal() {
+      document.getElementById('devicesModal').classList.remove('active');
+    }
+
+    async function loadDevices() {
+      const container = document.getElementById('devicesListContainer');
+      container.innerHTML = '<div style="text-align: center; color: var(--text-muted); padding: 24px;">Scanning Spotify Connect devices...</div>';
+      try {
+        const res = await fetch('/api/player/devices');
+        const data = await res.json();
+        const devices = data.devices || [];
+        if (devices.length === 0) {
+          container.innerHTML = `
+            <div style="text-align: center; padding: 24px; color: var(--text-muted);">
+              <div style="font-size: 28px; margin-bottom: 8px;">📡</div>
+              <p style="font-weight: 600; color: #fff; margin-bottom: 4px;">No active Spotify Connect devices found</p>
+              <p style="font-size: 12px;">Open Spotify on your phone, computer, or smart speaker and start playing a track to discover it here.</p>
+            </div>`;
+          return;
+        }
+
+        container.innerHTML = devices.map(d => {
+          const typeIcons = {
+            'Computer': '💻',
+            'Smartphone': '📱',
+            'Speaker': '🔊',
+            'TV': '📺',
+            'CastAudio': '📻',
+            'Automobile': '🚗'
+          };
+          const icon = typeIcons[d.type] || '🎧';
+          const isActive = d.is_active;
+          return `
+            <div class="device-card ${isActive ? 'active' : ''}">
+              <div style="display: flex; align-items: center; gap: 12px;">
+                <div class="device-icon-box">${icon}</div>
+                <div>
+                  <div style="font-size: 14px; font-weight: 600; color: #fff; display: flex; align-items: center; gap: 8px;">
+                    ${d.name}
+                    ${isActive ? '<span style="font-size: 10px; background: var(--spotify-green); color: #000; font-weight: 800; padding: 2px 6px; border-radius: 99px;">CURRENT</span>' : ''}
+                  </div>
+                  <div style="font-size: 12px; color: var(--text-muted);">
+                    ${d.type} ${d.volume_percent !== null ? `• Volume ${d.volume_percent}%` : ''}
+                  </div>
+                </div>
+              </div>
+              <div>
+                ${isActive ? `
+                  <button class="action-btn-secondary" style="padding: 6px 12px; font-size: 12px; opacity: 0.7; cursor: default;">Active</button>
+                ` : `
+                  <button class="action-btn-primary" onclick="transferDevice('${d.id}', '${d.name.replace(/'/g, "\\'")}')" style="padding: 6px 14px; font-size: 12px;">Transfer</button>
+                `}
+              </div>
+            </div>
+          `;
+        }).join('');
+      } catch (err) {
+        container.innerHTML = `<div style="text-align: center; color: #f87171; padding: 20px;">Failed to scan devices: ${err.message}</div>`;
+      }
+    }
+
+    async function transferDevice(deviceId, deviceName) {
+      try {
+        const res = await fetch('/api/player/transfer', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ device_id: deviceId, play: true })
+        });
+        const d = await res.json();
+        if (d.success) {
+          showToast(`Transferred playback to ${deviceName}!`);
+          setTimeout(loadDevices, 600);
+          setTimeout(fetchPlayerState, 800);
+        } else {
+          showToast(d.error || "Failed to transfer playback", true);
+        }
+      } catch (err) {
+        showToast("Error transferring playback", true);
+      }
+    }
+
+    // Queue Modal Handling
+    function openQueueModal() {
+      document.getElementById('queueModal').classList.add('active');
+      loadQueue();
+    }
+
+    function closeQueueModal() {
+      document.getElementById('queueModal').classList.remove('active');
+    }
+
+    async function loadQueue() {
+      const npContainer = document.getElementById('queueNowPlayingContainer');
+      const listContainer = document.getElementById('queueListContainer');
+      const countBadge = document.getElementById('queueUpcomingCount');
+
+      try {
+        const res = await fetch('/api/player/queue');
+        const data = await res.json();
+        
+        if (!data.success) {
+          npContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">${data.error || 'No active playback'}</div>`;
+          listContainer.innerHTML = `<div style="text-align: center; color: var(--text-muted); padding: 20px;">Could not retrieve upcoming queue</div>`;
+          return;
+        }
+
+        // Render Currently Playing
+        const cp = data.currently_playing;
+        if (cp) {
+          const cover = (cp.album && cp.album.images && cp.album.images[0]) ? cp.album.images[0].url : 'https://via.placeholder.com/48/121824/64748b?text=♪';
+          const artists = (cp.artists || []).map(a => a.name).join(', ');
+          npContainer.innerHTML = `
+            <img src="${cover}" style="width: 52px; height: 52px; border-radius: 6px; object-fit: cover; box-shadow: 0 4px 12px rgba(0,0,0,0.3);">
+            <div style="flex: 1; min-width: 0;">
+              <div style="font-size: 14px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${cp.name}</div>
+              <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${artists}</div>
+              <div style="font-size: 11px; color: var(--spotify-green); margin-top: 2px;">Album: ${(cp.album && cp.album.name) || '-'}</div>
+            </div>
+            <a href="${cp.uri}" class="spotify-link-btn" title="Open in Spotify App" style="padding: 6px 10px; font-size: 12px; background: rgba(29, 185, 84, 0.15); border: 1px solid var(--spotify-green); color: #fff; border-radius: 6px; text-decoration: none;">Spotify ↗</a>
+          `;
+        } else {
+          npContainer.innerHTML = `<div style="color: var(--text-muted); font-size: 13px;">No song currently playing on active Spotify device</div>`;
+        }
+
+        // Render Upcoming Queue
+        const queue = data.queue || [];
+        countBadge.textContent = `(${queue.length})`;
+
+        if (queue.length === 0) {
+          listContainer.innerHTML = `
+            <div style="text-align: center; color: var(--text-muted); padding: 28px 12px;">
+              <div style="font-size: 24px; margin-bottom: 6px;">🎵</div>
+              <p style="font-weight: 600; color: #fff; margin-bottom: 4px;">Playback queue is empty</p>
+              <p style="font-size: 12px;">Add tracks by clicking "+ Queue" on search results or "Send to Queue" in your Send Box.</p>
+            </div>`;
+          return;
+        }
+
+        listContainer.innerHTML = queue.slice(0, 30).map((t, idx) => {
+          const cover = (t.album && t.album.images && t.album.images[0]) ? t.album.images[0].url : 'https://via.placeholder.com/38/121824/64748b?text=♪';
+          const artists = (t.artists || []).map(a => a.name).join(', ');
+          const dur = formatMs(t.duration_ms);
+          return `
+            <div class="queue-track-item">
+              <span class="queue-track-index">${idx + 1}</span>
+              <img src="${cover}" class="queue-track-thumb" alt="art">
+              <div class="queue-track-meta">
+                <div class="queue-track-name">${t.name}</div>
+                <div class="queue-track-artists">${artists} • <span style="font-family: monospace;">${dur}</span></div>
+              </div>
+              <button class="action-btn-secondary" onclick="playSong('${t.uri}')" style="padding: 4px 10px; font-size: 11px;" title="Play immediately">Play</button>
+            </div>
+          `;
+        }).join('');
+
+      } catch (err) {
+        listContainer.innerHTML = `<div style="text-align: center; color: #f87171; padding: 20px;">Error loading queue: ${err.message}</div>`;
+      }
+    }
+
+    async function sendBoxToQueueDirect() {
+      if (stagedSongs.length === 0) {
+        showToast("No songs currently staged in your Send Box.", true);
+        return;
+      }
+      await queueSendBoxSongs();
+      setTimeout(loadQueue, 800);
     }
 
     // Start polling playback state

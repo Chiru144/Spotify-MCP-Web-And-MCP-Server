@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any
 from mcp.types import ToolAnnotations
 from tools.core import mcp, get_spotify_client
+from tools.web_app_internal import start_background_web_app
 import spotipy
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))

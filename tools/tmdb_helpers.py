@@ -12,22 +12,54 @@ try:
 except ImportError:
     from duckduckgo_search import DDGS
 
+def tmdb_get_credentials() -> tuple[Optional[str], Optional[str]]:
+    """Resolve TMDB token or API key from environment variables.
+    
+    Accepts either TMDB_API_KEY or TMDB_READ_ACCESS_TOKEN (any single one is sufficient).
+    Automatically detects whether a credential is a v4 Read Access Token (Bearer JWT)
+    or a standard v3 API key (hex string).
+    """
+    token = (os.getenv("TMDB_READ_ACCESS_TOKEN") or "").strip()
+    api_key = (os.getenv("TMDB_API_KEY") or "").strip()
+
+    # Filter out empty or placeholder values
+    if "your_" in token:
+        token = ""
+    if "your_" in api_key:
+        api_key = ""
+
+    bearer_token = None
+    v3_key = None
+
+    for val in (token, api_key):
+        if not val:
+            continue
+        # Bearer tokens are long JWT tokens (typically >40 chars, often start with 'eyJ')
+        if len(val) > 40 or val.startswith("eyJ"):
+            if not bearer_token:
+                bearer_token = val
+        else:
+            if not v3_key:
+                v3_key = val
+
+    return bearer_token, v3_key
+
+
 def tmdb_get_auth_headers() -> Dict[str, str]:
     """Return authorization headers for TMDB API."""
-    token = os.getenv("TMDB_READ_ACCESS_TOKEN")
+    bearer_token, _ = tmdb_get_credentials()
     headers = {"accept": "application/json"}
-    if token:
-        headers["Authorization"] = f"Bearer {token}"
+    if bearer_token:
+        headers["Authorization"] = f"Bearer {bearer_token}"
     return headers
 
 
 def tmdb_get_auth_params() -> Dict[str, str]:
-    """Return query params if API key is used as fallback."""
-    token = os.getenv("TMDB_READ_ACCESS_TOKEN")
-    api_key = os.getenv("TMDB_API_KEY")
+    """Return query params if API key is used for authentication."""
+    bearer_token, v3_key = tmdb_get_credentials()
     params: Dict[str, str] = {}
-    if not token and api_key:
-        params["api_key"] = api_key
+    if not bearer_token and v3_key:
+        params["api_key"] = v3_key
     return params
 
 

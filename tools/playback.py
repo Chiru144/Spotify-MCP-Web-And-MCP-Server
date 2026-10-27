@@ -286,3 +286,181 @@ def get_queue() -> str:
         return f"Error fetching queue: {str(e)}"
 
 
+# =====================================================================
+# Standard Playback Control & Status Tools (spotify_*)
+# =====================================================================
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_status() -> str:
+    """Get current connection status and basic playback state."""
+    try:
+        sp = get_spotify_client()
+        user = sp.current_user()
+        playback = sp.current_playback()
+        user_name = user.get("display_name", "Unknown User")
+        user_id = user.get("id", "Unknown ID")
+        if not playback or not playback.get("device"):
+            return f"Connected to Spotify as {user_name} ({user_id}). No active playback or device detected."
+        device = playback.get("device", {}).get("name", "Unknown Device")
+        is_playing = playback.get("is_playing", False)
+        item = playback.get("item")
+        track_info = f" - '{item.get('name')}' by {', '.join(a['name'] for a in item.get('artists', []))}" if item else ""
+        state_str = "Playing" if is_playing else "Paused"
+        return f"Connected as {user_name} ({user_id}) on device '{device}'. Playback: {state_str}{track_info}."
+    except Exception as e:
+        return f"Error checking Spotify status: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_now_playing() -> str:
+    """Fetch detailed information about the currently playing track."""
+    return get_current_playback()
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+def spotify_play(
+    uri: Optional[str] = None,
+    uris: Optional[List[str]] = None,
+    context_uri: Optional[str] = None,
+    device_id: Optional[str] = None,
+    position_ms: Optional[int] = None
+) -> str:
+    """Start or resume playback (accepts track, album, or playlist URIs)."""
+    if uri:
+        if any(prefix in uri for prefix in ["album", "playlist", "artist", "show"]):
+            context_uri = uri
+            uri = None
+    return play_track(
+        device_id=device_id,
+        context_uri=context_uri,
+        uris=uris,
+        uri=uri,
+        position_ms=position_ms
+    )
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_pause(device_id: Optional[str] = None) -> str:
+    """Pause playback."""
+    try:
+        sp = get_spotify_client()
+        sp.pause_playback(device_id=device_id)
+        return "Playback paused."
+    except Exception as e:
+        return f"Error pausing playback: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+def spotify_resume(device_id: Optional[str] = None) -> str:
+    """Resume active playback."""
+    try:
+        sp = get_spotify_client()
+        sp.start_playback(device_id=device_id)
+        return "Playback resumed."
+    except Exception as e:
+        return f"Error resuming playback: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+def spotify_skip_next(device_id: Optional[str] = None) -> str:
+    """Skip to the next track in the queue."""
+    try:
+        sp = get_spotify_client()
+        sp.next_track(device_id=device_id)
+        return "Skipped to next track."
+    except Exception as e:
+        return f"Error skipping to next track: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+def spotify_skip_previous(device_id: Optional[str] = None) -> str:
+    """Skip back to the previous track."""
+    try:
+        sp = get_spotify_client()
+        sp.previous_track(device_id=device_id)
+        return "Skipped back to previous track."
+    except Exception as e:
+        return f"Error skipping to previous track: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+def spotify_add_to_queue(uri: str, device_id: Optional[str] = None) -> str:
+    """Add a track URI to the user's current playback queue."""
+    try:
+        sp = get_spotify_client()
+        sp.add_to_queue(uri, device_id=device_id)
+        return f"Added track {uri} to playback queue."
+    except Exception as e:
+        return f"Error adding to queue: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_get_queue() -> str:
+    """View current playback queue and upcoming tracks."""
+    return get_queue()
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_get_devices() -> str:
+    """List available Spotify Connect devices."""
+    return get_available_devices()
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_transfer_playback(device_id: str, play: bool = False) -> str:
+    """Transfer active playback to another connected device."""
+    return transfer_playback(device_id=device_id, play=play)
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_set_volume(volume_percent: int, device_id: Optional[str] = None) -> str:
+    """Set playback volume (0–100)."""
+    if not (0 <= volume_percent <= 100):
+        return "Volume percent must be between 0 and 100."
+    try:
+        sp = get_spotify_client()
+        sp.volume(volume_percent, device_id=device_id)
+        return f"Playback volume set to {volume_percent}%."
+    except Exception as e:
+        return f"Error setting volume: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_seek(position_ms: int, device_id: Optional[str] = None) -> str:
+    """Seek to a specific timestamp in the current track."""
+    try:
+        sp = get_spotify_client()
+        sp.seek_track(position_ms, device_id=device_id)
+        return f"Playback sought to {position_ms} ms."
+    except Exception as e:
+        return f"Error seeking track: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_set_repeat(state: str, device_id: Optional[str] = None) -> str:
+    """Set repeat mode (off, context, or track)."""
+    if state not in ['track', 'context', 'off']:
+        return "State must be 'track', 'context', or 'off'."
+    try:
+        sp = get_spotify_client()
+        sp.repeat(state, device_id=device_id)
+        return f"Repeat mode set to '{state}'."
+    except Exception as e:
+        return f"Error setting repeat mode: {str(e)}"
+
+
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
+def spotify_toggle_shuffle(state: Optional[bool] = None, device_id: Optional[str] = None) -> str:
+    """Toggle shuffle mode on or off."""
+    try:
+        sp = get_spotify_client()
+        if state is None:
+            playback = sp.current_playback()
+            current_shuffle = playback.get("shuffle_state", False) if playback else False
+            state = not current_shuffle
+        sp.shuffle(state, device_id=device_id)
+        return f"Shuffle mode turned {'on' if state else 'off'}."
+    except Exception as e:
+        return f"Error toggling shuffle mode: {str(e)}"
+
+

@@ -63,9 +63,9 @@ For song suggestions, it wraps Spotify's native Recommendations API, which accep
 
 ### Tools & Agent Skills Catalog
 
-This server registers **43 specialized FastMCP tools** and packages **7 dedicated agent skills** for autonomous AI workflows:
+This server registers **108 specialized FastMCP tools** across 7 domain modules, and packages **20 dedicated agent skills** for autonomous AI workflows:
 
-#### 🎬 Cinema & Filmography Tools
+#### 🎬 Cinema & Filmography Tools (`tools/search.py`, `tools/tmdb_helpers.py`)
 - `create_actor_playlist(actor_name, ...)`: End-to-end automated pipeline to discover an actor's filmography, find the soundtracks on Spotify, and compile a dedicated playlist.
 - `search_actor_movies(actor_name, limit, sort_by)`: Discovers an actor's full filmography via TMDB with DuckDuckGo and Wikipedia fallback engines.
 - `get_actor_tmdb_profile(actor_name)`: Fetches rich actor biographical profiles, popularity metrics, and top known credits.
@@ -74,51 +74,55 @@ This server registers **43 specialized FastMCP tools** and packages **7 dedicate
 - `add_movie_songs_to_playlist(playlist_id, movie_name, max_songs)`: Finds songs from a movie on Spotify and appends them directly to an existing playlist.
 - `search_duckduckgo(query, max_results)`: Autonomous web search engine for discovering movie tracklists, niche soundtracks, and music news.
 
-#### 🎵 Smart Playlist Management Tools
-- `create_playlist(name, description, public)`: Creates a new Spotify playlist for the user.
-- `shuffle_playlist(playlist_id)`: Mixes and shuffles all songs in a playlist into a completely new random permutation.
-- `reorder_playlist_by_audio_features(playlist_id, feature, order)`: Sorts tracks by acoustic properties (`energy`, `valence`, `danceability`, `tempo`, etc.) in ascending or descending order.
-- `dedupe_playlist(playlist_id)`: In-place scan and removal of duplicate songs from a playlist, preserving the first instance.
-- `combine_playlists(playlist_ids, new_name, description)`: Merges multiple playlists into a unified, deduplicated playlist with automated pagination.
-- `add_tracks_to_playlist(playlist_id, track_uris)`: Adds track URIs in batches of 100 with deduplication checks.
-- `get_user_playlists(limit)`: Retrieves user-owned playlists with track counts and URIs.
-- `get_playlist_tracks(playlist_id, limit, offset)`: Inspects songs currently inside a playlist.
-- `update_playlist(playlist_id, name, description, public)`: Updates playlist metadata.
-- `remove_tracks_from_playlist(playlist_id, uris)`: Removes specific track URIs from a playlist.
+#### 🎵 Smart Playlist Management & Power Tools (`tools/playlists.py`)
+- Standard operations: `spotify_create_playlist`, `spotify_get_playlist`, `spotify_get_my_playlists`, `spotify_add_to_playlist`, `spotify_remove_from_playlist`, `spotify_reorder_playlist`, `spotify_update_playlist`, `spotify_follow_playlist`, `spotify_unfollow_playlist`, `spotify_get_playlist_cover`, `spotify_check_playlist_followers`.
+- Algorithmic tools: `shuffle_playlist`, `reorder_playlist_by_audio_features`, `dedupe_playlist`, `combine_playlists`.
+- Power tools: `spotify_merge_playlists`, `spotify_split_playlist_by_artist`, `spotify_deduplicate_playlist`, `spotify_export_playlist`, `spotify_playlist_diff`, `spotify_find_playlist_overlaps`, `spotify_find_playlist_subsets`, `spotify_absorb_playlist`.
 
-#### ✨ Taste Analysis & Recommendation Engine
-- `get_recommendations(seeds..., targets...)`: Multi-seed recommendation engine supporting up to 5 combined seeds (genres, tracks, artists) and 6 fine-grained acoustic targets (`valence`, `energy`, `danceability`, `acousticness`, `instrumentalness`, `tempo`).
-- `get_audio_features(track_uris)`: Extracts deep acoustic scores ($0.0 - 1.0$), BPM, key, and musical mode for up to 100 tracks.
-- `get_user_top_tracks(limit, time_range)`: Retrieves top songs across short (~4 weeks), medium (~6 months), and long-term (years) horizons.
-- `get_user_top_artists(limit, time_range)`: Retrieves top artists across short, medium, and long-term listening history.
-- `get_artist_network(artist_name_or_id)`: Maps related artist networks and sub-genres.
-- `get_saved_tracks(limit, offset)`: Queries songs saved in the user's personal Spotify Library.
-- `search_spotify(query, search_type, limit)`: Flexible search across Spotify tracks, albums, artists, or playlists.
+#### 🔍 Catalog & Entity Inspection Tools (`tools/browse.py`)
+- `spotify_get_track(track_id)`: Fetches complete track metadata, album info, and audio previews.
+- `spotify_get_album(album_id)`: Inspects full album tracks, release dates, and copyright labels.
+- `spotify_get_artist(artist_id)`: Retrieves artist profiles, genres, follower counts, and popularity.
+- `spotify_get_artist_albums(artist_id)`: Lists full artist discography (albums, singles, appearances).
+- `spotify_get_user(user_id)`: Inspects public Spotify user profiles.
 
-#### 🎛️ Playback & Hardware Controls
-- `get_current_playback()`: Returns currently playing track, artist, album, progress, and active device.
-- `play_track(device_id, uris, uri)`: Starts or resumes music playback on Spotify.
-- `pause_playback(device_id)`: Pauses active music playback.
-- `next_track(device_id)` / `previous_track(device_id)`: Skips tracks forward or backward.
-- `seek_to_position(position_ms, device_id)`: Seeks to a specific millisecond in the active track.
-- `set_volume(volume_percent, device_id)`: Sets playback volume level (0 to 100%).
-- `set_repeat_mode(state, device_id)`: Sets repeat mode (`off`, `track`, `context`).
-- `toggle_shuffle(state, device_id)`: Toggles Spotify player shuffle mode.
-- `get_available_devices()`: Lists active and discovered Spotify Connect hardware devices.
-- `transfer_playback(device_id, play)`: Seamlessly switches audio playback to another device.
-- `add_to_queue(uri, device_id)`: Enqueues a song to the user's upcoming playback queue.
-- `get_user_queue()`: Inspects currently playing track and the queue.
-- `open_soundtrack_studio()`: Launches or opens the visual Soundtrack Curator & Staging Studio web UI.
+#### 📚 Library & Saved Media Tools (`tools/library.py`)
+- Saved tracks: `spotify_get_saved_tracks`, `spotify_save_tracks`, `spotify_remove_saved_tracks`, `spotify_check_saved_tracks`.
+- Saved albums: `spotify_get_saved_albums`, `spotify_save_albums`, `spotify_remove_saved_albums`, `spotify_check_saved_albums`.
+
+#### ✨ Taste Analysis & Recommendation Engine (`tools/taste.py`, `tools/search.py`)
+- `spotify_get_recommendations` / `get_recommendations`: Multi-seed engine with 6 fine-grained acoustic targets.
+- `spotify_top_tracks` / `get_user_top_tracks`: Top played songs across short, medium, and long-term timeframes.
+- `spotify_top_artists` / `get_user_top_artists`: Top artists across short, medium, and long-term history.
+- `spotify_recently_played`: Retrieves playback history with timestamps.
+- `spotify_listening_patterns`: Analyzes peak listening hours and temporal habits.
+- `spotify_taste_profile`: Comprehensive acoustic fingerprint across danceability, energy, and valence.
+- `spotify_playlist_compare`: Comparative audio profile between two playlists.
+- `spotify_playlist_freshness`: Evaluates track age and release distribution within a playlist.
+- `spotify_related_artists` / `get_artist_network`: Maps related artist networks and sub-genres.
+
+#### 🎛️ Playback & Hardware Controls (`tools/playback.py`)
+- Playback states: `get_current_playback`, `spotify_get_playback_state`, `spotify_currently_playing`.
+- Hardware & Connect: `get_available_devices`, `transfer_playback`.
+- Track controls: `play_track`, `pause_playback`, `next_track`, `previous_track`, `seek_to_position`, `set_volume`, `set_repeat_mode`, `toggle_shuffle`.
+- Queue management: `add_to_queue`, `get_user_queue`.
+- Visual UI launcher: `open_soundtrack_studio`.
 
 #### 🤖 Autonomous Agent Skills (`skills/`)
 These skills are automatically injected into connecting MCP clients on startup:
-- `actor-filmography-searcher.md`: Guides the AI to query TMDB and present an actor's filmography with character roles and release years.
-- `movie-soundtrack-adder.md`: Specialized agent workflow to identify movie tracks and append them into user playlists.
-- `playlist-vibe-sorter.md`: Teaches the agent to re-sort playlists according to musical flow (e.g. build up energy or cool down).
-- `playlist-deduplicator.md`: Step-by-step cleanup protocol to identify duplicate tracks and sanitize playlists in-place.
-- `taste-analyzer.md`: Guides AI to examine short/medium/long-term listening data and provide personalized listening profiles.
+- `actor-filmography-searcher.md`: Guides the AI to query TMDB and present an actor's filmography.
+- `movie-soundtrack-adder.md`: Specialized agent workflow to identify movie tracks and append to playlists.
+- `playlist-vibe-sorter.md`: Teaches the agent to re-sort playlists according to musical flow.
+- `playlist-deduplicator.md`: Step-by-step cleanup protocol to identify duplicate tracks and sanitize playlists.
+- `playlist-operations.md`: Standard playlist management best practices and batching rules.
+- `playlist-power-tools.md`: Multi-playlist merging, subset extraction, and diff analysis.
+- `taste-analyzer.md`: Guides AI to examine short/medium/long-term listening data and provide profiles.
 - `playback-controller.md`: Natural language translation for playback control and multi-device routing.
-- `browser-song-tagger.md`: Autonomous agent skill using DuckDuckGo web search to research obscure song genres/cultural tags and auto-tag Spotify playlists.
+- `browser-song-tagger.md`: Autonomous agent skill using DuckDuckGo to research obscure songs and tag playlists.
+- `search-recommendations.md`: Discovery workflow using multi-seed targets, related artists, and genres.
+- `stats-analytics.md`: Deep taste profiling, freshness scoring, and listening pattern analytics.
+- `library-operations.md`: Library management for saved tracks and albums.
+- `browse-inspection.md`: Deep inspection of Spotify catalog entities (tracks, albums, artists, users).
 
 ## We Develop with Github
 We use github to host code, to track issues and feature requests, as well as accept pull requests.

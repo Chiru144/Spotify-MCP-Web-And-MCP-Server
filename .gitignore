@@ -4,14 +4,17 @@
 !.env.sample
 **/.env
 **/.env.*
-!**/.env.sample
+!.env.sample
 .spotipyoauthcache
+**/.spotipyoauthcache
 .cache
+**/.cache
 .cache-*
 *.token
 
 # Python bytecode & runtime
 __pycache__/
+**/__pycache__/
 *.py[cod]
 *$py.class
 *.so
@@ -27,6 +30,7 @@ ENV/
 
 # Testing & Coverage
 .pytest_cache/
+**/.pytest_cache/
 .coverage
 htmlcov/
 
@@ -42,3 +46,14 @@ Thumbs.db
 Desktop.ini
 .vscode/
 .idea/
+.cursor/*
+!.cursor/rules/
+!.cursor/rules/**
+
+# Cloud & Deployment Infrastructure
+terraform/
+scripts/
+.gcloudignore
+Procfile
+.github/workflows/
+
