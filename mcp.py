@@ -7,6 +7,7 @@ from pathlib import Path
 
 import server
 from spotipy.oauth2 import SpotifyPKCE
+from tools.web_app_internal import start_background_web_app
 
 def gui_input(prompt):
     """Monkey-patch input() so if Spotipy asks for a URL, it shows a popup dialog instead of hanging stdio."""
@@ -149,7 +150,7 @@ if __name__ == "__main__":
     
     # Start the background web app so the UI is available
     auto_open = os.getenv("OPEN_BROWSER", "false").strip().lower() in ("1", "true", "yes")
-    server.start_background_web_app(default_port=8000, open_browser=auto_open)
+    start_background_web_app(default_port=8000, open_browser=auto_open)
     
     # 2. Read the .md rules and print them to stderr so connecting agents can see them
     rules_path = Path(__file__).parent / "SPOTIFY_RULES.md"

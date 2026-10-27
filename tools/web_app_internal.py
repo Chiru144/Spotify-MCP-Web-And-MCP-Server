@@ -1,14 +1,3 @@
-from typing import Optional, List, Dict, Any
-import requests
-from bs4 import BeautifulSoup
-from tools.core import get_spotify_client
-import spotipy
-
-try:
-    from ddgs import DDGS
-except ImportError:
-    from duckduckgo_search import DDGS
-
 from pathlib import Path
 import threading
 WEB_APP_PORT = 8000

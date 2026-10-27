@@ -57,3 +57,5 @@ scripts/
 Procfile
 .github/workflows/
 
+#PYPI
+Pypi/

@@ -107,7 +107,22 @@ def get_spotify_client(allow_interactive: bool = False):
             f"Or visit http://127.0.0.1:8000 and click 'Connect to Spotify'."
         )
 
+
+
     return spotipy.Spotify(auth_manager=auth_manager)
 
 
+def _clean_spotify_id(raw_id: str, id_type: str = "") -> str:
+    """Extract a bare Spotify ID from a URI, URL, or raw ID string."""
+    val = (raw_id or "").strip()
+    if "/" in val:
+        val = val.split(f"/{id_type}/")[-1] if id_type and f"/{id_type}/" in val else val.split("/")[-1]
+    if ":" in val:
+        val = val.split(":")[-1]
+    return val.split("?")[0].strip()
 
+
+def _format_duration(ms: int) -> str:
+    """Format milliseconds as a M:SS string."""
+    sec = (ms or 0) // 1000
+    return f"{sec // 60}:{sec % 60:02d}"

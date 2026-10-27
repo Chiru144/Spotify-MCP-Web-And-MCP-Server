@@ -1,21 +1,8 @@
 from typing import Optional, List, Dict, Any
 from mcp.types import ToolAnnotations
-from tools.core import mcp, get_spotify_client
+from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration
 import spotipy
 
-
-def _clean_spotify_id(raw_id: str, id_type: str = "") -> str:
-    val = (raw_id or "").strip()
-    if "/" in val:
-        val = val.split(f"/{id_type}/")[-1] if id_type and f"/{id_type}/" in val else val.split("/")[-1]
-    if ":" in val:
-        val = val.split(":")[-1]
-    return val.split("?")[0].strip()
-
-
-def _format_duration(ms: int) -> str:
-    sec = (ms or 0) // 1000
-    return f"{sec // 60}:{sec % 60:02d}"
 
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))

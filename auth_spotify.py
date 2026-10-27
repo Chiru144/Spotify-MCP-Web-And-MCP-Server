@@ -11,7 +11,7 @@ env_path = Path(__file__).parent / ".env"
 from dotenv import load_dotenv
 load_dotenv(dotenv_path=env_path)
 
-from server import SPOTIFY_SCOPES, get_spotify_client
+from tools.core import SPOTIFY_SCOPES, get_spotify_client
 
 
 def main():

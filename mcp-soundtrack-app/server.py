@@ -12,6 +12,10 @@ from fastapi.responses import HTMLResponse, RedirectResponse
 from pydantic import BaseModel
 import spotipy
 from spotipy.oauth2 import SpotifyPKCE
+import http.server
+import socketserver
+import threading
+import urllib.parse
 
 # Ensure tools package from root directory is always importable
 BASE_DIR = Path(__file__).parent
@@ -67,10 +71,6 @@ SCOPES = [
 
 public_sp = None
 
-import http.server
-import socketserver
-import threading
-import urllib.parse
 
 # User OAuth Manager for authenticated actions (using shared root cache via PKCE)
 _cache_file = BASE_DIR.parent / ".spotipyoauthcache"
