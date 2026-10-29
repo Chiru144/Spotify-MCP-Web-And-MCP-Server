@@ -1015,23 +1015,8 @@ def shuffle_playlist(payload: PlaylistShuffleRequest):
                     break
         except Exception as e:
             if "403" in str(e):
-                try:
-                    # Fallback for public playlists that user_client might fail on (e.g., token scope issues)
-                    from spotipy.oauth2 import SpotifyClientCredentials
-                    client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
-                    client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                    app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
-                    res = app_client.playlist_items(pid, limit=100)
-                    while res:
-                        items.extend(res.get("items", []))
-                        if res.get("next"):
-                            res = app_client.next(res)
-                        else:
-                            break
-                except Exception as app_e:
-                    return {"success": False, "error": "Spotify refused access (403 Forbidden). This playlist is either private to another user or completely restricted."}
-            else:
-                raise e
+                return {"success": False, "error": "Spotify refused access (403 Forbidden). This playlist is either private to another user or completely restricted."}
+            raise e
 
         valid_tracks = [it.get("track") or it.get("item") for it in items if (it.get("track") or it.get("item")) and (it.get("track") or it.get("item")).get("uri")]
         if not valid_tracks:
@@ -1046,13 +1031,8 @@ def shuffle_playlist(payload: PlaylistShuffleRequest):
             playlist = user_client.playlist(pid)
         except Exception as e:
             if "403" in str(e):
-                from spotipy.oauth2 import SpotifyClientCredentials
-                client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
-                client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
-                playlist = app_client.playlist(pid)
-            else:
-                raise e
+                return {"success": False, "error": "Spotify refused access (403 Forbidden). This playlist is either private to another user or completely restricted."}
+            raise e
         
         original_name = playlist.get("name", "Shuffled Playlist")
         
@@ -1224,22 +1204,8 @@ def combine_playlists(payload: PlaylistCombineRequest):
                         break
             except Exception as e:
                 if "403" in str(e):
-                    try:
-                        from spotipy.oauth2 import SpotifyClientCredentials
-                        client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
-                        client_secret = os.getenv("SPOTIPY_CLIENT_SECRET") or os.getenv("SPOTIFY_CLIENT_SECRET")
-                        app_client = FailFastSpotify(auth_manager=SpotifyClientCredentials(client_id=client_id, client_secret=client_secret))
-                        res = app_client.playlist_items(pid, limit=100)
-                        while res:
-                            items.extend(res.get("items", []))
-                            if res.get("next"):
-                                res = app_client.next(res)
-                            else:
-                                break
-                    except Exception as app_e:
-                        return {"success": False, "error": f"Spotify refused access to one of the playlists (403 Forbidden)."}
-                else:
-                    raise e
+                    return {"success": False, "error": "Spotify refused access to one of the playlists (403 Forbidden)."}
+                raise e
                     
             for it in items:
                 t = it.get("track") or it.get("item")
