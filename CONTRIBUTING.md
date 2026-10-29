@@ -61,68 +61,201 @@ Using these metrics, the AI calculates a track's "vibe profile". For example, a 
 
 For song suggestions, it wraps Spotify's native Recommendations API, which accepts seed constraints (genres, audio targets, and seed tracks/artists).
 
-### Tools & Agent Skills Catalog
+### Complete FastMCP Tools Catalog (108 Registered Tools)
 
-This server registers **108 specialized FastMCP tools** across 7 domain modules, and packages **20 dedicated agent skills** for autonomous AI workflows:
+The FastMCP server exposes **108 registered tools** organized across 7 specialized domain modules in `tools/`:
 
-#### 🎬 Cinema & Filmography Tools (`tools/search.py`, `tools/tmdb_helpers.py`)
-- `create_actor_playlist(actor_name, ...)`: End-to-end automated pipeline to discover an actor's filmography, find the soundtracks on Spotify, and compile a dedicated playlist.
-- `search_actor_movies(actor_name, limit, sort_by)`: Discovers an actor's full filmography via TMDB with DuckDuckGo and Wikipedia fallback engines.
-- `get_actor_tmdb_profile(actor_name)`: Fetches rich actor biographical profiles, popularity metrics, and top known credits.
-- `search_movie_tmdb(movie_name, limit)`: Searches TMDB for movie details, release year, ratings, and synopses.
-- `get_movie_songs(movie_name, limit)`: Searches Spotify for soundtrack albums and songs from a movie with DuckDuckGo fallback assistance.
-- `add_movie_songs_to_playlist(playlist_id, movie_name, max_songs)`: Finds songs from a movie on Spotify and appends them directly to an existing playlist.
-- `search_duckduckgo(query, max_results)`: Autonomous web search engine for discovering movie tracklists, niche soundtracks, and music news.
+<details>
+<summary><b>Cinema, Filmography & Search Tools</b> (<code>tools/search.py</code> &mdash; 16 tools)</summary>
 
-#### 🎵 Smart Playlist Management & Power Tools (`tools/playlists.py`)
-- Standard operations: `spotify_create_playlist`, `spotify_get_playlist`, `spotify_get_my_playlists`, `spotify_add_to_playlist`, `spotify_remove_from_playlist`, `spotify_reorder_playlist`, `spotify_update_playlist`, `spotify_follow_playlist`, `spotify_unfollow_playlist`, `spotify_get_playlist_cover`, `spotify_check_playlist_followers`.
-- Algorithmic tools: `shuffle_playlist`, `reorder_playlist_by_audio_features`, `dedupe_playlist`, `combine_playlists`.
-- Power tools: `spotify_merge_playlists`, `spotify_split_playlist_by_artist`, `spotify_deduplicate_playlist`, `spotify_export_playlist`, `spotify_playlist_diff`, `spotify_find_playlist_overlaps`, `spotify_find_playlist_subsets`, `spotify_absorb_playlist`.
+| Tool Name | Description |
+| :--- | :--- |
+| fetch_soundtrack_tracks | Searches Spotify for movie soundtrack tracks using titles, language, release year, or actor name with fuzzy matching. |
+| get_actor_tmdb_profile | Get rich biographical and career profile details for an actor from TMDB. |
+| get_movie_songs | Search Spotify for soundtrack albums and songs from a movie with DuckDuckGo fallback assistance. |
+| search_actor_movies | Discover the full filmography for an actor using TMDB (with DDG and Wikipedia fallbacks). |
+| search_duckduckgo | Perform a web search using DuckDuckGo to look up movie news, filmographies, or sound tracks. |
+| search_movie_tmdb | Search TMDB for movie information, release year, ratings, and overview. |
+| search_singers | Search for singers, musical artists, or bands on Spotify. |
+| search_songs | Search for songs or tracks on Spotify with detailed track metadata. |
+| search_spotify | Search for songs, albums, artists, or playlists on Spotify. |
+| spotify_discover_by_artist | Recommend songs by the artists a seed artist collaborates with. |
+| spotify_discover_by_mood | Discover tracks for a mood preset or a set of genres. |
+| spotify_discover_deep_cuts | Discover album tracks from an artist or album that are not among their best-known songs. |
+| spotify_genre_explorer | Sample tracks across specific genres, or list suggested genres. |
+| spotify_get_recommendations | Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks). |
+| spotify_related_artists | Find artists connected to a target artist (the artists who share the most songs with them). |
+| spotify_search | Search Spotify catalog for tracks, artists, albums, or playlists. |
 
-#### 🔍 Catalog & Entity Inspection Tools (`tools/browse.py`)
-- `spotify_get_track(track_id)`: Fetches complete track metadata, album info, and audio previews.
-- `spotify_get_album(album_id)`: Inspects full album tracks, release dates, and copyright labels.
-- `spotify_get_artist(artist_id)`: Retrieves artist profiles, genres, follower counts, and popularity.
-- `spotify_get_artist_albums(artist_id)`: Lists full artist discography (albums, singles, appearances).
-- `spotify_get_user(user_id)`: Inspects public Spotify user profiles.
+</details>
 
-#### 📚 Library & Saved Media Tools (`tools/library.py`)
-- Saved tracks: `spotify_get_saved_tracks`, `spotify_save_tracks`, `spotify_remove_saved_tracks`, `spotify_check_saved_tracks`.
-- Saved albums: `spotify_get_saved_albums`, `spotify_save_albums`, `spotify_remove_saved_albums`, `spotify_check_saved_albums`.
+<details>
+<summary><b>Smart Playlist Management & Power Tools</b> (<code>tools/playlists.py</code> &mdash; 33 tools)</summary>
 
-#### ✨ Taste Analysis & Recommendation Engine (`tools/taste.py`, `tools/search.py`)
-- `spotify_get_recommendations` / `get_recommendations`: Multi-seed engine with 6 fine-grained acoustic targets.
-- `spotify_top_tracks` / `get_user_top_tracks`: Top played songs across short, medium, and long-term timeframes.
-- `spotify_top_artists` / `get_user_top_artists`: Top artists across short, medium, and long-term history.
-- `spotify_recently_played`: Retrieves playback history with timestamps.
-- `spotify_listening_patterns`: Analyzes peak listening hours and temporal habits.
-- `spotify_taste_profile`: Comprehensive acoustic fingerprint across danceability, energy, and valence.
-- `spotify_playlist_compare`: Comparative audio profile between two playlists.
-- `spotify_playlist_freshness`: Evaluates track age and release distribution within a playlist.
-- `spotify_related_artists` / `get_artist_network`: Maps related artist networks and sub-genres.
+| Tool Name | Description |
+| :--- | :--- |
+| add_movie_songs_to_playlist | Find songs for a specific movie on Spotify and add them directly to an existing playlist. |
+| add_songs_to_playlist | Add a list of Spotify song URIs to an existing playlist. |
+| add_tracks_to_playlist | Add a list of Spotify song URIs to an existing playlist. |
+| combine_playlists | Combines multiple Spotify playlists into a single new playlist. |
+| create_actor_playlist | End-to-End Pipeline: Discover an actor's filmography via TMDB/DDG, locate songs on Spotify, |
+| create_playlist | Create a new Spotify playlist for the user. |
+| dedupe_playlist | Removes all duplicate songs from a Spotify playlist, keeping only the first occurrence of each song. |
+| get_playlist_tracks | Get the tracks currently inside a specific playlist. |
+| get_user_playlists | Get the current user's playlists with song counts. |
+| remove_tracks_from_playlist | Remove one or more tracks from a playlist by their URIs. |
+| reorder_playlist_by_audio_features | Unavailable: Spotify no longer provides audio features (energy, valence, danceability, tempo) for Development Mode apps, so playlists cannot be sorted by them. The playlist is left unchanged. |
+| shuffle_playlist | Mix and shuffle all songs in a Spotify playlist into a completely new random order. |
+| spotify_absorb_playlist | Pull only missing/unique tracks from a source playlist into a destination playlist. |
+| spotify_add_to_playlist | Append tracks to an existing playlist. |
+| spotify_check_playlist_followers | Check whether you follow (have saved) a playlist. Spotify no longer answers this for other users for Development Mode apps, so only your own user ID can be checked. |
+| spotify_create_playlist | Create a new empty playlist. |
+| spotify_deduplicate_playlist | Scan and strip out duplicate tracks from a playlist. |
+| spotify_export_playlist | Export full playlist data and track metadata to structured JSON. |
+| spotify_find_playlist_overlaps | Scan all user playlists to identify cross-playlist overlaps. |
+| spotify_find_playlist_subsets | Detect if any user playlists are complete or near-complete subsets of another playlist. |
+| spotify_follow_playlist | Add a playlist to the user's library (Follow). |
+| spotify_get_my_playlists | List user's created and saved playlists. |
+| spotify_get_playlist | Fetch details and tracks of a specific playlist. |
+| spotify_get_playlist_cover | Get the image URL for a playlist cover. |
+| spotify_get_playlist_tracks | Paginate through tracks in a playlist. |
+| spotify_merge_playlists | Combine multiple playlists into a single new or existing playlist. |
+| spotify_playlist_diff | Compare two playlists to find unique and shared tracks. |
+| spotify_remove_from_playlist | Remove specific tracks from a playlist. |
+| spotify_reorder_playlist | Move or reorder track positions in a playlist. |
+| spotify_split_playlist_by_artist | Separate tracks in a playlist into sub-playlists by artist. |
+| spotify_unfollow_playlist | Remove a playlist from the user's library (Unfollow/Delete). |
+| spotify_update_playlist | Modify playlist name, description, or privacy settings. |
+| update_playlist | Update a playlist's name, description, or public status. |
 
-#### 🎛️ Playback & Hardware Controls (`tools/playback.py`)
-- Playback states: `get_current_playback`, `spotify_get_playback_state`, `spotify_currently_playing`.
-- Hardware & Connect: `get_available_devices`, `transfer_playback`.
-- Track controls: `play_track`, `pause_playback`, `next_track`, `previous_track`, `seek_to_position`, `set_volume`, `set_repeat_mode`, `toggle_shuffle`.
-- Queue management: `add_to_queue`, `get_user_queue`.
-- Visual UI launcher: `open_soundtrack_studio`.
+</details>
 
-#### 🤖 Autonomous Agent Skills (`skills/`)
-These skills are automatically injected into connecting MCP clients on startup:
-- `actor-filmography-searcher.md`: Guides the AI to query TMDB and present an actor's filmography.
-- `movie-soundtrack-adder.md`: Specialized agent workflow to identify movie tracks and append to playlists.
-- `playlist-vibe-sorter.md`: Teaches the agent to re-sort playlists according to musical flow.
-- `playlist-deduplicator.md`: Step-by-step cleanup protocol to identify duplicate tracks and sanitize playlists.
-- `playlist-operations.md`: Standard playlist management best practices and batching rules.
-- `playlist-power-tools.md`: Multi-playlist merging, subset extraction, and diff analysis.
-- `taste-analyzer.md`: Guides AI to examine short/medium/long-term listening data and provide profiles.
-- `playback-controller.md`: Natural language translation for playback control and multi-device routing.
-- `browser-song-tagger.md`: Autonomous agent skill using DuckDuckGo to research obscure songs and tag playlists.
-- `search-recommendations.md`: Discovery workflow using multi-seed targets, related artists, and genres.
-- `stats-analytics.md`: Deep taste profiling, freshness scoring, and listening pattern analytics.
-- `library-operations.md`: Library management for saved tracks and albums.
-- `browse-inspection.md`: Deep inspection of Spotify catalog entities (tracks, albums, artists, users).
+<details>
+<summary><b>Playback & Spotify Connect Hardware Controls</b> (<code>tools/playback.py</code> &mdash; 31 tool)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| add_to_queue | Add a song to the user's playback queue. |
+| get_available_devices | Get information about a user's available devices. |
+| get_current_playback | Get information about the user's current playback state, active song, and active device. |
+| get_queue | Get the user's current playback queue. |
+| next_song | Skip to the next song in the queue. |
+| next_track | Skip to the next song in the queue. |
+| pause_playback | Pause the current Spotify playback. |
+| play_song | Resume playback or play a specific song/album/playlist by URI. |
+| play_track | Start or resume playback. |
+| previous_song | Skip to the previous song. |
+| previous_track | Skip to the previous song. |
+| seek_playback | Seeks to the given position in the user's currently playing track. |
+| set_repeat_mode | Set the repeat mode for the user's playback. |
+| set_shuffle | Toggle shuffle for the user's playback. |
+| set_volume | Set the playback volume. |
+| spotify_add_to_queue | Add a track URI to the user's current playback queue. |
+| spotify_get_devices | List available Spotify Connect devices. |
+| spotify_get_queue | View current playback queue and upcoming tracks. |
+| spotify_now_playing | Fetch detailed information about the currently playing track. |
+| spotify_pause | Pause playback. |
+| spotify_play | Start or resume playback (accepts track, album, or playlist URIs). |
+| spotify_resume | Resume active playback. |
+| spotify_seek | Seek to a specific timestamp in the current track. |
+| spotify_set_repeat | Set repeat mode (off, context, or track). |
+| spotify_set_volume | Set playback volume (0–100). |
+| spotify_skip_next | Skip to the next track in the queue. |
+| spotify_skip_previous | Skip back to the previous track. |
+| spotify_status | Get current connection status and basic playback state. |
+| spotify_toggle_shuffle | Toggle shuffle mode on or off. |
+| spotify_transfer_playback | Transfer active playback to another connected device. |
+| transfer_playback | Transfer playback to a new device. |
+
+</details>
+
+<details>
+<summary><b>Taste Analytics & Insights</b> (<code>tools/taste.py</code> &mdash; 14 tools)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| get_artist_network | Map an artist's network: the artists who share the most songs with them. |
+| get_audio_features | Unavailable: Spotify no longer provides audio features (danceability, energy, valence, tempo) for Development Mode apps. |
+| get_recommendations | Get track recommendations from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks). |
+| get_saved_tracks | Get tracks from the user's Library (Saved Tracks). |
+| get_user_top_artists | Get the current user's top artists over a specified period. |
+| get_user_top_songs | Get the current user's top songs over a specified period. |
+| get_user_top_tracks | Get the current user's top songs over a specified period. |
+| spotify_listening_patterns | Analyze listening volume distributions across hours and days. |
+| spotify_playlist_compare | Compare playlists side-by-side: size, song length, explicit share, artist variety, era and overlap. (Spotify no longer provides audio features such as energy or valence for Development Mode apps.) |
+| spotify_playlist_freshness | Sort playlists by last update timestamp to identify stale lists. |
+| spotify_recently_played | Fetch recent track listening history. |
+| spotify_taste_profile | Generate an overview of your top artists, artist variety, eras and (when Spotify provides them) genres. |
+| spotify_top_artists | Fetch user's top artists over short, medium, or long term. |
+| spotify_top_tracks | Fetch user's top tracks over short, medium, or long term. |
+
+</details>
+
+<details>
+<summary><b>Saved Library & Collection Management</b> (<code>tools/library.py</code> &mdash; 8 tools)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| spotify_check_saved_albums | Verify whether specific albums exist in the current user's library. |
+| spotify_check_saved_tracks | Verify whether specific tracks exist in the current user's Liked Songs library. |
+| spotify_get_saved_albums | Fetch albums saved in the current user's library. |
+| spotify_get_saved_tracks | List tracks saved in the current user's Liked Songs library. |
+| spotify_remove_saved_albums | Remove one or more albums from the current user's library. |
+| spotify_remove_saved_tracks | Remove one or more tracks from the current user's Liked Songs library. |
+| spotify_save_albums | Save one or more albums to the current user's library. |
+| spotify_save_tracks | Save one or more tracks to the current user's Liked Songs library. |
+
+</details>
+
+<details>
+<summary><b>Catalog & Entity Inspection (Browse)</b> (<code>tools/browse.py</code> &mdash; 5 tools)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| spotify_get_album | Inspect full album details including copyrights, label, release date, and complete tracklist. |
+| spotify_get_artist | Inspect artist details and profile images (Spotify no longer returns genres, followers or popularity for Development Mode apps; these show N/A). |
+| spotify_get_artist_albums | Get all albums, singles, and compilations released by a specific artist. |
+| spotify_get_track | Inspect full track metadata including ISRC, popularity, audio preview URL, and album details. |
+| spotify_get_user | Fetch your own Spotify profile and playlists. Other users' profiles are unavailable: Spotify no longer provides them to Development Mode apps. |
+
+</details>
+
+<details>
+<summary><b>Visual Soundtrack Studio Launcher</b> (<code>tools/web_app.py</code> &mdash; 1 tool)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| open_soundtrack_studio | Launch or retrieve the URL for the Soundtrack Curator & Staging Studio web application. |
+
+</details>
+
+
+### Packaged Autonomous Agent Skills (20 Skills)
+
+In addition to individual FastMCP tools, this repository packages **20 autonomous agent skills** in the [skills/](skills/) folder. These markdown guides teach connecting AI models how to orchestrate multi-step workflows, perform domain-specific music reasoning, execute fallbacks, and interact with users:
+
+| Skill Document | Title | Purpose & Workflow |
+| :--- | :--- | :--- |
+| [actor-filmography-searcher.md](skills/actor-filmography-searcher.md) | **Actor Filmography Searcher** | A single-purpose skill that searches for an actor and returns a list of movies they have starred in using TMDB. |
+| [album-discography-explorer.md](skills/album-discography-explorer.md) | **Album Discography Explorer Skill** | Comprehensive discography exploration and album tracking for artists, covering full studio albums, EPs, singles, and compilations. |
+| [browse-inspection.md](skills/browse-inspection.md) | **Catalog & Entity Inspection (Browse) Skill** | Deep-dive inspection and metadata analysis of Spotify catalog entities, including tracks, albums, artists, artist discographies, and public user profiles. |
+| [browser-song-tagger.md](skills/browser-song-tagger.md) | **Web & Browser Song Tagger** | An agent skill that researches a specific song via the web/browser to find its genres, cultural tags, or metadata, and then uses that information to effectively organize the song within Spotify (e.g., adding it to a genre-specific playlist or updating playlist metadata). |
+| [cinema-soundtrack-pipeline.md](skills/cinema-soundtrack-pipeline.md) | **Cinema & Filmography Soundtrack Pipeline Skill** | Automated end-to-end pipeline bridging TMDB cinema filmographies and Spotify's audio catalog with automated 3-tier fallbacks (TMDB → DuckDuckGo → Wikipedia) and fuzzy tracklist discovery. |
+| [cross-playlist-diff-merge.md](skills/cross-playlist-diff-merge.md) | **Cross-Playlist Diff & Merge Power Tools Skill** | Advanced multi-playlist operations enabling mathematical set operations (union, intersection, difference, and subset detection) across user playlists. |
+| [hardware-connect-switcher.md](skills/hardware-connect-switcher.md) | **Spotify Connect & Hardware Switcher Skill** | Control, discover, and route active playback across Spotify Connect hardware devices (smartphones, computers, smart speakers, TVs, and receivers). |
+| [library-operations.md](skills/library-operations.md) | **Library & Liked Media Operations Skill** | Comprehensive management of the user's Spotify personal library, including Liked Songs (saved tracks) and saved album collections. |
+| [movie-soundtrack-adder.md](skills/movie-soundtrack-adder.md) | **Movie Soundtrack Adder** | A single-purpose skill that searches for iconic songs from a specific movie and adds them to an existing Spotify playlist. |
+| [playback-controller.md](skills/playback-controller.md) | **Spotify Playback Controller** | A single-purpose skill for controlling Spotify playback (play, pause, next, previous, volume). |
+| [playlist-deduplicator.md](skills/playlist-deduplicator.md) | **Spotify Playlist Deduplicator** | A single-purpose skill that finds duplicate songs in a playlist and removes them. |
+| [playlist-operations.md](skills/playlist-operations.md) | **Spotify Playlist Operations** | A comprehensive skill for creating, updating, organizing, reordering, and inspecting Spotify playlists. |
+| [playlist-power-tools.md](skills/playlist-power-tools.md) | **Playlist Power Tools Skill Guide** | This skill equips AI agents to execute advanced, programmatic playlist curation, restructuring, and library analysis through the 8 **Playlist Power Tools**. |
+| [playlist-vibe-sorter.md](skills/playlist-vibe-sorter.md) | **Spotify Playlist Vibe Sorter** | Explains that sorting by audio features is no longer possible (Spotify removed them for Development Mode apps) and offers the reorder, shuffle and split tools instead. |
+| [prompt-clarification-protocol.md](skills/prompt-clarification-protocol.md) | **Prompt Clarification Protocol Skill** | Guidelines for evaluating prompt specificity and resolving ambiguity before triggering large playlist creation or batch operations. |
+| [queue-flow-manager.md](skills/queue-flow-manager.md) | **Playback Queue & Flow Manager Skill** | Inspect, curate, and dynamically inject tracks into the user's upcoming Spotify playback queue. |
+| [search-recommendations.md](skills/search-recommendations.md) | **Search, Recommendations & Discovery Skill Guide** | This skill equips AI agents to search Spotify's catalog, explore artist networks, discover music by mood and genre, unearth hidden album deep cuts, and generate seed-based recommendations through the 7 **Search, Recommendations & Discovery Tools**. |
+| [soundtrack-staging-studio.md](skills/soundtrack-staging-studio.md) | **Soundtrack Curator & Staging Studio Skill** | Interactive visual curation workflow for launching, previewing, and staging soundtracks via the local Soundtrack Curator & Staging Studio web application. |
+| [stats-analytics.md](skills/stats-analytics.md) | **Stats, Analytics & Insights Skill** | Comprehensive listening telemetry, temporal volume distributions, taste profiles, multi-playlist comparisons, and library maintenance audits. |
+| [taste-analyzer.md](skills/taste-analyzer.md) | **Spotify Taste Analyzer** | A single-purpose skill that analyzes the user's Spotify listening habits, saved music library, and reports on their top tracks or artists. |
 
 ## We Develop with Github
 We use github to host code, to track issues and feature requests, as well as accept pull requests.
