@@ -32,9 +32,95 @@ In 2026 Spotify switched off several Web API features for apps in Development Mo
 
 For an in-depth breakdown of features, feature comparison tables, and the cinema filmography pipeline, see **[CONTRIBUTING.md](CONTRIBUTING.md#features--technical-overview)**. The complete 108-tool catalog and the 20 agent skills are listed in **[CONTRIBUTING.md](CONTRIBUTING.md#complete-fastmcp-tools-catalog-108-registered-tools)**.
 
+## Install from PyPI
+
+The server and the web studio are published as two Python packages:
+
+| Package | What it gives you | Commands |
+| :--- | :--- | :--- |
+| `spotify-soundtrack-mcp` | The MCP server with all 108 tools and 20 skills | `spotify-mcp`, `spotify-soundtrack-mcp`, `spotify-mcp-auth` |
+| `spotify-mcp-web` | The Soundtrack Curator & Staging Studio web app | `soundtrack-studio` |
+
+### 1. Install
+
+```bash
+pip install spotify-soundtrack-mcp spotify-mcp-web
+```
+
+You need Python 3.10+. Installing `spotify-mcp-web` also installs `spotify-soundtrack-mcp`. Install only `spotify-soundtrack-mcp` if you don't want the web studio.
+
+### 2. Configure
+
+Create `~/.spotify-mcp/.env` (or a `.env` in the folder you run the commands from):
+
+```env
+SPOTIPY_CLIENT_ID=your_spotify_client_id
+SPOTIPY_REDIRECT_URI=http://127.0.0.1:8888/callback
+TMDB_API_KEY=your_tmdb_api_key            # or TMDB_READ_ACCESS_TOKEN=...
+SPOTIFY_TOOLSETS=core                     # optional: core (default), playback, playlists, search, taste, library, browse, all
+```
+
+In the [Spotify Developer Dashboard](https://developer.spotify.com/dashboard), add `http://127.0.0.1:8888/callback` as a Redirect URI for your app. Only the Client ID is needed; there is no client secret.
+
+### 3. Connect your Spotify account
+
+```bash
+spotify-mcp-auth
+```
+
+This opens Spotify in your browser. After you approve, the token is saved to `~/.spotify-mcp/.spotipyoauthcache` (set `SPOTIFY_MCP_CACHE_PATH` to store it elsewhere), and both the MCP server and the web studio use it.
+
+### 4. Call the MCP server from your AI client
+
+`spotify-mcp` runs the server over stdio. Add it to Claude Desktop (`claude_desktop_config.json`), Cursor (`.cursor/mcp.json`) or any other MCP client:
+
+```json
+{
+  "mcpServers": {
+    "spotify": {
+      "command": "spotify-mcp",
+      "env": {
+        "SPOTIFY_TOOLSETS": "core"
+      }
+    }
+  }
+}
+```
+
+If the client can't find `spotify-mcp` on your PATH, use the full path that `where spotify-mcp` (Windows) or `which spotify-mcp` (macOS/Linux) prints. With [uv](https://docs.astral.sh/uv/) you can skip the install and let the client run it:
+
+```json
+{
+  "mcpServers": {
+    "spotify": {
+      "command": "uvx",
+      "args": ["--from", "spotify-soundtrack-mcp", "spotify-mcp"]
+    }
+  }
+}
+```
+
+While `spotify-mcp` runs, it also starts the web studio at `http://127.0.0.1:8000` if `spotify-mcp-web` is installed.
+
+To serve MCP over HTTP (SSE) for remote clients instead, run:
+
+```bash
+spotify-soundtrack-mcp
+```
+
+It listens on `0.0.0.0:8080`; set `HOST` and `PORT` to change that.
+
+### 5. Open the web studio on its own
+
+```bash
+soundtrack-studio
+```
+
+This starts the studio at `http://127.0.0.1:8000` and opens your browser. Set `PORT` to use another port, or `OPEN_BROWSER=false` to skip opening the browser. The tool guide is at `/guide` and the advanced tools at `/tools`.
+
 ## Prerequisites
 
-Before running the application, make sure you have the following installed:
+To run from source instead of PyPI, make sure you have the following installed:
 - [Python 3.10+](https://www.python.org/downloads/)
 - [Git](https://git-scm.com/)
 
