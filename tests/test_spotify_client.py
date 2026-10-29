@@ -3,9 +3,12 @@ import json
 import threading
 import time
 
-import pytest
+from unittest.mock import patch
 
-from tools.spotify_client import FailFastSpotify, SpotifyRateLimitError
+import pytest
+import spotipy
+
+from tools.spotify_client import FailFastSpotify, SpotifyRateLimitError, _restore_legacy_fields
 
 
 @pytest.fixture
@@ -59,3 +62,50 @@ def test_short_rate_limit_is_still_retried(fake_spotify):
 
     assert sp.search("Petta") == {"ok": True}
     assert len(hits) == 2
+
+
+def test_search_over_10_is_fetched_in_pages_of_10():
+    pages = []
+
+    def fake_search(self, q, limit=10, offset=0, type="track", market=None):
+        pages.append((limit, offset))
+        items = [{"uri": f"spotify:track:{offset + i}"} for i in range(limit)]
+        return {"tracks": {"items": items, "next": "more", "limit": limit}}
+
+    with patch.object(spotipy.Spotify, "search", fake_search):
+        result = FailFastSpotify(auth="t").search("Kesariya", limit=25)
+
+    assert pages == [(10, 0), (10, 10), (5, 20)]
+    assert len(result["tracks"]["items"]) == 25
+    assert result["tracks"]["limit"] == 25
+
+
+def test_search_stops_when_spotify_runs_out_of_results():
+    def fake_search(self, q, limit=10, offset=0, type="track", market=None):
+        count = 10 if offset == 0 else 3
+        return {"tracks": {"items": [{"uri": f"u{offset + i}"} for i in range(count)], "next": None if offset else "more"}}
+
+    with patch.object(spotipy.Spotify, "search", fake_search) as _:
+        result = FailFastSpotify(auth="t").search("rare song", limit=50)
+
+    assert len(result["tracks"]["items"]) == 13
+
+
+def test_restores_legacy_playlist_field_names():
+    response = {"items": [
+        {"type": "playlist", "tracks": None, "items": {"href": "x/items", "total": 45}},
+        {"added_at": "2026-01-01", "item": {"uri": "spotify:track:1"}},
+    ]}
+    restored = _restore_legacy_fields(response)
+    assert restored["items"][0]["tracks"]["total"] == 45
+    assert restored["items"][1]["track"]["uri"] == "spotify:track:1"
+
+
+def test_playlist_is_following_uses_library_check_for_current_user():
+    sp = FailFastSpotify(auth="t")
+    with patch.object(sp, "me", return_value={"id": "me"}), \
+         patch.object(sp, "current_user_saved_items", return_value=[True]) as saved, \
+         patch.object(sp, "_get") as legacy:
+        assert sp.playlist_is_following("37i9dQZF1DXcBWIGoYBM5M", ["me"]) == [True]
+    saved.assert_called_once_with(["spotify:playlist:37i9dQZF1DXcBWIGoYBM5M"])
+    legacy.assert_not_called()

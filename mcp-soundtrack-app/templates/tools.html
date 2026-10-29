@@ -329,14 +329,12 @@
     <div class="tool-section" id="playlistPowerToolsSection">
       <div style="margin-bottom: 16px;">
         <h2>⚡ Playlist Power Tools</h2>
-        <p style="margin-bottom: 0;">Multi-source merging, artist splitting, deep deduplication, side-by-side diffing, cross-playlist overlap intelligence, subset analysis, and full JSON export.</p>
+        <p style="margin-bottom: 0;">Artist splitting, side-by-side diffing, cross-playlist overlap intelligence, subset analysis, and full JSON export.</p>
       </div>
 
       <!-- Power Tools Navigation Tabs -->
       <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle);">
-        <button class="back-btn power-tab-btn" onclick="switchPowerTab('merge')" id="tabBtn_merge" style="color: #fff; font-weight: 700; padding: 6px 12px; background: rgba(29, 185, 84, 0.15); border: 1px solid var(--spotify-green); border-radius: 8px;">🔀 Merge</button>
-        <button class="back-btn power-tab-btn" onclick="switchPowerTab('split')" id="tabBtn_split" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🎤 Split by Artist</button>
-        <button class="back-btn power-tab-btn" onclick="switchPowerTab('dedupe')" id="tabBtn_dedupe" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🧹 Deduplicate</button>
+        <button class="back-btn power-tab-btn" onclick="switchPowerTab('split')" id="tabBtn_split" style="color: #fff; font-weight: 700; padding: 6px 12px; background: rgba(29, 185, 84, 0.15); border: 1px solid var(--spotify-green); border-radius: 8px;">🎤 Split by Artist</button>
         <button class="back-btn power-tab-btn" onclick="switchPowerTab('diff')" id="tabBtn_diff" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">⚖️ Diff & Compare</button>
         <button class="back-btn power-tab-btn" onclick="switchPowerTab('absorb')" id="tabBtn_absorb" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">📥 Absorb Missing</button>
         <button class="back-btn power-tab-btn" onclick="switchPowerTab('overlaps')" id="tabBtn_overlaps" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🔍 Find Overlaps</button>
@@ -344,49 +342,9 @@
         <button class="back-btn power-tab-btn" onclick="switchPowerTab('export')" id="tabBtn_export" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">💾 Export JSON</button>
       </div>
 
-      <!-- TAB 1: MERGE PLAYLISTS -->
-      <div id="powerTab_merge" class="power-tab-content">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Combine multiple playlists into a brand new playlist or append directly to an existing one.</p>
-        <div id="powerMergeRows" style="display: flex; flex-direction: column; gap: 8px; margin-bottom: 12px;">
-          <!-- Merge rows injected dynamically -->
-        </div>
-        <button type="button" onclick="addPowerMergeRow()" style="background: transparent; border: 1px dashed var(--border-subtle); color: var(--text-muted); margin-bottom: 14px; padding: 8px; width: 100%;">+ Add Another Source Playlist</button>
-        
-        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 12px;">
-          <div>
-            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Target Mode</label>
-            <select id="powerMergeMode" onchange="toggleMergeTargetMode()" style="width: 100%; padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-              <option value="new">Create Brand New Playlist</option>
-              <option value="existing">Append to Existing Playlist</option>
-            </select>
-          </div>
-          <div id="powerMergeNewNameBox">
-            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">New Playlist Name</label>
-            <input type="text" id="powerMergeNewName" placeholder="e.g. Master Rock Mix" style="width: 100%; box-sizing: border-box; padding: 10px;" />
-          </div>
-          <div id="powerMergeExistingBox" style="display: none;">
-            <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Destination Playlist</label>
-            <select id="powerMergeTargetSelect" style="width: 100%; padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-              <option value="">-- Choose Target Playlist --</option>
-            </select>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 18px; align-items: center; margin-bottom: 14px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="powerMergeDedupe" checked style="accent-color: var(--spotify-green);" /> Strip Duplicate Tracks
-          </label>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="powerMergePublic" style="accent-color: var(--spotify-green);" /> Public Playlist
-          </label>
-        </div>
-
-        <button id="powerMergeBtn" onclick="runPowerMerge()" style="width: 100%;">Merge Playlists</button>
-        <div id="powerMergeResult" style="margin-top: 12px; font-size: 13px; display: none;"></div>
-      </div>
 
       <!-- TAB 2: SPLIT BY ARTIST -->
-      <div id="powerTab_split" class="power-tab-content" style="display: none;">
+      <div id="powerTab_split" class="power-tab-content" style="">
         <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Scan a playlist and group songs into separate sub-playlists for artists with at least N tracks.</p>
         <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
           <select id="powerSplitSelect" onchange="if(this.value) document.getElementById('powerSplitInput').value = this.value;" style="padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
@@ -405,28 +363,6 @@
         <div id="powerSplitResult" style="margin-top: 14px; max-height: 300px; overflow-y: auto; display: none; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-subtle);"></div>
       </div>
 
-      <!-- TAB 3: DEDUPLICATE -->
-      <div id="powerTab_dedupe" class="power-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Deep scan and remove duplicate songs with exact Spotify URI or normalized song title + artist matching.</p>
-        <div style="display: flex; flex-direction: column; gap: 10px; margin-bottom: 14px;">
-          <select id="powerDedupeSelect" onchange="if(this.value) document.getElementById('powerDedupeInput').value = this.value;" style="padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-            <option value="">-- Choose Playlist to Deduplicate --</option>
-          </select>
-          <input type="text" id="powerDedupeInput" placeholder="OR paste playlist link/URI..." style="box-sizing: border-box;" />
-        </div>
-        <div style="margin-bottom: 14px;">
-          <label style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 4px;">Matching Strategy</label>
-          <select id="powerDedupeStrategy" style="width: 100%; padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-            <option value="uri">Exact Spotify Track URI (Same release ID)</option>
-            <option value="name_and_artist">Normalized Track Title & Artist (Catches re-releases/deluxe editions)</option>
-          </select>
-        </div>
-        <div style="display: flex; gap: 10px;">
-          <button onclick="runPowerDedupe(true)" id="powerDedupeDryBtn" style="flex: 1; background: rgba(255,255,255,0.08); color: #fff; border: 1px solid var(--border-subtle);">Dry Run (Scan Only)</button>
-          <button onclick="runPowerDedupe(false)" id="powerDedupeRunBtn" style="flex: 1;">Strip Duplicates In-Place</button>
-        </div>
-        <div id="powerDedupeResult" style="margin-top: 14px; max-height: 280px; overflow-y: auto; display: none; background: rgba(0,0,0,0.3); border-radius: var(--radius-md); padding: 14px; border: 1px solid var(--border-subtle);"></div>
-      </div>
 
       <!-- TAB 4: DIFF & COMPARE -->
       <div id="powerTab_diff" class="power-tab-content" style="display: none;">
@@ -536,11 +472,6 @@
           </select>
           <input type="text" id="powerExportInput" placeholder="OR paste playlist link/URI..." style="box-sizing: border-box;" />
         </div>
-        <div style="margin-bottom: 14px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="powerExportFeatures" style="accent-color: var(--spotify-green);" /> Include Audio Features (Tempo, Energy, Valence, Danceability)
-          </label>
-        </div>
         <button id="powerExportBtn" onclick="runPowerExport()" style="width: 100%;">Generate JSON Export</button>
         <div id="powerExportResult" style="margin-top: 14px; display: none;">
           <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -552,226 +483,6 @@
           </div>
           <pre id="powerExportPre" style="max-height: 300px; overflow: auto; background: rgba(0,0,0,0.5); padding: 12px; border-radius: var(--radius-md); font-size: 12px; color: #38bdf8; border: 1px solid var(--border-subtle);"></pre>
         </div>
-      </div>
-
-    </div>
-
-    <!-- ========================================================================= -->
-    <!-- SEARCH, RECOMMENDATIONS & DISCOVERY STUDIO SECTION -->
-    <!-- ========================================================================= -->
-    <div class="tool-section" id="discoveryStudioSection">
-      <div style="margin-bottom: 16px;">
-        <h2>🔮 Search, Recommendations & Discovery Studio</h2>
-        <p style="margin-bottom: 0;">Catalog search across tracks, artists, albums, and playlists, similar artist network exploration, mood & audio attribute discovery, genre sampling, deep cuts, and targeted recommendations.</p>
-      </div>
-
-      <!-- Discovery Studio Tabs -->
-      <div style="display: flex; gap: 6px; overflow-x: auto; padding-bottom: 10px; margin-bottom: 18px; border-bottom: 1px solid var(--border-subtle);">
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('search')" id="discTabBtn_search" style="color: #fff; font-weight: 700; padding: 6px 12px; background: rgba(29, 185, 84, 0.15); border: 1px solid var(--spotify-green); border-radius: 8px;">🔍 Search Catalog</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('related')" id="discTabBtn_related" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">👥 Related Artists</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('by_artist')" id="discTabBtn_by_artist" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🌐 Artist Network</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('mood')" id="discTabBtn_mood" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🎛️ Mood Discovery</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('genres')" id="discTabBtn_genres" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🎸 Genre Explorer</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('deep_cuts')" id="discTabBtn_deep_cuts" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">💎 Deep Cuts</button>
-        <button class="back-btn disc-tab-btn" onclick="switchDiscoveryTab('recs')" id="discTabBtn_recs" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🎯 Recommendations</button>
-      </div>
-
-      <!-- TAB 1: UNIVERSAL SEARCH -->
-      <div id="discTab_search" class="disc-tab-content">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Universal catalog search across tracks, artists, albums, and playlists with type filters.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-          <input type="text" id="discSearchQuery" placeholder="Search track, artist, album, or playlist..." onkeydown="if(event.key==='Enter') runDiscoverySearch()" />
-          <button id="discSearchBtn" onclick="runDiscoverySearch()">Search</button>
-        </div>
-        <div style="display: flex; flex-wrap: wrap; gap: 16px; align-items: center; margin-bottom: 16px;">
-          <span style="font-size: 13px; color: var(--text-muted);">Types:</span>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="discTypeTrack" checked style="accent-color: var(--spotify-green);" /> Tracks
-          </label>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="discTypeArtist" checked style="accent-color: var(--spotify-green);" /> Artists
-          </label>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="discTypeAlbum" checked style="accent-color: var(--spotify-green);" /> Albums
-          </label>
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="discTypePlaylist" checked style="accent-color: var(--spotify-green);" /> Playlists
-          </label>
-          <div style="margin-left: auto; display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 13px; color: var(--text-muted);">Limit:</span>
-            <select id="discSearchLimit" style="background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: 6px; padding: 4px 8px;">
-              <option value="5">5</option>
-              <option value="10" selected>10</option>
-              <option value="20">20</option>
-              <option value="50">50</option>
-            </select>
-          </div>
-        </div>
-        <div id="discSearchResults" style="display: none; flex-direction: column; gap: 16px;"></div>
-      </div>
-
-      <!-- TAB 2: RELATED ARTISTS -->
-      <div id="discTab_related" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Discover artists with similar audiences, style, and musical networks.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-          <input type="text" id="discRelatedInput" placeholder="Artist name, ID, or URI (e.g. Hans Zimmer, Queen)" onkeydown="if(event.key==='Enter') runDiscoveryRelated()" />
-          <button id="discRelatedBtn" onclick="runDiscoveryRelated()">Find Related</button>
-        </div>
-        <div id="discRelatedResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 3: ARTIST NETWORK DISCOVERY -->
-      <div id="discTab_by_artist" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Generate track recommendations by exploring the artist's network and related peers.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-          <input type="text" id="discByArtistInput" placeholder="Artist name or URI (e.g. Daft Punk, Coldplay)" onkeydown="if(event.key==='Enter') runDiscoveryByArtist()" />
-          <button id="discByArtistBtn" onclick="runDiscoveryByArtist()">Discover Tracks</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <label style="display: flex; align-items: center; gap: 6px; font-size: 13px; cursor: pointer;">
-            <input type="checkbox" id="discIncludeTopTracks" checked style="accent-color: var(--spotify-green);" /> Include Seed Artist Top Tracks
-          </label>
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 13px; color: var(--text-muted);">Count:</span>
-            <input type="number" id="discByArtistLimit" value="15" min="5" max="50" style="width: 60px; padding: 4px 8px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: 6px;" />
-          </div>
-        </div>
-        <div id="discByArtistResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 4: MOOD DISCOVERY -->
-      <div id="discTab_mood" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Discover music tailored to specific emotional states, energy levels, or audio characteristics.</p>
-        
-        <!-- Presets -->
-        <div style="margin-bottom: 16px;">
-          <span style="font-size: 12px; color: var(--text-muted); display: block; margin-bottom: 8px;">Choose a Mood Preset:</span>
-          <div style="display: flex; flex-wrap: wrap; gap: 8px;" id="moodPresetPills">
-            <button type="button" onclick="selectMoodPreset('happy')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">😊 Happy</button>
-            <button type="button" onclick="selectMoodPreset('chill')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">☕ Chill</button>
-            <button type="button" onclick="selectMoodPreset('energetic')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">⚡ Energetic</button>
-            <button type="button" onclick="selectMoodPreset('focus')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">🧠 Focus</button>
-            <button type="button" onclick="selectMoodPreset('party')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">🎉 Party</button>
-            <button type="button" onclick="selectMoodPreset('sad')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">🌧️ Melancholy</button>
-            <button type="button" onclick="selectMoodPreset('dark')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">🌑 Dark</button>
-            <button type="button" onclick="selectMoodPreset('romantic')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">💖 Romantic</button>
-            <button type="button" onclick="selectMoodPreset('workout')" class="mood-pill" style="padding: 6px 14px; font-size: 13px; background: rgba(255,255,255,0.06); color: #fff; border-radius: 20px; border: 1px solid var(--border-subtle);">🔥 Workout</button>
-          </div>
-        </div>
-
-        <!-- Audio parameter sliders -->
-        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px; margin-bottom: 16px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 16px;">
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Valence (Positiveness)</span>
-                <span id="valValence" style="color: var(--spotify-green);">Auto</span>
-              </div>
-              <input type="range" id="moodValence" min="0" max="100" value="50" oninput="document.getElementById('valValence').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Energy</span>
-                <span id="valEnergy" style="color: var(--spotify-green);">Auto</span>
-              </div>
-              <input type="range" id="moodEnergy" min="0" max="100" value="50" oninput="document.getElementById('valEnergy').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Danceability</span>
-                <span id="valDance" style="color: var(--spotify-green);">Auto</span>
-              </div>
-              <input type="range" id="moodDance" min="0" max="100" value="50" oninput="document.getElementById('valDance').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Acousticness</span>
-                <span id="valAcoustic" style="color: var(--spotify-green);">Auto</span>
-              </div>
-              <input type="range" id="moodAcoustic" min="0" max="100" value="20" oninput="document.getElementById('valAcoustic').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-          </div>
-        </div>
-
-        <div style="display: flex; gap: 10px; margin-bottom: 16px;">
-          <input type="text" id="moodSeedGenres" placeholder="Optional seed genres (e.g. ambient, indie-pop)" />
-          <button id="discMoodBtn" onclick="runDiscoveryMood()">Discover Mood Tracks</button>
-        </div>
-        <div id="discMoodResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 5: GENRE EXPLORER -->
-      <div id="discTab_genres" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Browse and sample tracks across Spotify's official recommendation genre seeds.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 12px;">
-          <input type="text" id="discGenreInput" placeholder="Selected genre seeds (e.g. synthwave, jazz, lo-fi)" />
-          <button id="discGenreSampleBtn" onclick="runGenreExplorer()">Sample Tracks</button>
-          <button onclick="loadAvailableGenreSeeds()" style="background: rgba(255,255,255,0.08); color: #fff;">Load All Seeds</button>
-        </div>
-        <div id="genreSeedCloud" style="display: flex; flex-wrap: wrap; gap: 6px; max-height: 140px; overflow-y: auto; padding: 10px; background: rgba(0,0,0,0.25); border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
-          <span style="font-size: 12px; color: var(--text-muted);">Click "Load All Seeds" to explore available genres...</span>
-        </div>
-        <div id="discGenreResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 6: DEEP CUTS FINDER -->
-      <div id="discTab_deep_cuts" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Unearth non-single, album-only gems by stripping out popular singles and top hits.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="discDeepCutsInput" placeholder="Artist or album (e.g. Radiohead, Pink Floyd, Adele)" onkeydown="if(event.key==='Enter') runDeepCuts()" />
-          <button id="discDeepCutsBtn" onclick="runDeepCuts()">Unearth Deep Cuts</button>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; background: rgba(0,0,0,0.25); padding: 12px 16px; border-radius: var(--radius-md); border: 1px solid var(--border-subtle); margin-bottom: 16px;">
-          <div>
-            <div style="font-size: 13px; margin-bottom: 2px;">Max Popularity Threshold: <span id="valDeepCutPop" style="color: var(--spotify-green); font-weight: 700;">40</span>/100</div>
-            <div style="font-size: 11px; color: var(--text-muted);">Lower values find more obscure, hidden album tracks.</div>
-          </div>
-          <input type="range" id="discDeepCutsThreshold" min="5" max="60" value="40" oninput="document.getElementById('valDeepCutPop').textContent=this.value" style="width: 150px; accent-color: var(--spotify-green);" />
-        </div>
-        <div id="discDeepCutsResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 7: RECOMMENDATIONS ENGINE -->
-      <div id="discTab_recs" class="disc-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Fine-tune Spotify Recommendations API using combinations of track, artist, and genre seeds with audio feature targets.</p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(240px, 1fr)); gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="recsSeedTracks" placeholder="Seed Track IDs/URIs (comma-sep)" />
-          <input type="text" id="recsSeedArtists" placeholder="Seed Artist IDs/URIs (comma-sep)" />
-          <input type="text" id="recsSeedGenres" placeholder="Seed Genres (e.g. pop, indie, chill)" />
-        </div>
-        <div style="background: rgba(0,0,0,0.25); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px; margin-bottom: 14px;">
-          <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)); gap: 12px;">
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Target Energy</span>
-                <span id="recsValEnergy" style="color: var(--spotify-green);">Any</span>
-              </div>
-              <input type="range" id="recsEnergy" min="0" max="100" value="50" oninput="document.getElementById('recsValEnergy').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Target Valence</span>
-                <span id="recsValValence" style="color: var(--spotify-green);">Any</span>
-              </div>
-              <input type="range" id="recsValence" min="0" max="100" value="50" oninput="document.getElementById('recsValValence').textContent=(this.value/100).toFixed(2)" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-            <div>
-              <div style="display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 4px;">
-                <span>Target Tempo (BPM)</span>
-                <span id="recsValTempo" style="color: var(--spotify-green);">Any</span>
-              </div>
-              <input type="range" id="recsTempo" min="60" max="180" value="120" oninput="document.getElementById('recsValTempo').textContent=this.value + ' BPM'" style="width: 100%; accent-color: var(--spotify-green);" />
-            </div>
-          </div>
-        </div>
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
-          <div style="display: flex; align-items: center; gap: 8px;">
-            <span style="font-size: 13px; color: var(--text-muted);">Limit:</span>
-            <input type="number" id="recsLimit" value="20" min="5" max="100" style="width: 60px; padding: 4px 8px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: 6px;" />
-          </div>
-          <button id="recsBtn" onclick="runSmartRecommendations()" style="padding: 10px 24px;">Generate Recommendations</button>
-        </div>
-        <div id="recsResult" style="display: none;"></div>
       </div>
 
     </div>
@@ -1000,7 +711,6 @@
         <button class="back-btn browse-tab-btn" onclick="switchBrowseTab('album')" id="browseTabBtn_album" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">💿 Album Details</button>
         <button class="back-btn browse-tab-btn" onclick="switchBrowseTab('artist')" id="browseTabBtn_artist" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🎤 Artist Profile</button>
         <button class="back-btn browse-tab-btn" onclick="switchBrowseTab('artist_albums')" id="browseTabBtn_artist_albums" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">📚 Discography</button>
-        <button class="back-btn browse-tab-btn" onclick="switchBrowseTab('user')" id="browseTabBtn_user" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">👤 User Profile</button>
       </div>
 
       <!-- TAB 1: TRACK INSPECTION -->
@@ -1054,15 +764,6 @@
         <div id="browseDiscogResult" style="display: none;"></div>
       </div>
 
-      <!-- TAB 5: USER PROFILE -->
-      <div id="browseTab_user" class="browse-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Fetch public profile information, avatar, follower count, and public playlists for any Spotify user.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="browseUserInput" placeholder="Enter Spotify Username, User ID, or URI (e.g. spotify:user:wizzler)..." onkeydown="if(event.key==='Enter') runBrowseUser()" />
-          <button id="browseUserBtn" onclick="runBrowseUser()">Fetch User</button>
-        </div>
-        <div id="browseUserResult" style="display: none;"></div>
-      </div>
 
     </div>
 
@@ -1141,107 +842,6 @@
       </div>
     </div>
 
-    <!-- SECTION 11: AUDIO FEATURES & PLAYLIST SORTER -->
-    <div class="tool-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h2>🎛️ Audio Features & Smart Playlist Sorter</h2>
-        <span style="font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(147, 51, 234, 0.15); color: #c084fc; font-weight: 600;">Acoustic Intelligence</span>
-      </div>
-      <p>Analyze deep Spotify audio features (valence, energy, danceability, tempo) for individual tracks or automatically reorder an entire playlist by musical characteristics.</p>
-
-      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px;">
-        <button class="back-btn feat-tab-btn" onclick="switchFeatTab('reorder')" id="featTabBtn_reorder" style="color: var(--spotify-green); font-weight: 700; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.04);">🎵 Reorder Playlist by Audio Feature</button>
-        <button class="back-btn feat-tab-btn" onclick="switchFeatTab('inspect')" id="featTabBtn_inspect" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🔬 Track Audio Features Analyzer</button>
-      </div>
-
-      <!-- TAB 1: REORDER PLAYLIST BY FEATURE -->
-      <div id="featTab_reorder" class="feat-tab-content">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Sort tracks in an existing playlist by an audio parameter (e.g. from highest energy workout songs to chill songs, or happy to sad valence).</p>
-        <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 14px;">
-          <div>
-            <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Playlist ID or URI *</label>
-            <input type="text" id="reorderPlaylistIdInput" placeholder="Enter playlist ID or URI..." />
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Audio Feature to Sort By</label>
-            <select id="reorderFeatureSelect" style="width: 100%; padding: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff;">
-              <option value="energy" selected>⚡ Energy (Intensity & Power)</option>
-              <option value="valence">😊 Valence (Musical Positiveness / Happiness)</option>
-              <option value="danceability">💃 Danceability (Rhythmic Suitability)</option>
-              <option value="acousticness">🎸 Acousticness (Acoustic vs Electronic)</option>
-              <option value="tempo">⏱️ Tempo (BPM / Beats Per Minute)</option>
-              <option value="popularity">🔥 Popularity (Spotify Popularity Index)</option>
-            </select>
-          </div>
-          <div>
-            <label style="display: block; font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Sort Direction</label>
-            <select id="reorderAscendingSelect" style="width: 100%; padding: 12px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff;">
-              <option value="false" selected>High to Low (Descending)</option>
-              <option value="true">Low to High (Ascending)</option>
-            </select>
-          </div>
-        </div>
-        <button id="reorderFeatureBtn" onclick="runReorderPlaylistByFeature()" style="width: 100%; padding: 12px; font-weight: 700;">🎛️ Reorder Playlist In-Place</button>
-        <div id="reorderFeatureResult" style="display: none; margin-top: 14px;"></div>
-      </div>
-
-      <!-- TAB 2: TRACK AUDIO FEATURES INSPECTOR -->
-      <div id="featTab_inspect" class="feat-tab-content" style="display: none;">
-        <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 12px;">Fetch radar/metric breakdown of audio features for any track or set of tracks.</p>
-        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="inspectTrackFeaturesInput" placeholder="Enter Track ID(s) or URI(s) (comma-separated)..." onkeydown="if(event.key==='Enter') runInspectAudioFeatures()" />
-          <button id="inspectTrackFeaturesBtn" onclick="runInspectAudioFeatures()">Analyze Audio Features</button>
-        </div>
-        <div id="inspectTrackFeaturesResult" style="display: none; margin-top: 14px;"></div>
-      </div>
-    </div>
-
-    <!-- SECTION 12: TMDB & WEB DISCOVERY STUDIO -->
-    <div class="tool-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h2>🌐 Web Discovery & Actor Intelligence Studio</h2>
-        <span style="font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(59, 130, 246, 0.15); color: #60a5fa; font-weight: 600;">Cross-Platform Search</span>
-      </div>
-      <p>Search external movie registries, browse DuckDuckGo web results, and inspect actor biographies and career statistics.</p>
-
-      <div style="display: flex; gap: 8px; margin-bottom: 20px; border-bottom: 1px solid var(--border-subtle); padding-bottom: 12px; flex-wrap: wrap;">
-        <button class="back-btn webdisc-tab-btn" onclick="switchWebDiscTab('actor_profile')" id="webdiscTabBtn_actor_profile" style="color: var(--spotify-green); font-weight: 700; padding: 6px 12px; border-radius: 8px; background: rgba(255,255,255,0.04);">🎭 Actor TMDB Profile</button>
-        <button class="back-btn webdisc-tab-btn" onclick="switchWebDiscTab('duckduckgo')" id="webdiscTabBtn_duckduckgo" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🦆 DuckDuckGo Search</button>
-        <button class="back-btn webdisc-tab-btn" onclick="switchWebDiscTab('artist_network')" id="webdiscTabBtn_artist_network" style="color: var(--text-muted); padding: 6px 12px; border-radius: 8px;">🌐 Artist Network Graph</button>
-      </div>
-
-      <!-- TAB 1: ACTOR TMDB PROFILE -->
-      <div id="webdiscTab_actor_profile" class="webdisc-tab-content">
-        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="tmdbActorInput" placeholder="Enter actor name (e.g. Leonardo DiCaprio, Keanu Reeves, Zendaya)..." onkeydown="if(event.key==='Enter') runFetchActorProfile()" />
-          <button id="tmdbActorBtn" onclick="runFetchActorProfile()">Fetch TMDB Profile</button>
-        </div>
-        <div id="tmdbActorResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 2: DUCKDUCKGO SEARCH -->
-      <div id="webdiscTab_duckduckgo" class="webdisc-tab-content" style="display: none;">
-        <div style="display: flex; gap: 10px; margin-bottom: 14px; flex-wrap: wrap;">
-          <input type="text" id="ddgQueryInput" placeholder="Enter search query (e.g. Oppenheimer soundtrack composers, Bollywood hits)..." style="flex: 1; min-width: 240px;" onkeydown="if(event.key==='Enter') runDdgSearch()" />
-          <div style="display: flex; align-items: center; gap: 6px;">
-            <span style="font-size: 13px; color: var(--text-muted);">Results:</span>
-            <input type="number" id="ddgLimitInput" value="5" min="1" max="15" style="width: 70px; padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff;" />
-          </div>
-          <button id="ddgSearchBtn" onclick="runDdgSearch()">Search DuckDuckGo</button>
-        </div>
-        <div id="ddgSearchResult" style="display: none;"></div>
-      </div>
-
-      <!-- TAB 3: ARTIST NETWORK GRAPH -->
-      <div id="webdiscTab_artist_network" class="webdisc-tab-content" style="display: none;">
-        <div style="display: flex; gap: 10px; margin-bottom: 14px;">
-          <input type="text" id="networkArtistInput" placeholder="Enter artist name or URI (e.g. Daft Punk, Hans Zimmer, Arctic Monkeys)..." onkeydown="if(event.key==='Enter') runFetchArtistNetwork()" />
-          <button id="networkArtistBtn" onclick="runFetchArtistNetwork()">Map Artist Network</button>
-        </div>
-        <div id="networkArtistResult" style="display: none;"></div>
-      </div>
-    </div>
-
     <!-- SECTION 13: PLAYBACK & DEVICE CONTROLLER -->
     <div class="tool-section">
       <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
@@ -1312,6 +912,11 @@
   <div id="toastContainer" class="toast-container"></div>
 
   <script>
+    // Spotify no longer sends popularity for this app; show a dash instead of "null/100"
+    function fmtPop(value) {
+      return value ? `${value}/100` : '—';
+    }
+
     function showToast(msg) {
       const c = document.getElementById('toastContainer');
       const t = document.createElement('div');
@@ -1769,79 +1374,6 @@
       }
     }
 
-    function addPowerMergeRow() {
-      const c = document.getElementById('powerMergeRows');
-      if (!c) return;
-      const div = document.createElement('div');
-      div.className = 'power-merge-row';
-      div.style.cssText = 'display: flex; gap: 8px;';
-      div.innerHTML = `
-        <select class="power-merge-select" onchange="this.nextElementSibling.value = this.value" style="padding: 10px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); width: 40%; outline: none;">
-          <option value="">-- Choose Playlist --</option>
-          ${userPlaylistOptionsHTML}
-        </select>
-        <input type="text" class="power-merge-input" placeholder="OR paste link/URI..." style="flex: 1;" />
-        <button type="button" onclick="if(document.querySelectorAll('.power-merge-row').length > 2) this.parentElement.remove()" style="padding: 0 14px; background: transparent; color: #ef4444; border: 1px solid var(--border-subtle);">✕</button>
-      `;
-      c.appendChild(div);
-    }
-
-    function toggleMergeTargetMode() {
-      const mode = document.getElementById('powerMergeMode').value;
-      document.getElementById('powerMergeNewNameBox').style.display = mode === 'new' ? 'block' : 'none';
-      document.getElementById('powerMergeExistingBox').style.display = mode === 'existing' ? 'block' : 'none';
-    }
-
-    async function runPowerMerge() {
-      const inputs = document.querySelectorAll('.power-merge-input');
-      const pids = Array.from(inputs).map(i => i.value.trim()).filter(v => v);
-      if (pids.length < 2) return alert('Please specify at least 2 playlists to merge.');
-
-      const mode = document.getElementById('powerMergeMode').value;
-      const newName = document.getElementById('powerMergeNewName').value.trim();
-      const targetPid = document.getElementById('powerMergeTargetSelect').value.trim();
-      const dedupe = document.getElementById('powerMergeDedupe').checked;
-      const isPublic = document.getElementById('powerMergePublic').checked;
-
-      const btn = document.getElementById('powerMergeBtn');
-      const resBox = document.getElementById('powerMergeResult');
-      btn.disabled = true; btn.textContent = 'Merging...';
-
-      try {
-        const payload = {
-          playlist_ids: pids,
-          target_playlist_id: mode === 'existing' ? (targetPid || null) : null,
-          new_name: newName || 'Merged Playlist',
-          public: isPublic,
-          deduplicate: dedupe
-        };
-        const r = await fetch('/api/playlist/merge', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify(payload)
-        });
-        const d = await r.json();
-        if (d.success) {
-          showToast(d.message);
-          resBox.style.display = 'block';
-          resBox.innerHTML = `
-            <div style="background: rgba(29, 185, 84, 0.1); border: 1px solid var(--spotify-green); border-radius: var(--radius-md); padding: 12px; color: #fff;">
-              <strong>✓ Merge Successful!</strong><br />
-              Playlist: <strong>${d.name}</strong> (${d.tracks_added} tracks added)<br />
-              ${d.spotify_url ? `<a href="${d.spotify_url}" target="_blank" style="color: var(--spotify-green); font-size: 12px; text-decoration: underline;">Open in Spotify ↗</a>` : ''}
-            </div>
-          `;
-          loadUserPlaylists();
-        } else {
-          alert('Error: ' + d.error);
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      } finally {
-        btn.disabled = false; btn.textContent = 'Merge Playlists';
-      }
-    }
-
     async function runPowerSplit(create) {
       const input = document.getElementById('powerSplitInput').value.trim();
       if (!input) return alert('Please select or paste a playlist to split.');
@@ -1884,61 +1416,6 @@
             resBox.innerHTML = `
               <h4 style="font-size: 14px; margin-bottom: 8px; color: var(--spotify-green);">Sub-Playlists Created Successfully!</h4>
               ${listHtml}
-            `;
-            loadUserPlaylists();
-          }
-        } else {
-          alert('Error: ' + d.error);
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      } finally {
-        btn.disabled = false; btn.textContent = origText;
-      }
-    }
-
-    async function runPowerDedupe(dryRun) {
-      const input = document.getElementById('powerDedupeInput').value.trim();
-      if (!input) return alert('Please choose or paste a playlist to deduplicate.');
-      const strategy = document.getElementById('powerDedupeStrategy').value;
-      const resBox = document.getElementById('powerDedupeResult');
-      const btn = dryRun ? document.getElementById('powerDedupeDryBtn') : document.getElementById('powerDedupeRunBtn');
-      const origText = btn.textContent;
-      btn.disabled = true; btn.textContent = dryRun ? 'Scanning...' : 'Removing...';
-
-      try {
-        const r = await fetch('/api/playlist/deduplicate', {
-          method: 'POST',
-          headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ playlist_id: input, strategy: strategy, dry_run: dryRun })
-        });
-        const d = await r.json();
-        if (d.success) {
-          resBox.style.display = 'block';
-          if (d.dry_run) {
-            if (d.duplicate_count === 0) {
-              resBox.innerHTML = `<div style="color: var(--spotify-green); font-size: 13px;">✓ Playlist '${d.playlist_name}' has 0 duplicates! It is already completely clean.</div>`;
-            } else {
-              const dupesList = d.duplicates.map(x => `
-                <div style="padding: 4px 0; font-size: 12px; color: #cbd5e1; border-bottom: 1px solid rgba(255,255,255,0.04);">
-                  Position ${x.position}: <strong>${x.name}</strong> by ${x.artist}
-                </div>
-              `).join('');
-              resBox.innerHTML = `
-                <div style="margin-bottom: 8px; font-size: 13px;">
-                  Found <strong style="color: #f87171;">${d.duplicate_count}</strong> duplicate(s) in '${d.playlist_name}' (${d.unique_tracks} unique tracks will remain):
-                </div>
-                ${dupesList}
-                <div style="margin-top: 10px; font-size: 12px; color: var(--spotify-green);">Click 'Strip Duplicates In-Place' to execute removal.</div>
-              `;
-            }
-          } else {
-            showToast(d.message);
-            resBox.innerHTML = `
-              <div style="color: var(--spotify-green); font-size: 13px;">
-                ✓ <strong>${d.message}</strong><br />
-                Remaining Unique Tracks: ${d.unique_tracks}
-              </div>
             `;
             loadUserPlaylists();
           }
@@ -2144,7 +1621,6 @@
     async function runPowerExport() {
       const pid = document.getElementById('powerExportInput').value.trim();
       if (!pid) return alert('Please choose or paste a playlist to export.');
-      const includeFeatures = document.getElementById('powerExportFeatures').checked;
       const resBox = document.getElementById('powerExportResult');
       const pre = document.getElementById('powerExportPre');
       const info = document.getElementById('powerExportInfo');
@@ -2152,7 +1628,7 @@
       btn.disabled = true; btn.textContent = 'Exporting JSON...';
 
       try {
-        const r = await fetch(`/api/playlist/export?playlist_id=${encodeURIComponent(pid)}&include_audio_features=${includeFeatures}`);
+        const r = await fetch(`/api/playlist/export?playlist_id=${encodeURIComponent(pid)}`);
         const d = await r.json();
         if (d.success) {
           currentPowerExportData = d.export;
@@ -2196,9 +1672,7 @@
           const shuffleSelect = document.getElementById('myPlaylistsShuffle');
           const dedupeSelect = document.getElementById('dedupePlaylistsSelect');
           const inspectSelect = document.getElementById('inspectPlaylistsSelect');
-          const targetMergeSelect = document.getElementById('powerMergeTargetSelect');
           const splitSelect = document.getElementById('powerSplitSelect');
-          const powerDedupeSel = document.getElementById('powerDedupeSelect');
           const exportSelect = document.getElementById('powerExportSelect');
           const diffSelA = document.getElementById('powerDiffSelectA');
           const diffSelB = document.getElementById('powerDiffSelectB');
@@ -2208,9 +1682,7 @@
           shuffleSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
           if (dedupeSelect) dedupeSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
           if (inspectSelect) inspectSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
-          if (targetMergeSelect) targetMergeSelect.innerHTML = '<option value="">-- Choose Target Playlist --</option>';
           if (splitSelect) splitSelect.innerHTML = '<option value="">-- Choose Playlist to Split --</option>';
-          if (powerDedupeSel) powerDedupeSel.innerHTML = '<option value="">-- Choose Playlist to Deduplicate --</option>';
           if (exportSelect) exportSelect.innerHTML = '<option value="">-- Choose Playlist to Export --</option>';
           if (diffSelA) diffSelA.innerHTML = '<option value="">-- Choose Playlist A --</option>';
           if (diffSelB) diffSelB.innerHTML = '<option value="">-- Choose Playlist B --</option>';
@@ -2228,9 +1700,7 @@
             shuffleSelect.appendChild(opt.cloneNode(true));
             if (dedupeSelect) dedupeSelect.appendChild(opt.cloneNode(true));
             if (inspectSelect) inspectSelect.appendChild(opt.cloneNode(true));
-            if (targetMergeSelect) targetMergeSelect.appendChild(opt.cloneNode(true));
             if (splitSelect) splitSelect.appendChild(opt.cloneNode(true));
-            if (powerDedupeSel) powerDedupeSel.appendChild(opt.cloneNode(true));
             if (exportSelect) exportSelect.appendChild(opt.cloneNode(true));
             if (diffSelA) diffSelA.appendChild(opt.cloneNode(true));
             if (diffSelB) diffSelB.appendChild(opt.cloneNode(true));
@@ -2252,517 +1722,11 @@
              });
           }
 
-          // Initialize power merge rows if empty
-          const pRows = document.getElementById('powerMergeRows');
-          if (pRows && pRows.children.length === 0) {
-            addPowerMergeRow(); addPowerMergeRow();
-          } else if (pRows) {
-            pRows.querySelectorAll('.power-merge-select').forEach(sel => {
-              const currentVal = sel.value;
-              sel.innerHTML = '<option value="">-- Choose Playlist --</option>' + userPlaylistOptionsHTML;
-              sel.value = currentVal;
-            });
-          }
         }
       } catch (e) {
         console.warn('Could not load user playlists:', e);
       }
     }
-
-    // =========================================================================
-    // SEARCH, RECOMMENDATIONS & DISCOVERY STUDIO SCRIPTS
-    // =========================================================================
-
-    function switchDiscoveryTab(tab) {
-      const tabs = ['search', 'related', 'by_artist', 'mood', 'genres', 'deep_cuts', 'recs'];
-      tabs.forEach(t => {
-        const content = document.getElementById('discTab_' + t);
-        const btn = document.getElementById('discTabBtn_' + t);
-        if (content) content.style.display = (t === tab) ? 'block' : 'none';
-        if (btn) {
-          if (t === tab) {
-            btn.style.color = '#fff';
-            btn.style.fontWeight = '700';
-            btn.style.background = 'rgba(29, 185, 84, 0.15)';
-            btn.style.border = '1px solid var(--spotify-green)';
-          } else {
-            btn.style.color = 'var(--text-muted)';
-            btn.style.fontWeight = '400';
-            btn.style.background = 'transparent';
-            btn.style.border = 'none';
-          }
-        }
-      });
-    }
-
-    function renderDiscoveryTrackCard(t, index) {
-      const cover = t.album_cover ? `<img src="${t.album_cover}" alt="" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover;" />` : `<div style="width: 44px; height: 44px; border-radius: 6px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 18px;">🎵</div>`;
-      const durSec = Math.floor((t.duration_ms || 0) / 1000);
-      const dur = `${Math.floor(durSec / 60)}:${String(durSec % 60).padStart(2, '0')}`;
-      const safeUri = (t.uri || '').replace(/'/g, "\\'");
-      const popBadge = (t.popularity !== undefined && t.popularity !== null) ? `<span style="font-size: 11px; padding: 2px 6px; border-radius: 10px; background: rgba(29,185,84,0.12); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.25);">⭐ ${t.popularity}/100</span>` : '';
-
-      return `
-        <div style="display: flex; align-items: center; gap: 12px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); transition: background 0.2s;">
-          <div style="font-size: 12px; color: var(--text-muted); width: 20px; text-align: center;">${index}</div>
-          ${cover}
-          <div style="flex: 1; min-width: 0;">
-            <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
-              <span style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
-              ${popBadge}
-            </div>
-            <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
-              ${t.artist || 'Unknown'} ${t.album_name ? '• ' + t.album_name : ''}
-            </div>
-          </div>
-          <div style="font-size: 12px; color: var(--text-muted); padding: 0 4px;">${dur}</div>
-          <div style="display: flex; gap: 6px;">
-            <button onclick="navigator.clipboard.writeText('${safeUri}'); showToast('Track URI copied!');" style="padding: 6px 10px; font-size: 11px; background: rgba(255,255,255,0.08); color: #fff;">Copy URI</button>
-            ${t.spotify_url ? `<a href="${t.spotify_url}" target="_blank" style="padding: 6px 10px; font-size: 11px; background: rgba(29,185,84,0.15); color: var(--spotify-green); text-decoration: none; border-radius: var(--radius-md); display: flex; align-items: center;">Open ↗</a>` : ''}
-          </div>
-        </div>
-      `;
-    }
-
-    async function runDiscoverySearch() {
-      const q = document.getElementById('discSearchQuery').value.trim();
-      if (!q) return alert('Please enter a search query.');
-
-      const types = [];
-      if (document.getElementById('discTypeTrack').checked) types.push('track');
-      if (document.getElementById('discTypeArtist').checked) types.push('artist');
-      if (document.getElementById('discTypeAlbum').checked) types.push('album');
-      if (document.getElementById('discTypePlaylist').checked) types.push('playlist');
-      if (types.length === 0) return alert('Please select at least one item type to search for.');
-
-      const limit = document.getElementById('discSearchLimit').value || '10';
-      const btn = document.getElementById('discSearchBtn');
-      const resContainer = document.getElementById('discSearchResults');
-
-      btn.disabled = true; btn.textContent = 'Searching...';
-      resContainer.style.display = 'flex';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Searching catalog across Spotify...</div>';
-
-      try {
-        const res = await fetch(`/api/spotify/search?query=${encodeURIComponent(q)}&types=${encodeURIComponent(types.join(','))}&limit=${limit}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Search failed'}</div>`;
-          return;
-        }
-
-        let html = '';
-
-        if (data.tracks && data.tracks.length > 0) {
-          html += `<div><h4 style="font-size: 15px; margin-bottom: 8px; color: var(--spotify-green);">🎵 Tracks (${data.tracks.length})</h4><div style="display: flex; flex-direction: column; gap: 6px;">`;
-          data.tracks.forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-          html += `</div></div>`;
-        }
-
-        if (data.artists && data.artists.length > 0) {
-          html += `<div><h4 style="font-size: 15px; margin-bottom: 8px; color: var(--spotify-green);">🎤 Artists (${data.artists.length})</h4><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">`;
-          data.artists.forEach(a => {
-            const img = a.image ? `<img src="${a.image}" alt="" style="width: 44px; height: 44px; border-radius: 50%; object-fit: cover;" />` : `<div style="width: 44px; height: 44px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">🎤</div>`;
-            const genres = (a.genres || []).slice(0, 2).join(', ') || 'Various';
-            html += `
-              <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                ${img}
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.name}</div>
-                  <div style="font-size: 11px; color: var(--text-muted);">${genres}</div>
-                  <div style="font-size: 10px; color: var(--spotify-green);">${(a.followers || 0).toLocaleString()} followers</div>
-                </div>
-              </div>
-            `;
-          });
-          html += `</div></div>`;
-        }
-
-        if (data.albums && data.albums.length > 0) {
-          html += `<div><h4 style="font-size: 15px; margin-bottom: 8px; color: var(--spotify-green);">💿 Albums (${data.albums.length})</h4><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">`;
-          data.albums.forEach(alb => {
-            const img = alb.image ? `<img src="${alb.image}" alt="" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover;" />` : `<div style="width: 44px; height: 44px; border-radius: 6px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">💿</div>`;
-            html += `
-              <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                ${img}
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${alb.name}</div>
-                  <div style="font-size: 11px; color: var(--text-muted);">${alb.artists}</div>
-                  <div style="font-size: 10px; color: var(--text-muted);">${alb.release_date || ''} • ${alb.total_tracks} tracks</div>
-                </div>
-              </div>
-            `;
-          });
-          html += `</div></div>`;
-        }
-
-        if (data.playlists && data.playlists.length > 0) {
-          html += `<div><h4 style="font-size: 15px; margin-bottom: 8px; color: var(--spotify-green);">📁 Playlists (${data.playlists.length})</h4><div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">`;
-          data.playlists.forEach(pl => {
-            const img = pl.image ? `<img src="${pl.image}" alt="" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover;" />` : `<div style="width: 44px; height: 44px; border-radius: 6px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">📁</div>`;
-            html += `
-              <div style="display: flex; align-items: center; gap: 10px; padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-                ${img}
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${pl.name}</div>
-                  <div style="font-size: 11px; color: var(--text-muted);">by ${pl.owner}</div>
-                  <div style="font-size: 10px; color: var(--text-muted);">${pl.total_tracks} tracks</div>
-                </div>
-              </div>
-            `;
-          });
-          html += `</div></div>`;
-        }
-
-        resContainer.innerHTML = html || '<div style="color: var(--text-muted); padding: 12px;">No results found across catalog.</div>';
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Search';
-      }
-    }
-
-    async function runDiscoveryRelated() {
-      const artist = document.getElementById('discRelatedInput').value.trim();
-      if (!artist) return alert('Please enter an artist name or URI.');
-
-      const btn = document.getElementById('discRelatedBtn');
-      const resContainer = document.getElementById('discRelatedResult');
-      btn.disabled = true; btn.textContent = 'Exploring...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Scanning related artist networks...</div>';
-
-      try {
-        const res = await fetch(`/api/artist/related?artist=${encodeURIComponent(artist)}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        const seed = data.artist || {};
-        let html = `
-          <div style="display: flex; align-items: center; gap: 14px; padding: 14px; background: rgba(29,185,84,0.08); border: 1px solid rgba(29,185,84,0.25); border-radius: var(--radius-md); margin-bottom: 16px;">
-            ${seed.image ? `<img src="${seed.image}" alt="" style="width: 56px; height: 56px; border-radius: 50%; object-fit: cover;" />` : ''}
-            <div>
-              <div style="font-size: 16px; font-weight: 700; color: #fff;">${seed.name}</div>
-              <div style="font-size: 12px; color: var(--text-muted);">${(seed.genres || []).join(', ') || 'Artist'} • ${(seed.followers || 0).toLocaleString()} followers</div>
-            </div>
-          </div>
-          <h4 style="font-size: 14px; color: var(--text-muted); margin-bottom: 10px;">Similar Artists Network (${data.related_artists ? data.related_artists.length : 0} discovered):</h4>
-          <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px;">
-        `;
-
-        (data.related_artists || []).forEach(a => {
-          const img = a.image ? `<img src="${a.image}" alt="" style="width: 48px; height: 48px; border-radius: 50%; object-fit: cover;" />` : `<div style="width: 48px; height: 48px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">🎤</div>`;
-          html += `
-            <div style="display: flex; align-items: center; gap: 10px; padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-              ${img}
-              <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.name}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${(a.genres || []).slice(0, 2).join(', ') || 'Similar'}</div>
-                <div style="display: flex; gap: 6px; margin-top: 6px;">
-                  <button onclick="document.getElementById('discByArtistInput').value='${(a.name || '').replace(/'/g, "\\'")}'; switchDiscoveryTab('by_artist'); runDiscoveryByArtist();" style="padding: 4px 8px; font-size: 10px; background: rgba(29,185,84,0.15); color: var(--spotify-green);">Discover Tracks</button>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        html += `</div>`;
-        resContainer.innerHTML = html;
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Find Related';
-      }
-    }
-
-    async function runDiscoveryByArtist() {
-      const artist = document.getElementById('discByArtistInput').value.trim();
-      if (!artist) return alert('Please enter an artist name or URI.');
-
-      const limit = document.getElementById('discByArtistLimit').value || '15';
-      const incTop = document.getElementById('discIncludeTopTracks').checked;
-      const btn = document.getElementById('discByArtistBtn');
-      const resContainer = document.getElementById('discByArtistResult');
-
-      btn.disabled = true; btn.textContent = 'Generating...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Exploring network recommendations...</div>';
-
-      try {
-        const res = await fetch(`/api/discover/by_artist?artist=${encodeURIComponent(artist)}&limit=${limit}&include_artist_top_tracks=${incTop}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        let html = '';
-        const seeds = (data.related_seeds || []).map(s => s.name).join(', ');
-        if (seeds) {
-          html += `<div style="font-size: 12px; color: var(--text-muted); margin-bottom: 12px;">Seeds used: <span style="color: #38bdf8;">${data.seed_artist ? data.seed_artist.name : artist}</span> + related: ${seeds}</div>`;
-        }
-
-        if (data.tracks && data.tracks.length > 0) {
-          html += `<h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 8px;">Network Recommendations (${data.tracks.length}):</h4><div style="display: flex; flex-direction: column; gap: 6px; margin-bottom: 16px;">`;
-          data.tracks.forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-          html += `</div>`;
-        }
-
-        if (data.top_tracks && data.top_tracks.length > 0) {
-          html += `<h4 style="font-size: 14px; color: #fff; margin-bottom: 8px;">Top Tracks by ${data.seed_artist ? data.seed_artist.name : 'Seed Artist'}:</h4><div style="display: flex; flex-direction: column; gap: 6px;">`;
-          data.top_tracks.forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-          html += `</div>`;
-        }
-
-        resContainer.innerHTML = html || '<div style="color: var(--text-muted); padding: 12px;">No tracks found.</div>';
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Discover Tracks';
-      }
-    }
-
-    const MOOD_PRESETS_MAP = {
-      happy: { valence: 85, energy: 75, dance: 70, acoustic: 20, tempo: 120, genres: 'pop, happy' },
-      chill: { valence: 50, energy: 30, dance: 50, acoustic: 50, tempo: 95, genres: 'chill, ambient' },
-      energetic: { valence: 75, energy: 90, dance: 75, acoustic: 10, tempo: 130, genres: 'dance, electronic' },
-      focus: { valence: 40, energy: 30, dance: 40, acoustic: 60, tempo: 90, genres: 'ambient, study' },
-      party: { valence: 80, energy: 85, dance: 85, acoustic: 10, tempo: 128, genres: 'dance, party' },
-      sad: { valence: 18, energy: 25, dance: 35, acoustic: 70, tempo: 85, genres: 'sad, acoustic' },
-      dark: { valence: 20, energy: 75, dance: 50, acoustic: 15, tempo: 115, genres: 'metal, industrial' },
-      romantic: { valence: 60, energy: 40, dance: 55, acoustic: 60, tempo: 100, genres: 'r-n-b, romance' },
-      workout: { valence: 70, energy: 95, dance: 80, acoustic: 5, tempo: 135, genres: 'work-out' }
-    };
-
-    let activeMoodPreset = null;
-
-    function selectMoodPreset(preset) {
-      activeMoodPreset = preset;
-      const conf = MOOD_PRESETS_MAP[preset];
-      if (conf) {
-        document.getElementById('moodValence').value = conf.valence;
-        document.getElementById('valValence').textContent = (conf.valence / 100).toFixed(2);
-
-        document.getElementById('moodEnergy').value = conf.energy;
-        document.getElementById('valEnergy').textContent = (conf.energy / 100).toFixed(2);
-
-        document.getElementById('moodDance').value = conf.dance;
-        document.getElementById('valDance').textContent = (conf.dance / 100).toFixed(2);
-
-        document.getElementById('moodAcoustic').value = conf.acoustic;
-        document.getElementById('valAcoustic').textContent = (conf.acoustic / 100).toFixed(2);
-
-        document.getElementById('moodSeedGenres').value = conf.genres;
-      }
-
-      document.querySelectorAll('#moodPresetPills .mood-pill').forEach(btn => {
-        btn.style.background = 'rgba(255,255,255,0.06)';
-        btn.style.borderColor = 'var(--border-subtle)';
-      });
-      event.target.style.background = 'rgba(29,185,84,0.2)';
-      event.target.style.borderColor = 'var(--spotify-green)';
-
-      runDiscoveryMood();
-    }
-
-    async function runDiscoveryMood() {
-      const btn = document.getElementById('discMoodBtn');
-      const resContainer = document.getElementById('discMoodResult');
-      btn.disabled = true; btn.textContent = 'Discovering...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Curating mood soundtrack...</div>';
-
-      const payload = {
-        mood: activeMoodPreset,
-        target_valence: parseFloat(document.getElementById('moodValence').value) / 100,
-        target_energy: parseFloat(document.getElementById('moodEnergy').value) / 100,
-        target_danceability: parseFloat(document.getElementById('moodDance').value) / 100,
-        target_acousticness: parseFloat(document.getElementById('moodAcoustic').value) / 100,
-        limit: 20
-      };
-
-      const genresStr = document.getElementById('moodSeedGenres').value.trim();
-      if (genresStr) {
-        payload.seed_genres = genresStr.split(',').map(g => g.strip ? g.strip() : g.trim()).filter(Boolean);
-      }
-
-      try {
-        const res = await fetch('/api/discover/by_mood', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        let html = `<div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 10px;"><span style="font-size: 13px; color: var(--spotify-green);">Mood: <strong>${data.mood || 'Custom'}</strong> (${data.tracks ? data.tracks.length : 0} tracks)</span></div><div style="display: flex; flex-direction: column; gap: 6px;">`;
-        (data.tracks || []).forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-        html += '</div>';
-
-        resContainer.innerHTML = html;
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Discover Mood Tracks';
-      }
-    }
-
-    async function loadAvailableGenreSeeds() {
-      const cloud = document.getElementById('genreSeedCloud');
-      cloud.innerHTML = '<span style="font-size: 12px; color: var(--text-muted);">Loading official genre seeds...</span>';
-
-      try {
-        const res = await fetch('/api/genres/explore');
-        const data = await res.json();
-        if (data.success && data.all_genres) {
-          let html = '';
-          data.all_genres.forEach(g => {
-            html += `<span onclick="addGenreSeedTag('${g}')" style="cursor: pointer; font-size: 11px; padding: 4px 10px; background: rgba(255,255,255,0.06); border: 1px solid var(--border-subtle); border-radius: 12px; color: #f1f5f9; transition: all 0.15s;" onmouseover="this.style.borderColor='var(--spotify-green)'" onmouseout="this.style.borderColor='var(--border-subtle)'">${g}</span>`;
-          });
-          cloud.innerHTML = html;
-          showToast(`Loaded ${data.all_genres.length} genre seeds!`);
-        } else {
-          cloud.innerHTML = '<span style="font-size: 12px; color: #ef4444;">Failed to load genres.</span>';
-        }
-      } catch (e) {
-        cloud.innerHTML = `<span style="font-size: 12px; color: #ef4444;">Error: ${e.message}</span>`;
-      }
-    }
-
-    function addGenreSeedTag(genre) {
-      const inp = document.getElementById('discGenreInput');
-      const existing = inp.value.split(',').map(s => s.trim()).filter(Boolean);
-      if (!existing.includes(genre)) {
-        if (existing.length >= 5) {
-          alert('Spotify supports maximum 5 seed genres at once.');
-          return;
-        }
-        existing.push(genre);
-        inp.value = existing.join(', ');
-        showToast(`Added '${genre}' to seeds!`);
-      }
-    }
-
-    async function runGenreExplorer() {
-      const genres = document.getElementById('discGenreInput').value.trim();
-      const btn = document.getElementById('discGenreSampleBtn');
-      const resContainer = document.getElementById('discGenreResult');
-
-      btn.disabled = true; btn.textContent = 'Sampling...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Sampling tracks for genre seeds...</div>';
-
-      try {
-        const res = await fetch(`/api/genres/explore?genres=${encodeURIComponent(genres || 'synthwave,jazz')}&limit=15`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        let html = `<h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 8px;">Sample Tracks (${data.tracks ? data.tracks.length : 0}):</h4><div style="display: flex; flex-direction: column; gap: 6px;">`;
-        (data.tracks || []).forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-        html += '</div>';
-
-        resContainer.innerHTML = html;
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Sample Tracks';
-      }
-    }
-
-    async function runDeepCuts() {
-      const input = document.getElementById('discDeepCutsInput').value.trim();
-      if (!input) return alert('Please enter an artist or album name.');
-
-      const threshold = document.getElementById('discDeepCutsThreshold').value || '40';
-      const btn = document.getElementById('discDeepCutsBtn');
-      const resContainer = document.getElementById('discDeepCutsResult');
-
-      btn.disabled = true; btn.textContent = 'Unearthing...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Scanning catalog, stripping top singles, and filtering hidden gems...</div>';
-
-      try {
-        const res = await fetch(`/api/discover/deep_cuts?artist_or_album=${encodeURIComponent(input)}&max_popularity=${threshold}&limit=15`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        let html = `
-          <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 12px;">
-            <span style="font-size: 14px; font-weight: 700; color: #fff;">Deep Cuts for '${data.target_name}'</span>
-            <span style="font-size: 12px; color: var(--spotify-green);">Max Popularity: ${data.max_popularity}/100</span>
-          </div>
-          <div style="display: flex; flex-direction: column; gap: 6px;">
-        `;
-        (data.tracks || []).forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-        html += '</div>';
-
-        resContainer.innerHTML = html;
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Unearth Deep Cuts';
-      }
-    }
-
-    async function runSmartRecommendations() {
-      const btn = document.getElementById('recsBtn');
-      const resContainer = document.getElementById('recsResult');
-
-      btn.disabled = true; btn.textContent = 'Recommending...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Synthesizing recommendations...</div>';
-
-      const tracks = document.getElementById('recsSeedTracks').value.split(',').map(s => s.trim()).filter(Boolean);
-      const artists = document.getElementById('recsSeedArtists').value.split(',').map(s => s.trim()).filter(Boolean);
-      const genres = document.getElementById('recsSeedGenres').value.split(',').map(s => s.trim()).filter(Boolean);
-      const limit = parseInt(document.getElementById('recsLimit').value || '20', 10);
-
-      const payload = {
-        limit: limit,
-        seed_tracks: tracks.length ? tracks : undefined,
-        seed_artists: artists.length ? artists : undefined,
-        seed_genres: genres.length ? genres : (tracks.length || artists.length ? undefined : ['pop']),
-        target_energy: parseFloat(document.getElementById('recsEnergy').value) / 100,
-        target_valence: parseFloat(document.getElementById('recsValence').value) / 100,
-        target_tempo: parseFloat(document.getElementById('recsTempo').value)
-      };
-
-      try {
-        const res = await fetch('/api/recommendations', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
-        });
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'Failed'}</div>`;
-          return;
-        }
-
-        const items = data.tracks || data.recommendations || [];
-        let html = `<h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 8px;">Recommendations (${items.length}):</h4><div style="display: flex; flex-direction: column; gap: 6px;">`;
-        items.forEach((t, i) => { html += renderDiscoveryTrackCard(t, i + 1); });
-        html += '</div>';
-
-        resContainer.innerHTML = html;
-      } catch (e) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${e.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Generate Recommendations';
-      }
-    }
-
 
     // =========================================================================
     // STATS, ANALYTICS & INSIGHTS STUDIO SCRIPTS
@@ -2825,7 +1789,7 @@
               <div style="flex: 1; min-width: 0;">
                 <div style="display: flex; align-items: center; gap: 8px;">
                   <span style="font-weight: 600; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${t.name}</span>
-                  <span style="font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(29,185,84,0.12); color: var(--spotify-green);">⭐ ${t.popularity}/100</span>
+                  <span style="font-size: 11px; padding: 1px 6px; border-radius: 8px; background: rgba(29,185,84,0.12); color: var(--spotify-green);">⭐ ${fmtPop(t.popularity)}</span>
                 </div>
                 <div style="font-size: 12px; color: var(--text-muted); white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">
                   ${t.artist} ${t.album_name ? '• ' + t.album_name : ''}
@@ -2883,7 +1847,7 @@
               ${img}
               <div style="flex: 1; min-width: 0;">
                 <div style="font-weight: 700; font-size: 14px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${a.name}</div>
-                <div style="font-size: 11px; color: var(--spotify-green); margin-bottom: 4px;">Popularity: ${a.popularity}/100</div>
+                <div style="font-size: 11px; color: var(--spotify-green); margin-bottom: 4px;">Popularity: ${fmtPop(a.popularity)}</div>
                 <div style="display: flex; gap: 4px; flex-wrap: wrap;">${genres}</div>
               </div>
               <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -3075,7 +2039,7 @@
             </div>
             <p style="font-size: 13px; color: var(--text-muted); margin-bottom: 16px;">${data.description}</p>
             <div style="display: flex; gap: 16px; font-size: 12px; color: #fff;">
-              <div>• Avg Artist Popularity: <strong>${data.average_popularity}/100</strong></div>
+              <div>• Avg Artist Popularity: <strong>${fmtPop(data.average_popularity)}</strong></div>
               <div>• Top Artists Sampled: <strong>${data.artists_analyzed}</strong></div>
             </div>
           </div>
@@ -3100,7 +2064,7 @@
             html += `
               <div style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 8px;">
                 <div style="font-weight: 700; font-size: 13px;">${a.name}</div>
-                <div style="font-size: 11px; color: #38bdf8;">Popularity: ${a.popularity}/100</div>
+                <div style="font-size: 11px; color: #38bdf8;">Popularity: ${fmtPop(a.popularity)}</div>
               </div>
             `;
           });
@@ -3113,7 +2077,7 @@
             html += `
               <div style="padding: 10px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 8px;">
                 <div style="font-weight: 700; font-size: 13px;">${a.name}</div>
-                <div style="font-size: 11px; color: var(--spotify-green);">Popularity: ${a.popularity}/100</div>
+                <div style="font-size: 11px; color: var(--spotify-green);">Popularity: ${fmtPop(a.popularity)}</div>
               </div>
             `;
           });
@@ -3185,7 +2149,7 @@
               <td style="padding: 10px; font-weight: 600; color: #38bdf8;">${Math.round(p.avg_danceability * 100)}%</td>
               <td style="padding: 10px; font-weight: 600; color: #a855f7;">${Math.round(p.avg_acousticness * 100)}%</td>
               <td style="padding: 10px; font-weight: 600;">${p.avg_tempo} BPM</td>
-              <td style="padding: 10px; font-weight: 600; color: var(--spotify-green);">${p.avg_popularity}/100</td>
+              <td style="padding: 10px; font-weight: 600; color: var(--spotify-green);">${fmtPop(p.avg_popularity)}</td>
             </tr>
           `;
         });
@@ -3624,7 +2588,7 @@
     // =========================================================================
 
     function switchBrowseTab(tab) {
-      const tabs = ['track', 'album', 'artist', 'artist_albums', 'user'];
+      const tabs = ['track', 'album', 'artist', 'artist_albums'];
       tabs.forEach(t => {
         const content = document.getElementById('browseTab_' + t);
         const btn = document.getElementById('browseTabBtn_' + t);
@@ -3684,7 +2648,7 @@
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 18px; font-weight: 700; color: #fff;">${t.name}</span>
                   ${t.explicit ? '<span style="font-size: 10px; padding: 2px 5px; border-radius: 4px; background: rgba(255,255,255,0.2); font-weight: 700;">EXPLICIT</span>' : ''}
-                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${t.popularity}/100</span>
+                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${fmtPop(t.popularity)}</span>
                 </div>
                 <div style="font-size: 14px; color: var(--text-muted); margin: 6px 0;">
                   Artists: <strong style="color: #fff;">${t.artists}</strong>
@@ -3767,7 +2731,7 @@
               <div style="flex: 1; min-width: 240px;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 18px; font-weight: 700; color: #fff;">${alb.name}</span>
-                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${alb.popularity}/100</span>
+                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${fmtPop(alb.popularity)}</span>
                 </div>
                 <div style="font-size: 14px; color: var(--text-muted); margin: 6px 0;">
                   By <strong style="color: #fff;">${alb.artists}</strong>
@@ -3833,7 +2797,7 @@
               <div style="flex: 1; min-width: 240px;">
                 <div style="display: flex; align-items: center; gap: 8px; flex-wrap: wrap;">
                   <span style="font-size: 20px; font-weight: 700; color: #fff;">${art.name}</span>
-                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${art.popularity}/100</span>
+                  <span style="font-size: 11px; padding: 2px 8px; border-radius: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); border: 1px solid rgba(29,185,84,0.3);">⭐ Popularity: ${fmtPop(art.popularity)}</span>
                 </div>
                 <div style="font-size: 14px; color: var(--spotify-green); margin: 6px 0;">
                   👥 ${followers} Followers worldwide
@@ -3924,75 +2888,6 @@
         btn.disabled = false; btn.textContent = 'Fetch Discography';
       }
     }
-
-    async function runBrowseUser() {
-      const userId = document.getElementById('browseUserInput').value.trim();
-      if (!userId) return alert('Please enter a Spotify user ID, username, or URI.');
-
-      const btn = document.getElementById('browseUserBtn');
-      const resContainer = document.getElementById('browseUserResult');
-
-      btn.disabled = true; btn.textContent = 'Fetching...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Fetching user public profile and public playlists...</div>';
-
-      try {
-        const res = await fetch(`/api/browse/user?user_id=${encodeURIComponent(userId)}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.error || 'User fetch failed'}</div>`;
-          return;
-        }
-
-        const u = data.user || {};
-        const avatar = u.image ? `<img src="${u.image}" alt="" style="width: 80px; height: 80px; border-radius: 50%; object-fit: cover;" />` : `<div style="width: 80px; height: 80px; border-radius: 50%; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center; font-size: 28px;">👤</div>`;
-        const followers = (u.followers || 0).toLocaleString();
-        const playlists = u.public_playlists || [];
-
-        let playlistsHtml = '';
-        playlists.forEach(p => {
-          const pCover = p.image ? `<img src="${p.image}" alt="" style="width: 44px; height: 44px; border-radius: 6px; object-fit: cover;" />` : `<div style="width: 44px; height: 44px; border-radius: 6px; background: rgba(255,255,255,0.06); display: flex; align-items: center; justify-content: center;">📁</div>`;
-          const safePlaylistUri = (p.uri || '').replace(/'/g, "\\'");
-          playlistsHtml += `
-            <div style="display: flex; align-items: center; gap: 10px; padding: 8px 10px; background: rgba(255,255,255,0.015); border: 1px solid var(--border-subtle); border-radius: 6px;">
-              ${pCover}
-              <div style="flex: 1; min-width: 0;">
-                <div style="font-weight: 600; font-size: 13px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;">${p.name}</div>
-                <div style="font-size: 11px; color: var(--text-muted);">${p.total_tracks} tracks</div>
-              </div>
-              <button onclick="navigator.clipboard.writeText('${safePlaylistUri}'); showToast('Playlist URI copied!');" style="padding: 4px 8px; font-size: 10px; background: rgba(255,255,255,0.08); color: #fff;">Copy URI</button>
-              ${p.spotify_url ? `<a href="${p.spotify_url}" target="_blank" style="padding: 4px 8px; font-size: 10px; background: rgba(29,185,84,0.15); color: var(--spotify-green); text-decoration: none; border-radius: 4px;">Open ↗</a>` : ''}
-            </div>
-          `;
-        });
-
-        resContainer.innerHTML = `
-          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-            <div style="display: flex; gap: 16px; align-items: center; flex-wrap: wrap; margin-bottom: 16px;">
-              ${avatar}
-              <div style="flex: 1; min-width: 220px;">
-                <div style="font-size: 18px; font-weight: 700; color: #fff;">${u.display_name || u.id}</div>
-                <div style="font-size: 12px; font-family: monospace; color: var(--text-muted); margin: 2px 0;">User ID: ${u.id}</div>
-                <div style="font-size: 13px; color: var(--spotify-green); margin-top: 4px;">👥 ${followers} Followers</div>
-              </div>
-              <div>
-                ${u.spotify_url ? `<a href="${u.spotify_url}" target="_blank" style="padding: 6px 12px; font-size: 12px; background: rgba(29,185,84,0.15); color: var(--spotify-green); text-decoration: none; border-radius: var(--radius-md); display: inline-flex; align-items: center;">View Profile on Spotify ↗</a>` : ''}
-              </div>
-            </div>
-
-            <h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 8px;">Public Playlists (${playlists.length}):</h4>
-            <div style="display: flex; flex-direction: column; gap: 6px; max-height: 300px; overflow-y: auto;">
-              ${playlistsHtml || '<div style="color: var(--text-muted); padding: 12px;">No public playlists found for this user.</div>'}
-            </div>
-          </div>
-        `;
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false; btn.textContent = 'Fetch User';
-      }
-    }
-
 
     // ==========================================
     // ACTOR FILMOGRAPHY & SOUNDTRACK SUITE
@@ -4113,318 +3008,6 @@
       } finally {
         btn.disabled = false;
         btn.textContent = '➕ Search & Append Movie Songs';
-      }
-    }
-
-    // ==========================================
-    // AUDIO FEATURES & SORTER SUITE
-    // ==========================================
-    function switchFeatTab(tab) {
-      document.querySelectorAll('.feat-tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.feat-tab-btn').forEach(btn => {
-        btn.style.color = 'var(--text-muted)';
-        btn.style.fontWeight = 'normal';
-        btn.style.background = 'transparent';
-      });
-      const activeContent = document.getElementById(`featTab_${tab}`);
-      const activeBtn = document.getElementById(`featTabBtn_${tab}`);
-      if (activeContent) activeContent.style.display = 'block';
-      if (activeBtn) {
-        activeBtn.style.color = 'var(--spotify-green)';
-        activeBtn.style.fontWeight = '700';
-        activeBtn.style.background = 'rgba(255,255,255,0.04)';
-      }
-    }
-
-    async function runReorderPlaylistByFeature() {
-      const playlistId = document.getElementById('reorderPlaylistIdInput').value.trim();
-      const feature = document.getElementById('reorderFeatureSelect').value;
-      const ascending = document.getElementById('reorderAscendingSelect').value === 'true';
-
-      if (!playlistId) return alert('Please enter a playlist ID or URI.');
-
-      const btn = document.getElementById('reorderFeatureBtn');
-      const resContainer = document.getElementById('reorderFeatureResult');
-
-      btn.disabled = true;
-      btn.textContent = 'Analyzing audio features & sorting playlist...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Querying audio features for all tracks in playlist and applying reorder...</div>';
-
-      try {
-        const res = await fetch('/api/playlist/reorder_by_features', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            playlist_id: playlistId,
-            feature: feature,
-            ascending: ascending
-          })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast('Playlist reordered successfully!');
-          resContainer.innerHTML = `
-            <div style="background: rgba(29, 185, 84, 0.1); border: 1px solid var(--spotify-green); border-radius: var(--radius-md); padding: 16px;">
-              <h4 style="color: var(--spotify-green); margin-bottom: 8px;">🎛️ Playlist Reordered!</h4>
-              <pre style="white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #fff; line-height: 1.6;">${data.message}</pre>
-            </div>
-          `;
-        } else {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">${data.message || 'Failed to reorder playlist.'}</div>`;
-        }
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = '🎛️ Reorder Playlist In-Place';
-      }
-    }
-
-    async function runInspectAudioFeatures() {
-      const trackIds = document.getElementById('inspectTrackFeaturesInput').value.trim();
-      if (!trackIds) return alert('Please enter one or more track IDs or URIs.');
-
-      const btn = document.getElementById('inspectTrackFeaturesBtn');
-      const resContainer = document.getElementById('inspectTrackFeaturesResult');
-
-      btn.disabled = true;
-      btn.textContent = 'Analyzing...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Fetching audio metrics from Spotify...</div>';
-
-      try {
-        const res = await fetch(`/api/tracks/audio_features?track_ids=${encodeURIComponent(trackIds)}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Error: ${data.detail || data.error || 'Failed to fetch features'}</div>`;
-          return;
-        }
-
-        const feats = data.features || [];
-        if (!feats.length) {
-          resContainer.innerHTML = `<div style="color: var(--text-muted); padding: 12px;">${data.features_summary || 'No audio features found for the provided track ID(s).'}</div>`;
-          return;
-        }
-
-        let html = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(280px, 1fr)); gap: 12px;">';
-        feats.forEach(f => {
-          if (!f) return;
-          const energyPct = Math.round((f.energy || 0) * 100);
-          const valencePct = Math.round((f.valence || 0) * 100);
-          const dancePct = Math.round((f.danceability || 0) * 100);
-          const acousticPct = Math.round((f.acousticness || 0) * 100);
-          const bpm = Math.round(f.tempo || 0);
-
-          html += `
-            <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 14px;">
-              <div style="font-size: 12px; font-family: monospace; color: var(--spotify-green); margin-bottom: 8px;">Track ID: ${f.id}</div>
-              <div style="display: flex; flex-direction: column; gap: 8px; font-size: 12px;">
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <span>⚡ Energy</span><span>${energyPct}%</span>
-                  </div>
-                  <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-                    <div style="height: 100%; width: ${energyPct}%; background: #eab308;"></div>
-                  </div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <span>😊 Valence (Mood)</span><span>${valencePct}%</span>
-                  </div>
-                  <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-                    <div style="height: 100%; width: ${valencePct}%; background: #22c55e;"></div>
-                  </div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <span>💃 Danceability</span><span>${dancePct}%</span>
-                  </div>
-                  <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-                    <div style="height: 100%; width: ${dancePct}%; background: #a855f7;"></div>
-                  </div>
-                </div>
-                <div>
-                  <div style="display: flex; justify-content: space-between; margin-bottom: 2px;">
-                    <span>🎸 Acousticness</span><span>${acousticPct}%</span>
-                  </div>
-                  <div style="height: 6px; background: rgba(255,255,255,0.08); border-radius: 3px; overflow: hidden;">
-                    <div style="height: 100%; width: ${acousticPct}%; background: #3b82f6;"></div>
-                  </div>
-                </div>
-                <div style="display: flex; justify-content: space-between; color: var(--text-muted); padding-top: 4px; border-top: 1px solid var(--border-subtle);">
-                  <span>⏱️ Tempo: <strong style="color: #fff;">${bpm} BPM</strong></span>
-                  <span>Key: <strong style="color: #fff;">${f.key ?? 'N/A'}</strong></span>
-                </div>
-              </div>
-            </div>
-          `;
-        });
-        html += '</div>';
-        resContainer.innerHTML = html;
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Analyze Audio Features';
-      }
-    }
-
-    // ==========================================
-    // WEB DISCOVERY & ACTOR INTELLIGENCE
-    // ==========================================
-    function switchWebDiscTab(tab) {
-      document.querySelectorAll('.webdisc-tab-content').forEach(el => el.style.display = 'none');
-      document.querySelectorAll('.webdisc-tab-btn').forEach(btn => {
-        btn.style.color = 'var(--text-muted)';
-        btn.style.fontWeight = 'normal';
-        btn.style.background = 'transparent';
-      });
-      const activeContent = document.getElementById(`webdiscTab_${tab}`);
-      const activeBtn = document.getElementById(`webdiscTabBtn_${tab}`);
-      if (activeContent) activeContent.style.display = 'block';
-      if (activeBtn) {
-        activeBtn.style.color = 'var(--spotify-green)';
-        activeBtn.style.fontWeight = '700';
-        activeBtn.style.background = 'rgba(255,255,255,0.04)';
-      }
-    }
-
-    async function runFetchActorProfile() {
-      const actorName = document.getElementById('tmdbActorInput').value.trim();
-      if (!actorName) return alert('Please enter an actor name.');
-
-      const btn = document.getElementById('tmdbActorBtn');
-      const resContainer = document.getElementById('tmdbActorResult');
-
-      btn.disabled = true;
-      btn.textContent = 'Fetching TMDB Profile...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Searching TMDB registry...</div>';
-
-      try {
-        const res = await fetch(`/api/actor/profile?actor_name=${encodeURIComponent(actorName)}`);
-        const data = await res.json();
-        if (!data.success) {
-          resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">${data.summary || 'Actor not found on TMDB.'}</div>`;
-          return;
-        }
-
-        const p = data.profile || {};
-        const profileImg = p.profile_path ? `<img src="https://image.tmdb.org/t/p/w185${p.profile_path}" alt="" style="width: 90px; height: 120px; border-radius: 8px; object-fit: cover;" />` : `<div style="width: 90px; height: 120px; border-radius: 8px; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center; font-size: 32px;">🎭</div>`;
-
-        resContainer.innerHTML = `
-          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-            <div style="display: flex; gap: 16px; margin-bottom: 14px;">
-              ${profileImg}
-              <div>
-                <h3 style="color: #fff; font-size: 18px; margin-bottom: 4px;">${p.name || actorName}</h3>
-                <div style="font-size: 13px; color: var(--text-muted); margin-bottom: 4px;">Department: <strong style="color: var(--spotify-green);">${p.known_for_department || 'Acting'}</strong></div>
-                <div style="font-size: 12px; color: var(--text-muted); margin-bottom: 4px;">Birthday: ${p.birthday || 'N/A'} • Place: ${p.place_of_birth || 'N/A'}</div>
-                <div style="font-size: 12px; color: var(--spotify-green);">Popularity Score: ${p.popularity || 'N/A'}</div>
-              </div>
-            </div>
-            <pre style="white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #e2e8f0; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">${data.summary}</pre>
-          </div>
-        `;
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Fetch TMDB Profile';
-      }
-    }
-
-    async function runDdgSearch() {
-      const query = document.getElementById('ddgQueryInput').value.trim();
-      const limit = parseInt(document.getElementById('ddgLimitInput').value) || 5;
-      if (!query) return alert('Please enter a search query.');
-
-      const btn = document.getElementById('ddgSearchBtn');
-      const resContainer = document.getElementById('ddgSearchResult');
-
-      btn.disabled = true;
-      btn.textContent = 'Searching...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Searching DuckDuckGo...</div>';
-
-      try {
-        const res = await fetch(`/api/search/duckduckgo?query=${encodeURIComponent(query)}&max_results=${limit}`);
-        const data = await res.json();
-        const results = data.results || [];
-        if (!results.length) {
-          resContainer.innerHTML = `<div style="color: var(--text-muted); padding: 12px;">${data.summary || 'No DuckDuckGo results found.'}</div>`;
-          return;
-        }
-
-        let html = '<div style="display: flex; flex-direction: column; gap: 10px;">';
-        results.forEach((r, idx) => {
-          html += `
-            <div style="padding: 12px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md);">
-              <div style="font-weight: 700; font-size: 14px; margin-bottom: 4px;">
-                <a href="${r.href}" target="_blank" style="color: #60a5fa; text-decoration: none;">${idx+1}. ${r.title} ↗</a>
-              </div>
-              <div style="font-size: 12px; color: #94a3b8; line-height: 1.5;">${r.body}</div>
-            </div>
-          `;
-        });
-        html += '</div>';
-        resContainer.innerHTML = html;
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Search DuckDuckGo';
-      }
-    }
-
-    async function runFetchArtistNetwork() {
-      const artist = document.getElementById('networkArtistInput').value.trim();
-      if (!artist) return alert('Please enter an artist name or URI.');
-
-      const btn = document.getElementById('networkArtistBtn');
-      const resContainer = document.getElementById('networkArtistResult');
-
-      btn.disabled = true;
-      btn.textContent = 'Mapping Network...';
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 12px;">Tracing related artist network and clustering...</div>';
-
-      try {
-        const res = await fetch(`/api/artist/network?artist=${encodeURIComponent(artist)}`);
-        const data = await res.json();
-        const nodes = data.related_artists || [];
-
-        let nodesHtml = '';
-        if (nodes.length) {
-          nodesHtml = '<div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-top: 12px;">';
-          nodes.forEach(n => {
-            const avatar = n.images && n.images[0] ? `<img src="${n.images[0].url}" style="width: 36px; height: 36px; border-radius: 50%; object-fit: cover;" />` : `<div style="width: 36px; height: 36px; border-radius: 50%; background: rgba(255,255,255,0.05); display: flex; align-items: center; justify-content: center;">🎤</div>`;
-            nodesHtml += `
-              <div style="display: flex; align-items: center; gap: 8px; padding: 8px; background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: 8px;">
-                ${avatar}
-                <div style="flex: 1; min-width: 0;">
-                  <div style="font-size: 13px; font-weight: 700; color: #fff; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">${n.name}</div>
-                  <div style="font-size: 11px; color: var(--spotify-green);">Pop: ${n.popularity}/100</div>
-                </div>
-              </div>
-            `;
-          });
-          nodesHtml += '</div>';
-        }
-
-        resContainer.innerHTML = `
-          <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-            <h4 style="color: var(--spotify-green); margin-bottom: 8px;">🌐 Artist Network Map for "${artist}"</h4>
-            <pre style="white-space: pre-wrap; font-family: inherit; font-size: 13px; color: #e2e8f0; line-height: 1.6; background: rgba(0,0,0,0.2); padding: 12px; border-radius: 8px;">${data.summary}</pre>
-            ${nodesHtml}
-          </div>
-        `;
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 12px;">Request failed: ${err.message}</div>`;
-      } finally {
-        btn.disabled = false;
-        btn.textContent = 'Map Artist Network';
       }
     }
 

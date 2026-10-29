@@ -23,6 +23,8 @@ ROOT_DIR = BASE_DIR.parent
 if str(ROOT_DIR) not in sys.path:
     sys.path.insert(0, str(ROOT_DIR))
 
+from tools import discovery
+
 # Spotify client that reports long rate limits instead of sleeping through them
 from tools.spotify_client import FailFastSpotify
 
@@ -577,7 +579,9 @@ def search_songs(
         return {"error": "Spotify client not configured", "songs": []}
 
     try:
-        fetch_limit = min(limit, 50)
+        # Spotify returns at most 10 search results per call now; cap the total to keep calls low
+        limit = min(limit, 50)
+        fetch_limit = limit
         all_tracks = []
 
         res = client.search(q=query, type="track", limit=fetch_limit, offset=0)
@@ -692,12 +696,18 @@ def search_singers(
         artists = artist_res.get("artists", {}).get("items", [])
         top_artist = artists[0] if artists else None
 
-        # Search tracks by artist
-        search_q = f"artist:{top_artist['name']}" if top_artist else f"artist:{query}"
-        track_res = client.search(q=search_q, type="track", limit=min(limit, 50))
-        items = track_res.get("tracks", {}).get("items", [])
+        # Spotify caps `artist:` filter searches at 5 results, so search the artist's name and
+        # keep the tracks they actually perform on. Each 10 results costs one Spotify call.
+        wanted = min(limit, 50)
+        items = []
+        if top_artist:
+            track_res = client.search(q=top_artist["name"], type="track", limit=wanted)
+            items = [
+                t for t in track_res.get("tracks", {}).get("items", [])
+                if top_artist["id"] in [a.get("id") for a in t.get("artists", [])]
+            ]
         if not items:
-            track_res = client.search(q=query, type="track", limit=min(limit, 50))
+            track_res = client.search(q=query, type="track", limit=wanted)
             items = track_res.get("tracks", {}).get("items", [])
 
         formatted = []
@@ -731,7 +741,7 @@ def search_singers(
                 "id": top_artist.get("id"),
                 "image": top_artist.get("images", [{}])[0].get("url") if top_artist.get("images") else None,
                 "genres": top_artist.get("genres", [])[:4],
-                "followers": top_artist.get("followers", {}).get("total", 0),
+                "followers": (top_artist.get("followers") or {}).get("total", 0),
                 "popularity": top_artist.get("popularity", 0),
                 "spotify_url": top_artist.get("external_urls", {}).get("spotify")
             }
@@ -1289,7 +1299,7 @@ def get_playlist_details(playlist_id: str = Query(..., description="Spotify play
         images = p.get("images", [])
         cover_url = images[0].get("url") if images else None
         owner = p.get("owner", {})
-        followers = p.get("followers", {}).get("total", 0)
+        followers = (p.get("followers") or {}).get("total", 0)
         tracks_total = p.get("tracks", {}).get("total", 0)
 
         # Check if current user is following this playlist
@@ -1855,7 +1865,7 @@ def export_playlist_endpoint(
                     "name": p.get("name"),
                     "description": p.get("description"),
                     "owner": owner.get("display_name"),
-                    "followers": p.get("followers", {}).get("total", 0),
+                    "followers": (p.get("followers") or {}).get("total", 0),
                     "public": p.get("public"),
                     "collaborative": p.get("collaborative"),
                     "cover_url": images[0].get("url") if images else None,
@@ -2547,7 +2557,7 @@ def api_spotify_search(
                     "name": a.get("name"),
                     "genres": a.get("genres", []),
                     "popularity": a.get("popularity", 0),
-                    "followers": a.get("followers", {}).get("total", 0),
+                    "followers": (a.get("followers") or {}).get("total", 0),
                     "image": a.get("images", [{}])[0].get("url") if a.get("images") else None,
                     "uri": a.get("uri"),
                     "spotify_url": a.get("external_urls", {}).get("spotify")
@@ -2608,16 +2618,16 @@ def api_related_artists(artist: str = Query(..., description="Artist name, ID, o
             target_artist = client.artist(clean_id)
             artist_id = target_artist.get("id", clean_id)
         
-        related_data = client.artist_related_artists(artist_id)
+        # Spotify removed related-artists: use the artists who share the most songs with them
         related_items = []
-        for a in related_data.get("artists", []):
-            if not a: continue
+        for a in discovery.collaborators(client, target_artist):
             related_items.append({
+                "shared_tracks": a.get("shared_tracks", 0),
                 "id": a.get("id"),
                 "name": a.get("name"),
                 "genres": a.get("genres", []),
                 "popularity": a.get("popularity", 0),
-                "followers": a.get("followers", {}).get("total", 0),
+                "followers": (a.get("followers") or {}).get("total", 0),
                 "image": a.get("images", [{}])[0].get("url") if a.get("images") else None,
                 "uri": a.get("uri"),
                 "spotify_url": a.get("external_urls", {}).get("spotify")
@@ -2630,7 +2640,7 @@ def api_related_artists(artist: str = Query(..., description="Artist name, ID, o
                 "name": target_artist.get("name"),
                 "genres": target_artist.get("genres", []),
                 "popularity": target_artist.get("popularity", 0),
-                "followers": target_artist.get("followers", {}).get("total", 0),
+                "followers": (target_artist.get("followers") or {}).get("total", 0),
                 "image": target_artist.get("images", [{}])[0].get("url") if target_artist.get("images") else None,
                 "uri": target_artist.get("uri")
             },
@@ -2664,25 +2674,17 @@ def api_discover_by_artist(
             seed_artist = client.artist(clean_id)
             artist_id = seed_artist.get("id", clean_id)
         
-        artist_name = seed_artist.get("name", artist)
-        related_res = client.artist_related_artists(artist_id)
-        related_artists = related_res.get("artists", [])
-        
-        seed_pool = [artist_id]
-        related_seeds = []
-        for a in related_artists[:4]:
-            if a.get("id"):
-                seed_pool.append(a["id"])
-                related_seeds.append({"id": a["id"], "name": a.get("name")})
-            
-        recs = client.recommendations(seed_artists=seed_pool[:5], limit=limit)
-        rec_tracks = [_format_track_item(t) for t in recs.get("tracks", []) if t]
-        
-        top_tracks = []
-        if include_artist_top_tracks:
-            top_res = client.artist_top_tracks(artist_id)
-            top_tracks = [_format_track_item(t) for t in top_res.get("tracks", [])[:5] if t]
-            
+        # Spotify removed related-artists, recommendations and top-tracks: recommend songs by the
+        # artist's collaborators, and use their own search hits as "top tracks"
+        own_tracks = discovery.artist_tracks(client, seed_artist)
+        related_artists = discovery.collaborators(client, seed_artist, own_tracks, limit=4)
+        related_seeds = [{"id": a["id"], "name": a.get("name")} for a in related_artists]
+        per_artist = max(1, -(-limit // max(1, len(related_artists))))
+        recs = discovery.tracks_by_artists(client, related_artists, per_artist=per_artist,
+                                           exclude=[t["uri"] for t in own_tracks])
+        rec_tracks = [_format_track_item(t) for t in recs[:limit]]
+        top_tracks = [_format_track_item(t) for t in own_tracks[:5]] if include_artist_top_tracks else []
+
         return {
             "success": True,
             "seed_artist": {
@@ -2724,48 +2726,17 @@ def _handle_discover_by_mood(
     if not client:
         return {"success": False, "error": "Spotify client not initialized"}
     try:
-        mood_presets = {
-            "happy": {"target_valence": 0.85, "target_energy": 0.75, "genres": ["pop", "happy"]},
-            "sad": {"target_valence": 0.18, "target_energy": 0.25, "target_acousticness": 0.70, "genres": ["sad", "acoustic"]},
-            "chill": {"target_valence": 0.50, "target_energy": 0.30, "target_acousticness": 0.50, "genres": ["chill", "ambient"]},
-            "energetic": {"target_valence": 0.75, "target_energy": 0.90, "target_danceability": 0.75, "genres": ["dance", "electronic"]},
-            "focus": {"target_valence": 0.40, "target_energy": 0.30, "target_instrumentalness": 0.80, "genres": ["ambient", "study"]},
-            "party": {"target_valence": 0.80, "target_energy": 0.85, "target_danceability": 0.85, "genres": ["dance", "party"]},
-            "dark": {"target_valence": 0.20, "target_energy": 0.75, "genres": ["metal", "industrial"]},
-            "romantic": {"target_valence": 0.60, "target_energy": 0.40, "target_acousticness": 0.60, "genres": ["r-n-b", "romance"]},
-            "workout": {"target_valence": 0.70, "target_energy": 0.95, "target_tempo": 135.0, "genres": ["work-out"]}
-        }
-
-        active_preset = mood_presets.get((mood or "").lower().strip(), {})
-        kwargs = {}
-
-        v = target_valence if target_valence is not None else active_preset.get("target_valence")
-        e = target_energy if target_energy is not None else active_preset.get("target_energy")
-        d = target_danceability if target_danceability is not None else active_preset.get("target_danceability")
-        a = target_acousticness if target_acousticness is not None else active_preset.get("target_acousticness")
-        t = target_tempo if target_tempo is not None else active_preset.get("target_tempo")
-
-        if v is not None: kwargs["target_valence"] = max(0.0, min(1.0, float(v)))
-        if e is not None: kwargs["target_energy"] = max(0.0, min(1.0, float(e)))
-        if d is not None: kwargs["target_danceability"] = max(0.0, min(1.0, float(d)))
-        if a is not None: kwargs["target_acousticness"] = max(0.0, min(1.0, float(a)))
-        if t is not None: kwargs["target_tempo"] = float(t)
-        if "target_instrumentalness" in active_preset:
-            kwargs["target_instrumentalness"] = active_preset["target_instrumentalness"]
-
-        genres = seed_genres or active_preset.get("genres", ["pop"])
+        genres = seed_genres
         if isinstance(genres, str):
             genres = [g.strip() for g in genres.split(",") if g.strip()]
-
-        rec_limit = max(1, min(limit, 100))
-        results = client.recommendations(seed_genres=genres[:5], limit=rec_limit, **kwargs)
-        tracks = [_format_track_item(trk) for trk in results.get("tracks", []) if trk]
-
+        # Spotify removed /recommendations and audio features, so the target_* values can no longer
+        # be applied; moods are matched through playlist search instead.
+        tracks = [_format_track_item(trk) for trk in discovery.mood_tracks(client, mood, genres, max(1, min(limit, 100)))]
         return {
             "success": True,
             "mood": mood or "custom",
-            "seed_genres": genres[:5],
-            "applied_targets": kwargs,
+            "seed_genres": (genres or [])[:5],
+            "applied_targets": {},
             "tracks": tracks
         }
     except Exception as e:
@@ -2823,7 +2794,7 @@ def api_genre_explorer(
     if not client:
         return {"success": False, "error": "Spotify client not initialized"}
     try:
-        available_genres = client.recommendation_genre_seeds().get("genres", [])
+        available_genres = discovery.GENRES  # Spotify removed the genre-seeds endpoint
         
         selected = []
         if genres:
@@ -2832,8 +2803,7 @@ def api_genre_explorer(
         tracks = []
         if selected:
             rec_limit = max(1, min(limit, 50))
-            results = client.recommendations(seed_genres=selected[:5], limit=rec_limit, market=market)
-            tracks = [_format_track_item(t) for t in results.get("tracks", []) if t]
+            tracks = [_format_track_item(t) for t in discovery.genre_tracks(client, selected, rec_limit)]
             
         return {
             "success": True,
@@ -2856,79 +2826,19 @@ def api_discover_deep_cuts(
     if not client:
         return {"success": False, "error": "Spotify client not initialized"}
     try:
-        clean_input = artist_or_album.strip()
-        limit = max(1, min(limit, 50))
-
-        artist_res = client.search(q=clean_input, type="artist", limit=1)
-        artist_items = artist_res.get("artists", {}).get("items", [])
-
-        deep_cuts = []
-        target_name = clean_input
-        target_image = None
-
-        if artist_items:
-            artist = artist_items[0]
-            artist_id = artist.get("id", clean_input)
-            target_name = artist.get("name", clean_input)
-            target_image = artist.get("images", [{}])[0].get("url") if artist.get("images") else None
-
-            top_tracks_res = client.artist_top_tracks(artist_id)
-            top_track_uris = {t["uri"] for t in top_tracks_res.get("tracks", [])}
-
-            albums_res = client.artist_albums(artist_id, album_type="album", limit=8)
-            albums = albums_res.get("items", [])
-
-            track_ids = []
-            track_album_map = {}
-
-            for alb in albums:
-                alb_id = alb.get("id")
-                if not alb_id:
-                    continue
-                alb_tracks = client.album_tracks(alb_id, limit=30).get("items", [])
-                for t in alb_tracks:
-                    if t.get("uri") not in top_track_uris and t.get("id"):
-                        track_ids.append(t["id"])
-                        track_album_map[t["id"]] = alb.get("name", "Album")
-
-            for i in range(0, min(len(track_ids), 100), 50):
-                batch = track_ids[i:i + 50]
-                detailed_tracks = client.tracks(batch).get("tracks", [])
-                for dt in detailed_tracks:
-                    if dt and dt.get("popularity", 100) <= max_popularity:
-                        item = _format_track_item(dt)
-                        if item:
-                            item["album_name"] = track_album_map.get(dt.get("id"), item.get("album_name"))
-                            deep_cuts.append(item)
-        else:
-            album_res = client.search(q=clean_input, type="album", limit=1)
-            alb_items = album_res.get("albums", {}).get("items", [])
-            if not alb_items:
-                return {"success": False, "error": f"Could not find artist or album '{artist_or_album}' on Spotify."}
-            alb = alb_items[0]
-            target_name = alb.get("name", clean_input)
-            target_image = alb.get("images", [{}])[0].get("url") if alb.get("images") else None
-            alb_tracks = client.album_tracks(alb.get("id", clean_input), limit=50).get("items", [])
-            t_ids = [t["id"] for t in alb_tracks if t.get("id")]
-            if t_ids:
-                detailed = client.tracks(t_ids[:50]).get("tracks", [])
-                for dt in detailed:
-                    if dt and dt.get("popularity", 100) <= max_popularity:
-                        item = _format_track_item(dt)
-                        if item:
-                            item["album_name"] = alb.get("name")
-                            deep_cuts.append(item)
-
-        deep_cuts.sort(key=lambda x: x.get("popularity", 0))
-        selected_cuts = deep_cuts[:limit]
-
+        # Spotify no longer reports track popularity, so a deep cut is an album track that is not
+        # among the artist's (or album's) top search results; max_popularity is ignored.
+        result = discovery.deep_cuts(client, artist_or_album.strip(), max(1, min(limit, 50)))
+        if not result["name"]:
+            return {"success": False, "error": f"Could not find artist or album '{artist_or_album}' on Spotify."}
+        tracks = [_format_track_item(t) for t in result["tracks"]]
         return {
             "success": True,
-            "target_name": target_name,
-            "target_image": target_image,
+            "target_name": result["name"],
+            "target_image": result["image"],
             "max_popularity": max_popularity,
-            "total_found": len(selected_cuts),
-            "tracks": selected_cuts
+            "total_found": len(tracks),
+            "tracks": tracks
         }
     except Exception as e:
         return {"success": False, "error": str(e)}
@@ -2958,16 +2868,6 @@ def api_get_recommendations(payload: RecommendationsRequest):
         return {"success": False, "error": "Spotify credentials not configured", "recommendations": [], "tracks": []}
     
     try:
-        kwargs = {}
-        if payload.target_energy is not None: kwargs["target_energy"] = max(0.0, min(1.0, float(payload.target_energy)))
-        if payload.target_valence is not None: kwargs["target_valence"] = max(0.0, min(1.0, float(payload.target_valence)))
-        if payload.target_danceability is not None: kwargs["target_danceability"] = max(0.0, min(1.0, float(payload.target_danceability)))
-        if payload.target_acousticness is not None: kwargs["target_acousticness"] = max(0.0, min(1.0, float(payload.target_acousticness)))
-        if payload.target_instrumentalness is not None: kwargs["target_instrumentalness"] = max(0.0, min(1.0, float(payload.target_instrumentalness)))
-        if payload.target_tempo is not None: kwargs["target_tempo"] = float(payload.target_tempo)
-        if payload.min_popularity is not None: kwargs["min_popularity"] = max(0, min(100, int(payload.min_popularity)))
-        if payload.max_popularity is not None: kwargs["max_popularity"] = max(0, min(100, int(payload.max_popularity)))
-        
         seed_tracks = [_clean_spotify_id(t, "track") for t in (payload.seed_tracks or []) if t]
         seed_artists = [_clean_spotify_id(a, "artist") for a in (payload.seed_artists or []) if a]
         seed_genres = [g.strip().lower() for g in (payload.seed_genres or []) if g]
@@ -2984,16 +2884,10 @@ def api_get_recommendations(payload: RecommendationsRequest):
             seed_artists = [item[1] for item in total if item[0] == "artist"]
             seed_genres = [item[1] for item in total if item[0] == "genre"]
 
-        results = client.recommendations(
-            seed_tracks=seed_tracks or None,
-            seed_artists=seed_artists or None,
-            seed_genres=seed_genres or None,
-            limit=max(1, min(payload.limit, 100)),
-            market=payload.market,
-            **kwargs
-        )
-        
-        formatted = [_format_track_item(t) for t in results.get("tracks", []) if t]
+        # Spotify removed /recommendations: build them from the seeds' collaborators and genres
+        # (target_* and popularity filters can no longer be applied)
+        picks = discovery.recommend(client, seed_artists, seed_tracks, seed_genres, max(1, min(payload.limit, 100)))
+        formatted = [_format_track_item(t) for t in picks]
         return {
             "success": True,
             "recommendations": formatted,
@@ -3119,7 +3013,7 @@ def api_get_top_artists(
                 "name": a.get("name"),
                 "genres": a.get("genres", []),
                 "popularity": a.get("popularity", 0),
-                "followers": a.get("followers", {}).get("total", 0),
+                "followers": (a.get("followers") or {}).get("total", 0),
                 "image": a.get("images", [{}])[0].get("url") if a.get("images") else None,
                 "uri": a.get("uri"),
                 "spotify_url": a.get("external_urls", {}).get("spotify")
@@ -3336,13 +3230,8 @@ def api_compare_playlists(payload: PlaylistCompareRequest):
                     if t.get("explicit"):
                         explicit_count += 1
                         
-            # Audio features
+            # Spotify removed audio-features for this app, so the feature averages stay empty
             features = []
-            if track_ids:
-                for chunk_start in range(0, min(len(track_ids), 100), 50):
-                    chunk = track_ids[chunk_start:chunk_start + 50]
-                    feats = client.audio_features(chunk)
-                    features.extend([f for f in feats if f])
                     
             def _avg(attr):
                 vals = [f[attr] for f in features if f and f.get(attr) is not None]
@@ -3932,7 +3821,7 @@ def api_browse_artist(
             "id": a.get("id"),
             "name": a.get("name"),
             "genres": a.get("genres", []),
-            "followers": a.get("followers", {}).get("total", 0),
+            "followers": (a.get("followers") or {}).get("total", 0),
             "popularity": a.get("popularity", 0),
             "image": a.get("images", [{}])[0].get("url") if a.get("images") else None,
             "uri": a.get("uri"),
@@ -4011,64 +3900,6 @@ def api_browse_artist_albums(
         return {"success": False, "error": str(e)}
 
 
-@app.get("/api/browse/user")
-def api_browse_user(
-    user_id: str = Query(..., description="Spotify user ID or URI")
-):
-    """Fetch public profile information and public playlists for any user."""
-    client = _get_valid_user_client() or public_sp
-    if not client:
-        return {"success": False, "error": "Spotify credentials not configured."}
-    try:
-        clean_id = _clean_spotify_id(user_id, "user")
-        if not clean_id:
-            return {"success": False, "error": "User ID required."}
-
-        u = client.user(clean_id)
-        if not u:
-            return {"success": False, "error": f"User '{clean_id}' not found."}
-
-        display_name = u.get("display_name") or clean_id
-        followers = u.get("followers", {}).get("total", 0)
-        spotify_url = u.get("external_urls", {}).get("spotify", "")
-        images = u.get("images", [])
-        image_url = images[0].get("url") if images else None
-
-        playlists = []
-        try:
-            pl_res = client.user_playlists(clean_id, limit=20)
-            for p in pl_res.get("items", []):
-                playlists.append({
-                    "id": p.get("id"),
-                    "name": p.get("name"),
-                    "total_tracks": p.get("tracks", {}).get("total", 0),
-                    "image": p.get("images", [{}])[0].get("url") if p.get("images") else None,
-                    "uri": p.get("uri"),
-                    "spotify_url": p.get("external_urls", {}).get("spotify", "")
-                })
-        except Exception:
-            pass
-
-        return {
-            "success": True,
-            "user": {
-                "id": clean_id,
-                "display_name": display_name,
-                "followers": followers,
-                "image": image_url,
-                "spotify_url": spotify_url,
-                "public_playlists": playlists
-            },
-            "public_playlists": playlists
-        }
-    except Exception as e:
-        return {"success": False, "error": str(e)}
-
-
-# -------------------------------------------------------------
-# Additional Tool Endpoints (Bridging all tools to Python API)
-# -------------------------------------------------------------
-
 class CreateActorPlaylistRequest(BaseModel):
     actor_name: str
     playlist_name: Optional[str] = None
@@ -4082,15 +3913,6 @@ class AddMovieSongsRequest(BaseModel):
     playlist_id: str
     movie_name: str
     max_songs: Optional[int] = 5
-
-class ReorderFeaturesRequest(BaseModel):
-    playlist_id: str
-    feature: Optional[str] = "energy"
-    ascending: Optional[bool] = False
-    order: Optional[str] = None
-
-class AudioFeaturesPayload(BaseModel):
-    track_ids: List[str]
 
 @app.post("/api/playlist/create_actor")
 def create_actor_playlist_endpoint(payload: CreateActorPlaylistRequest):
@@ -4123,23 +3945,6 @@ def add_movie_songs_endpoint(payload: AddMovieSongsRequest):
             max_songs=payload.max_songs or 5
         )
         is_success = not result.startswith("Error") and not result.startswith("No songs")
-        return {"success": is_success, "message": result}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/playlist/reorder_by_features")
-def reorder_by_features_endpoint(payload: ReorderFeaturesRequest):
-    """Reorder a playlist based on audio features (energy, valence, danceability, tempo)."""
-    try:
-        from tools import playlists as tool_playlists
-        sort_order = "asc" if payload.ascending or (payload.order and payload.order.lower() in ("asc", "ascending")) else (payload.order or "desc")
-        result = tool_playlists.reorder_playlist_by_audio_features(
-            playlist_id=payload.playlist_id,
-            feature=payload.feature or "energy",
-            order=sort_order
-        )
-        is_success = not result.startswith("Error") and not result.startswith("Cannot")
         return {"success": is_success, "message": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
@@ -4181,79 +3986,32 @@ def search_duckduckgo_endpoint(query: str = Query(..., description="Query to sea
         raise HTTPException(status_code=500, detail=str(e))
 
 
-@app.get("/api/tracks/audio_features")
-def get_audio_features_endpoint(track_ids: str = Query(..., description="Comma-separated track IDs or URIs")):
-    """Get Spotify audio features (danceability, energy, valence, tempo, etc.) for tracks."""
-    client = _get_valid_user_client() or public_sp
-    ids = [_clean_spotify_id(tid) for tid in track_ids.split(",") if tid.strip()]
-    if not ids:
-        return {"success": False, "features": []}
-    try:
-        if client:
-            features = client.audio_features(ids)
-            features = [f for f in features if f]
-            return {"success": True, "features": features}
-        else:
-            from tools import taste as tool_taste
-            res = tool_taste.get_audio_features(ids)
-            return {"success": True, "features_summary": res}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
-@app.post("/api/tracks/audio_features")
-def post_audio_features_endpoint(payload: AudioFeaturesPayload):
-    """Get Spotify audio features for tracks via POST."""
-    client = _get_valid_user_client() or public_sp
-    ids = [_clean_spotify_id(tid) for tid in payload.track_ids if tid.strip()]
-    if not ids:
-        return {"success": False, "features": []}
-    try:
-        if client:
-            features = client.audio_features(ids)
-            features = [f for f in features if f]
-            return {"success": True, "features": features}
-        else:
-            from tools import taste as tool_taste
-            res = tool_taste.get_audio_features(ids)
-            return {"success": True, "features_summary": res}
-    except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
-
-
 @app.get("/api/artist/network")
 def get_artist_network_endpoint(artist: str = Query(..., description="Target artist name or URI")):
     """Map the network of related artists and genre overlaps."""
     client = _get_valid_user_client() or public_sp
     try:
-        from tools import taste as tool_taste
-        summary = tool_taste.get_artist_network(artist)
-        
+        # Spotify removed related-artists: map the network from the artists they share songs with
         network_nodes = []
+        summary = f"No Spotify artist found for '{artist}'."
         if client:
-            clean_id = _clean_spotify_id(artist)
-            art_obj = None
-            if len(clean_id) == 22 and not " " in clean_id:
-                try:
-                    art_obj = client.artist(clean_id)
-                except Exception:
-                    pass
-            if not art_obj:
-                sr = client.search(q=artist, type="artist", limit=1)
-                items = sr.get("artists", {}).get("items", [])
-                if items:
-                    art_obj = items[0]
+            art_obj = discovery.find_artist(client, artist)
             if art_obj:
-                rel = client.artist_related_artists(art_obj["id"]).get("artists", [])
+                network = discovery.collaborators(client, art_obj, limit=12)
                 network_nodes = [{
                     "id": a["id"],
                     "name": a["name"],
-                    "popularity": a.get("popularity", 0),
-                    "genres": a.get("genres", []),
-                    "followers": a.get("followers", {}).get("total", 0),
-                    "images": a.get("images", [{}])
-                } for a in rel]
-                
+                    "popularity": 0,
+                    "genres": [],
+                    "followers": 0,
+                    "images": [],
+                    "shared_tracks": a["shared_tracks"]
+                } for a in network]
+                summary = (
+                    f"{art_obj['name']} shares songs with {len(network)} artists"
+                    + (f", most often {network[0]['name']} ({network[0]['shared_tracks']} songs)." if network else ".")
+                )
+
         return {
             "success": True,
             "artist": artist,

@@ -60,23 +60,28 @@ def test_search_discovery_endpoints():
         assert d["success"] is True
         assert len(d["tracks"]) == 1
 
-        # 2. /api/artist/related
+        # 2. /api/artist/related (collaborators found through search: Spotify removed related-artists)
         sp_mock.artist.return_value = {"id": "a1", "name": "Art 1", "genres": ["pop"], "followers": {"total": 1000}, "uri": "spotify:artist:a1"}
-        sp_mock.artist_related_artists.return_value = {"artists": [{"id": "rel1", "name": "Related 1", "genres": ["pop"], "popularity": 65, "followers": {"total": 500}, "uri": "spotify:artist:rel1"}]}
+        sp_mock.search.return_value = {
+            "tracks": {"items": [
+                {"id": "t2", "name": "Duet", "artists": [{"id": "a1", "name": "Art 1"}, {"id": "rel1", "name": "Related 1"}], "album": {"name": "Alb"}, "uri": "spotify:track:t2"},
+                {"id": "t3", "name": "Solo", "artists": [{"id": "rel1", "name": "Related 1"}], "album": {"name": "Alb"}, "uri": "spotify:track:t3"},
+            ]},
+            "artists": {"items": [{"id": "a1", "name": "Art 1"}]},
+        }
         res = client.get("/api/artist/related?artist=spotify:artist:a1")
         assert res.status_code == 200
         d = res.json()
         assert d["success"] is True
-        assert len(d["related_artists"]) == 1
+        assert [(a["name"], a["shared_tracks"]) for a in d["related_artists"]] == [("Related 1", 1)]
 
-        # 3. /api/discover/by_artist
-        sp_mock.recommendations.return_value = {"tracks": [{"id": "rt1", "name": "Rec 1", "artists": [{"name": "Peer"}], "album": {"name": "Alb"}, "duration_ms": 190000, "uri": "spotify:track:rt1"}]}
-        sp_mock.artist_top_tracks.return_value = {"tracks": [{"id": "top1", "name": "Top 1", "artists": [{"name": "Art 1"}], "album": {"name": "Alb"}, "duration_ms": 200000, "uri": "spotify:track:top1"}]}
+        # 3. /api/discover/by_artist (songs by collaborators, excluding the artist's own hits)
         res = client.get("/api/discover/by_artist?artist=spotify:artist:a1&limit=10")
         assert res.status_code == 200
         d = res.json()
         assert d["success"] is True
-        assert len(d["tracks"]) == 1
+        assert [t["uri"] for t in d["tracks"]] == ["spotify:track:t3"]
+        assert [t["uri"] for t in d["top_tracks"]] == ["spotify:track:t2"]
 
         # 4. /api/discover/by_mood
         res = client.post("/api/discover/by_mood", json={"mood": "chill", "target_valence": 0.5, "limit": 10})
@@ -85,17 +90,15 @@ def test_search_discovery_endpoints():
         assert d["success"] is True
 
         # 5. /api/genres/explore
-        sp_mock.recommendation_genre_seeds.return_value = {"genres": ["ambient", "lo-fi", "jazz", "synthwave"]}
         res = client.get("/api/genres/explore")
         assert res.status_code == 200
         d = res.json()
         assert d["success"] is True
-        assert len(d["all_genres"]) == 4
+        assert "jazz" in d["all_genres"]
 
         # 6. /api/discover/deep_cuts
         sp_mock.artist_albums.return_value = {"items": [{"id": "alb_deep", "name": "Deep Album"}]}
-        sp_mock.album_tracks.return_value = {"items": [{"id": "deep_trk_1", "uri": "spotify:track:deep_1"}]}
-        sp_mock.tracks.return_value = {"tracks": [{"id": "deep_trk_1", "name": "Deep Cut", "artists": [{"name": "Art 1"}], "album": {"name": "Deep Album"}, "popularity": 20, "duration_ms": 180000, "uri": "spotify:track:deep_1"}]}
+        sp_mock.album_tracks.return_value = {"items": [{"id": "deep_trk_1", "name": "Deep Cut", "artists": [{"id": "a1", "name": "Art 1"}], "uri": "spotify:track:deep_1"}]}
         res = client.get("/api/discover/deep_cuts?artist_or_album=Art+1&max_popularity=35&limit=10")
         assert res.status_code == 200
         d = res.json()
@@ -452,22 +455,8 @@ def test_browse_endpoints():
         assert d["success"] is True
         assert len(d["albums"]) == 1
 
-        # 5. /api/browse/user
-        sp_mock.user.return_value = {
-            "id": "user1", "display_name": "Test User",
-            "followers": {"total": 120},
-            "images": [{"url": "https://example.com/user.jpg"}],
-            "external_urls": {"spotify": "https://open.spotify.com/user/user1"}
-        }
-        sp_mock.user_playlists.return_value = {
-            "items": [{"id": "p1", "name": "User Playlist", "tracks": {"total": 25}, "uri": "spotify:playlist:p1"}]
-        }
-        res = client.get("/api/browse/user?user_id=user1")
-        assert res.status_code == 200
-        d = res.json()
-        assert d["success"] is True
-        assert d["user"]["display_name"] == "Test User"
-        assert len(d["user"]["public_playlists"]) == 1
+        # 5. /api/browse/user was removed: Spotify blocks other users' profiles (403)
+        assert client.get("/api/browse/user?user_id=user1").status_code == 404
 
 
 def test_additional_tool_endpoints():
@@ -485,12 +474,10 @@ def test_additional_tool_endpoints():
     with patch.object(web_server, "_get_valid_user_client") as mock_user_client, \
          patch("tools.playlists.create_actor_playlist") as mock_create_actor, \
          patch("tools.playlists.add_movie_songs_to_playlist") as mock_add_movie, \
-         patch("tools.playlists.reorder_playlist_by_audio_features") as mock_reorder_feat, \
          patch("tools.search.get_actor_tmdb_profile") as mock_actor_prof, \
          patch("tools.tmdb_helpers.tmdb_search_person") as mock_tmdb_person, \
          patch("tools.tmdb_helpers.ddg_web_search") as mock_ddg, \
-         patch("tools.search.search_duckduckgo") as mock_search_ddg, \
-         patch("tools.taste.get_artist_network") as mock_art_network:
+         patch("tools.search.search_duckduckgo") as mock_search_ddg:
 
         sp_mock = MagicMock()
         mock_user_client.return_value = sp_mock
@@ -507,11 +494,8 @@ def test_additional_tool_endpoints():
         assert res.status_code == 200
         assert res.json()["success"] is True
 
-        # 3. /api/playlist/reorder_by_features
-        mock_reorder_feat.return_value = "Playlist reordered by energy"
-        res = client.post("/api/playlist/reorder_by_features", json={"playlist_id": "p1", "feature": "energy"})
-        assert res.status_code == 200
-        assert res.json()["success"] is True
+        # 3. /api/playlist/reorder_by_features was removed: Spotify blocks audio features (403)
+        assert client.post("/api/playlist/reorder_by_features", json={"playlist_id": "p1", "feature": "energy"}).status_code == 404
 
         # 4. /api/actor/profile
         mock_actor_prof.return_value = "TMDB Profile: Tom Hanks"
@@ -528,25 +512,19 @@ def test_additional_tool_endpoints():
         assert res.json()["success"] is True
         assert len(res.json()["results"]) == 1
 
-        # 6. /api/tracks/audio_features (GET & POST)
-        sp_mock.audio_features.return_value = [{"id": "t1", "energy": 0.8, "valence": 0.6, "danceability": 0.7, "tempo": 120}]
-        res_get = client.get("/api/tracks/audio_features?track_ids=t1")
-        assert res_get.status_code == 200
-        assert res_get.json()["success"] is True
-        assert len(res_get.json()["features"]) == 1
-
-        res_post = client.post("/api/tracks/audio_features", json={"track_ids": ["t1"]})
-        assert res_post.status_code == 200
-        assert res_post.json()["success"] is True
+        # 6. /api/tracks/audio_features was removed: Spotify blocks audio features (403)
+        assert client.get("/api/tracks/audio_features?track_ids=t1").status_code == 404
 
         # 7. /api/artist/network
-        mock_art_network.return_value = "Artist Network for Queen"
-        sp_mock.artist.return_value = {"id": "art1", "name": "Queen"}
-        sp_mock.artist_related_artists.return_value = {"artists": [{"id": "rel1", "name": "David Bowie", "popularity": 80}]}
+        sp_mock.search.side_effect = lambda q, type, limit: (
+            {"artists": {"items": [{"id": "art1", "name": "Queen"}]}} if type == "artist" else
+            {"tracks": {"items": [{"uri": "u1", "artists": [{"id": "art1", "name": "Queen"}, {"id": "rel1", "name": "David Bowie"}]}]}}
+        )
         res = client.get("/api/artist/network?artist=Queen")
         assert res.status_code == 200
         assert res.json()["success"] is True
-        assert len(res.json()["related_artists"]) == 1
+        assert [a["name"] for a in res.json()["related_artists"]] == ["David Bowie"]
+        assert "David Bowie" in res.json()["summary"]
 
 
 
