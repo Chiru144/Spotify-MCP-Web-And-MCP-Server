@@ -10,7 +10,7 @@ Comprehensive discography exploration and album tracking for artists, covering f
 - `spotify_get_artist_albums(artist_id, include_groups, limit, offset)`: Retrieves complete studio albums, singles, and appearances.
 - `spotify_get_album(album_id)`: Fetches full tracklist, copyright details, record label, and release dates.
 - `spotify_discover_deep_cuts(artist, album_name, limit)`: Identifies lesser-known, non-single album tracks.
-- `spotify_get_artist(artist_id)`: Fetches artist genres, follower count, and popularity score.
+- `spotify_get_artist(artist_id)`: Fetches the artist's profile and image (Spotify no longer returns genres, followers or popularity).
 
 ## Workflow Instructions
 1. Retrieve artist albums using `spotify_get_artist_albums(artist_id)`.

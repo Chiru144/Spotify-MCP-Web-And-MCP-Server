@@ -1,7 +1,7 @@
 from typing import Optional, List, Dict, Any, Tuple, Set
 import json
 from mcp.types import ToolAnnotations
-from tools.core import mcp, get_spotify_client
+from tools.core import mcp, get_spotify_client, _unavailable
 import spotipy
 
 from tools.tmdb_helpers import *
@@ -347,61 +347,18 @@ def get_user_playlists(limit: int = 10) -> str:
         return f"Error fetching playlists: {str(e)}"
 
 
-@mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True))
+@mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def reorder_playlist_by_audio_features(playlist_id: str, feature: str = 'energy', order: str = 'desc', ascending: Optional[bool] = None) -> str:
-    """Smart Reorder: Sorts a user's playlist by a given audio feature (energy, valence, danceability, etc).
-    
+    """Unavailable: Spotify no longer provides audio features (energy, valence, danceability, tempo) for
+    Development Mode apps, so playlists cannot be sorted by them. The playlist is left unchanged.
+
     Args:
         playlist_id: Spotify playlist ID or URI.
         feature: The audio feature to sort by (e.g., 'energy', 'valence', 'danceability', 'tempo').
         order: 'asc' for ascending, 'desc' for descending.
         ascending: Optional boolean (True for 'asc', False for 'desc'). Overrides order if provided.
     """
-    if ascending is not None:
-        order = 'asc' if ascending else 'desc'
-    if feature not in ['energy', 'valence', 'danceability', 'tempo', 'acousticness', 'instrumentalness', 'liveness', 'speechiness']:
-        return "Unsupported feature. Use energy, valence, danceability, tempo, etc."
-    try:
-        sp = get_spotify_client()
-        # get all tracks
-        results = sp.playlist_tracks(playlist_id)
-        tracks = results['items']
-        while results['next']:
-            results = sp.next(results)
-            tracks.extend(results['items'])
-            
-        # extract valid tracks
-        track_uris = [item['track']['uri'] for item in tracks if item.get('track') and item['track']['uri']]
-        if not track_uris:
-            return "No tracks found in playlist."
-            
-        # fetch features in chunks of 100
-        features = []
-        for i in range(0, len(track_uris), 100):
-            batch = sp.audio_features(track_uris[i:i+100])
-            features.extend(batch)
-            
-        # pair and sort
-        track_data = []
-        for i, feat in enumerate(features):
-            if feat is not None:
-                track_data.append({'uri': track_uris[i], 'val': feat.get(feature, 0)})
-            else:
-                track_data.append({'uri': track_uris[i], 'val': 0})
-                
-        track_data.sort(key=lambda x: x['val'], reverse=(order == 'desc'))
-        sorted_uris = [t['uri'] for t in track_data]
-        
-        # apply changes by replacing entire playlist tracks in batches of 100
-        if sorted_uris:
-            sp.playlist_replace_items(playlist_id, sorted_uris[:100])
-            for i in range(100, len(sorted_uris), 100):
-                sp.playlist_add_items(playlist_id, sorted_uris[i:i+100])
-                
-        return f"Playlist successfully reordered by {feature} in {order}ending order."
-    except Exception as e:
-        return f"Error reordering playlist: {str(e)}"
-
+    return _unavailable("audio features (energy, valence, danceability, tempo)") + " The playlist was not changed."
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def update_playlist(playlist_id: str, name: Optional[str] = None, description: Optional[str] = None, public: Optional[bool] = None) -> str:
@@ -510,7 +467,7 @@ def spotify_get_playlist(playlist_id: str, fields: Optional[str] = None) -> str:
         name = p.get("name", "Untitled")
         desc = p.get("description") or "(No description)"
         owner = p.get("owner", {}).get("display_name", "Unknown")
-        followers = p.get("followers", {}).get("total", 0)
+        followers = (p.get("followers") or {}).get("total", 0)
         tracks_total = p.get("tracks", {}).get("total", 0)
         is_public = "Public" if p.get("public") else "Private"
         url = p.get("external_urls", {}).get("spotify", "")
@@ -794,16 +751,21 @@ def spotify_get_playlist_cover(playlist_id: str) -> str:
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_check_playlist_followers(playlist_id: str, user_ids: List[str]) -> str:
-    """Check if specific users follow a playlist.
-    
+    """Check whether you follow (have saved) a playlist. Spotify no longer answers this for
+    other users for Development Mode apps, so only your own user ID can be checked.
+
     Args:
         playlist_id: Spotify playlist ID or URI.
-        user_ids: List of Spotify user IDs to check (e.g. ['user1', 'user2']).
+        user_ids: List of Spotify user IDs to check; only your own ID is supported (e.g. ['your_user_id']).
     """
     try:
         sp = get_spotify_client()
         if not user_ids:
             return "No user IDs provided to check."
+
+        me = sp.me().get("id")
+        if any(uid != me for uid in user_ids):
+            return _unavailable("follower checks for other users") + f" You can only check your own user ID ('{me}')."
 
         results = sp.playlist_is_following(playlist_id, user_ids)
         lines = [f"Follower check for playlist {playlist_id}:"]
@@ -1111,11 +1073,11 @@ def spotify_export_playlist(
     playlist_id: str,
     include_audio_features: bool = False
 ) -> str:
-    """Export full playlist data, track metadata, and audio features to structured JSON.
-    
+    """Export full playlist data and track metadata to structured JSON.
+
     Args:
         playlist_id: Spotify playlist ID, URI, or URL.
-        include_audio_features: Whether to include audio features (tempo, energy, valence, danceability, etc.). Default: False.
+        include_audio_features: Ignored. Spotify no longer provides audio features for Development Mode apps.
     """
     try:
         sp = get_spotify_client()
@@ -1149,33 +1111,6 @@ def spotify_export_playlist(
             if tid:
                 track_ids.append(tid)
 
-        if include_audio_features and track_ids:
-            features_map = {}
-            for i in range(0, len(track_ids), 100):
-                batch_ids = track_ids[i:i + 100]
-                try:
-                    feat_res = sp.audio_features(batch_ids)
-                    for f in feat_res or []:
-                        if f and f.get("id"):
-                            features_map[f["id"]] = {
-                                "danceability": f.get("danceability"),
-                                "energy": f.get("energy"),
-                                "key": f.get("key"),
-                                "loudness": f.get("loudness"),
-                                "mode": f.get("mode"),
-                                "speechiness": f.get("speechiness"),
-                                "acousticness": f.get("acousticness"),
-                                "instrumentalness": f.get("instrumentalness"),
-                                "liveness": f.get("liveness"),
-                                "valence": f.get("valence"),
-                                "tempo": f.get("tempo")
-                            }
-                except Exception:
-                    pass
-
-            for entry in tracks_data:
-                entry["audio_features"] = features_map.get(entry.get("id"))
-
         owner = p.get("owner", {})
         images = p.get("images", [])
         export_payload = {
@@ -1185,7 +1120,7 @@ def spotify_export_playlist(
                 "description": p.get("description"),
                 "owner": owner.get("display_name"),
                 "owner_id": owner.get("id"),
-                "followers": p.get("followers", {}).get("total", 0),
+                "followers": (p.get("followers") or {}).get("total", 0),
                 "public": p.get("public"),
                 "collaborative": p.get("collaborative"),
                 "cover_url": images[0].get("url") if images else None,
@@ -1194,6 +1129,8 @@ def spotify_export_playlist(
             },
             "tracks": tracks_data
         }
+        if include_audio_features:
+            export_payload["audio_features"] = _unavailable("audio features")
         return json.dumps(export_payload, indent=2)
     except Exception as e:
         return f"Error exporting playlist: {str(e)}"

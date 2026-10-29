@@ -6,6 +6,12 @@ If the user asks to create a playlist, inspect tracks, reorder, shuffle, search,
 
 Do NOT attempt to write temporary python scripts like `make_playlist.py` and run them.
 
+### Spotify 2026 Development Mode Limits
+Spotify no longer gives this app audio features (energy, valence, danceability, tempo), related artists, recommendations, genre seeds, artist top tracks, other users' profiles or follower checks, or playlists the user does not own or follow. Popularity, followers and genres come back empty.
+- Don't promise valence/energy/tempo targets, audio-feature sorting, popularity filters or other users' profiles. `get_audio_features` and `reorder_playlist_by_audio_features` only return an "unavailable" message.
+- Related-artist, recommendation, mood, genre and deep-cut tools still work: they are rebuilt from search and album data (collaborators, genre search, album tracks). Tell the user when results are approximations, e.g. "related" means "shares songs with".
+- Every discovery call makes several Spotify searches, so don't loop them over many artists; the app has been rate-limited before.
+
 > [!NOTE]
 > The server supports modular toolsets (`--toolsets=core`) with on-demand lazy loading to prevent overloading LLM context windows (~2,757 tokens for `core` vs ~21,376 tokens for `all`). Tools are imported only when invoked. Specify `--toolsets=core,playback` or `--toolsets=all` when additional toolsets are needed.
 

@@ -18,7 +18,7 @@ A comprehensive skill for creating, updating, organizing, reordering, and inspec
 9. `spotify_follow_playlist(playlist_id, public=True)`: Add a playlist to user's library (Follow).
 10. `spotify_unfollow_playlist(playlist_id)`: Remove a playlist from user's library (Unfollow/Delete).
 11. `spotify_get_playlist_cover(playlist_id)`: Retrieve high-res cover image URL(s).
-12. `spotify_check_playlist_followers(playlist_id, user_ids)`: Check if specific user IDs follow a playlist.
+12. `spotify_check_playlist_followers(playlist_id, user_ids)`: Check whether you follow a playlist (only your own user ID; Spotify blocks checks for other users).
 
 ## Instructions
 1. **Identify the playlist**: If the user provides a playlist name instead of an ID, call `spotify_get_my_playlists()` to locate the playlist ID.

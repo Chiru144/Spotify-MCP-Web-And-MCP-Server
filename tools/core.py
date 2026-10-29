@@ -126,3 +126,24 @@ def _format_duration(ms: int) -> str:
     """Format milliseconds as a M:SS string."""
     sec = (ms or 0) // 1000
     return f"{sec // 60}:{sec % 60:02d}"
+
+
+def _unavailable(feature: str) -> str:
+    """Message for features Spotify switched off for Development Mode apps in its 2026 Web API changes."""
+    return (f"Unavailable: Spotify no longer provides {feature} for Development Mode apps "
+            "(2026 Web API changes), so this tool cannot return them.")
+
+
+def _followers(obj: Dict[str, Any]) -> Optional[int]:
+    """Follower count, or None now that Spotify returns null followers for artists."""
+    return (obj.get("followers") or {}).get("total")
+
+
+def _stats(obj: Dict[str, Any]) -> str:
+    """', Popularity: n/100, Followers: n' for the stats Spotify still returns (often none)."""
+    parts = []
+    if obj.get("popularity") is not None:
+        parts.append(f"Popularity: {obj['popularity']}/100")
+    if _followers(obj) is not None:
+        parts.append(f"Followers: {_followers(obj):,}")
+    return "".join(f", {p}" for p in parts)

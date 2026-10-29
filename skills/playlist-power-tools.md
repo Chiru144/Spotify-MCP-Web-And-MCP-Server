@@ -11,7 +11,7 @@ This skill equips AI agents to execute advanced, programmatic playlist curation,
 | **`spotify_merge_playlists`** | Combine multiple playlists | `playlist_ids` (List[str]), `target_playlist_id` (Optional), `new_name`, `public`, `deduplicate` | Unified target or new playlist ID & URL |
 | **`spotify_split_playlist_by_artist`** | Separate tracks into sub-playlists | `playlist_id`, `min_tracks_per_artist` (int), `create_playlists` (bool), `public` (bool) | Preview breakdown or created sub-playlists |
 | **`spotify_deduplicate_playlist`** | Deep duplicate scanner & stripper | `playlist_id`, `strategy` ('uri' or 'name_and_artist'), `dry_run` (bool) | Found duplicates report or in-place cleaned count |
-| **`spotify_export_playlist`** | Full data backup to JSON | `playlist_id`, `include_audio_features` (bool) | JSON structure with all track metadata & audio features |
+| **`spotify_export_playlist`** | Full data backup to JSON | `playlist_id` | JSON structure with all track metadata (audio features are no longer available) |
 | **`spotify_playlist_diff`** | Side-by-side playlist comparator | `playlist_id_a`, `playlist_id_b`, `strategy` ('uri' or 'name_and_artist') | Jaccard similarity %, shared songs, unique tracks |
 | **`spotify_find_playlist_overlaps`** | Cross-library overlap scanner | `limit` (int), `min_overlap` (int) | Ranked pairs of playlists with highest track overlaps |
 | **`spotify_find_playlist_subsets`** | Subset & redundancy detector | `limit` (int), `threshold` (float 0.5–1.0) | Discovered subset relations ($A \subseteq B$) & recommendations |
@@ -70,7 +70,7 @@ spotify_absorb_playlist(source_playlist_id="...", target_playlist_id="...", stra
 ```
 
 ### 7. Exporting Complete Backups
-> *"Export my entire Favorites playlist to JSON with audio features."*
+> *"Export my entire Favorites playlist to JSON."*
 ```python
-spotify_export_playlist(playlist_id="...", include_audio_features=True)
+spotify_export_playlist(playlist_id="...")
 ```

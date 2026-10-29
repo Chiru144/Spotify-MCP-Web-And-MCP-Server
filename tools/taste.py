@@ -2,7 +2,8 @@ from typing import Optional, List, Dict, Any
 from datetime import datetime, timezone
 from collections import Counter
 from mcp.types import ToolAnnotations
-from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration
+from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration, _stats, _unavailable
+from tools import discovery
 import spotipy
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
@@ -58,55 +59,35 @@ def get_user_top_artists(limit: int = 10, time_range: str = "medium_term") -> st
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def get_audio_features(track_uris: list[str]) -> str:
-    """Get audio features (danceability, energy, valence, etc) for multiple tracks.
-    
+    """Unavailable: Spotify no longer provides audio features (danceability, energy, valence, tempo) for Development Mode apps.
+
     Args:
         track_uris: List of Spotify track URIs (max 100).
     """
-    try:
-        sp = get_spotify_client()
-        features = sp.audio_features(tracks=track_uris[:100])
-        lines = ["Audio Features:"]
-        for i, feat in enumerate(features):
-            if not feat:
-                lines.append(f"Track {i+1}: Features not found")
-                continue
-            lines.append(f"Track URI: {feat.get('uri')}")
-            lines.append(f"  Danceability: {feat.get('danceability')} | Energy: {feat.get('energy')} | Valence: {feat.get('valence')}")
-            lines.append(f"  Tempo: {feat.get('tempo')} BPM | Key: {feat.get('key')} | Mode: {'Major' if feat.get('mode') == 1 else 'Minor'}")
-        return "\n".join(lines)
-    except Exception as e:
-        return f"Error fetching audio features: {str(e)}"
+    return _unavailable("audio features (danceability, energy, valence, tempo, key)")
 
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def get_artist_network(artist_name_or_id: str) -> str:
-    """Map an artist's network by fetching related artists.
-    
+    """Map an artist's network: the artists who share the most songs with them.
+
     Args:
         artist_name_or_id: Name or Spotify ID of the artist.
     """
     try:
         sp = get_spotify_client()
-        # Search if not an ID/URI
-        artist_id = artist_name_or_id
-        if not artist_id.startswith('spotify:artist:') and len(artist_id) != 22:
-            results = sp.search(q=artist_name_or_id, type='artist', limit=1)
-            if not results['artists']['items']:
-                return "Artist not found."
-            artist_id = results['artists']['items'][0]['id']
-            artist_name = results['artists']['items'][0]['name']
-        else:
-            artist_name = sp.artist(artist_id)['name']
+        artist = discovery.find_artist(sp, artist_name_or_id)
+        if not artist:
+            return "Artist not found."
 
-        related = sp.artist_related_artists(artist_id)
-        items = related.get('artists', [])
+        # Spotify removed related-artists: map the network from the artists they share songs with
+        items = discovery.collaborators(sp, artist)
         if not items:
-            return f"No related artists found for {artist_name}."
-        
-        lines = [f"Related Artists for {artist_name} (Network):"]
+            return f"No collaborating artists found for {artist['name']}."
+
+        lines = [f"Artist Network for {artist['name']} (artists who share songs with them):"]
         for a in items:
-            lines.append(f"- {a['name']} (URI: {a['uri']}, Genres: {', '.join(a.get('genres', [])[:3])})")
+            lines.append(f"- {a['name']} (URI: {a['uri']}, Shared songs: {a.get('shared_tracks', 0)})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error mapping artist network: {str(e)}"
@@ -143,54 +124,49 @@ def get_recommendations(
     target_instrumentalness: Optional[float] = None,
     target_tempo: Optional[float] = None
 ) -> str:
-    """Get track recommendations based on seeds and audio features.
-    
+    """Get track recommendations from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
+
     Args:
         limit: Number of recommendations to return (default: 10, max: 100).
         seed_tracks: List of Spotify track IDs or URIs.
         seed_artists: List of Spotify artist IDs or URIs.
-        seed_genres: List of genres (e.g., 'synthwave', 'indie-pop').
-        target_energy: Target energy (0.0 to 1.0).
-        target_valence: Target valence (0.0 to 1.0).
-        target_danceability: Target danceability (0.0 to 1.0).
-        target_acousticness: Target acousticness (0.0 to 1.0).
-        target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-        target_tempo: Target tempo in BPM.
+        seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
+        target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_valence: Ignored (see target_energy).
+        target_danceability: Ignored (see target_energy).
+        target_acousticness: Ignored (see target_energy).
+        target_instrumentalness: Ignored (see target_energy).
+        target_tempo: Ignored (see target_energy).
     """
     try:
         sp = get_spotify_client()
-        
+
         # Ensure total seeds do not exceed 5
         num_seeds = (len(seed_tracks) if seed_tracks else 0) + \
                     (len(seed_artists) if seed_artists else 0) + \
                     (len(seed_genres) if seed_genres else 0)
-        
+
         if num_seeds == 0:
             return "Error: You must provide at least one seed (track, artist, or genre)."
         if num_seeds > 5:
             return f"Error: Up to 5 seed values may be provided in any combination of seed_tracks, seed_artists, and seed_genres. You provided {num_seeds}."
-            
-        kwargs = {}
-        if target_energy is not None: kwargs["target_energy"] = target_energy
-        if target_valence is not None: kwargs["target_valence"] = target_valence
-        if target_danceability is not None: kwargs["target_danceability"] = target_danceability
-        if target_acousticness is not None: kwargs["target_acousticness"] = target_acousticness
-        if target_instrumentalness is not None: kwargs["target_instrumentalness"] = target_instrumentalness
-        if target_tempo is not None: kwargs["target_tempo"] = target_tempo
 
-        results = sp.recommendations(
-            seed_tracks=seed_tracks,
-            seed_artists=seed_artists,
-            seed_genres=seed_genres,
+        # Spotify removed /recommendations: build them from the seeds' collaborators and genres
+        tracks = discovery.recommend(
+            sp,
+            seed_artists=[_clean_spotify_id(a, "artist") for a in seed_artists or []],
+            seed_tracks=[_clean_spotify_id(t, "track") for t in seed_tracks or []],
+            seed_genres=seed_genres or [],
             limit=min(limit, 100),
-            **kwargs
         )
-        
-        tracks = results.get("tracks", [])
+
         if not tracks:
-            return "No recommendations found for the given seeds and targets."
-            
+            return "No recommendations found for the given seeds."
+
         output = [f"Found {len(tracks)} recommendations:"]
+        targets = [target_energy, target_valence, target_danceability, target_acousticness, target_instrumentalness, target_tempo]
+        if any(v is not None for v in targets):
+            output.append("Note: audio-feature targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
         for i, t in enumerate(tracks, 1):
             artists = ", ".join([a.get("name", "Unknown") for a in t.get("artists", [])])
             output.append(f"{i}. {t.get('name')} by {artists} (URI: {t.get('uri')})")
@@ -242,8 +218,7 @@ def spotify_top_tracks(
             artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
             album = t.get("album", {}).get("name", "Unknown Album")
             dur = _format_duration(t.get("duration_ms", 0))
-            pop = t.get("popularity", 0)
-            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (Popularity: {pop}/100, URI: {t.get('uri')})")
+            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')}{_stats(t)})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error fetching top tracks: {str(e)}"
@@ -285,10 +260,8 @@ def spotify_top_artists(
             f"Showing {len(items)} artists (offset {offset}):\n"
         ]
         for idx, a in enumerate(items, offset + 1):
-            genres = ", ".join(a.get("genres", [])[:3]) or "No genres listed"
-            followers = a.get("followers", {}).get("total", 0)
-            pop = a.get("popularity", 0)
-            lines.append(f"{idx}. {a.get('name')} [Genres: {genres}] (Popularity: {pop}/100, Followers: {followers:,}, URI: {a.get('uri')})")
+            genres = ", ".join((a.get("genres") or [])[:3]) or "No genres listed"
+            lines.append(f"{idx}. {a.get('name')} [Genres: {genres}] (URI: {a.get('uri')}{_stats(a)})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error fetching top artists: {str(e)}"
@@ -407,7 +380,7 @@ def spotify_listening_patterns() -> str:
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_taste_profile() -> str:
-    """Generate an overview of genre diversity and niche artist affinity."""
+    """Generate an overview of your top artists, artist variety, eras and (when Spotify provides them) genres."""
     try:
         sp = get_spotify_client()
         top_artists_res = sp.current_user_top_artists(limit=50, time_range="medium_term")
@@ -419,57 +392,65 @@ def spotify_taste_profile() -> str:
         if not artists and not tracks:
             return "No sufficient listening history found to generate taste profile."
 
+        # Spotify now returns null genres and popularity for Development Mode apps; use them only if present
         genre_counter = Counter()
         for a in artists:
-            for g in a.get("genres", []):
+            for g in a.get("genres") or []:
                 genre_counter[g] += 1
-
         total_genre_mentions = sum(genre_counter.values()) or 1
-        top_genres = genre_counter.most_common(8)
 
-        art_pops = [a.get("popularity", 50) for a in artists]
-        trk_pops = [t.get("popularity", 50) for t in tracks]
-        avg_art_pop = sum(art_pops) / len(art_pops) if art_pops else 50.0
-        avg_trk_pop = sum(trk_pops) / len(trk_pops) if trk_pops else 50.0
-        overall_pop = (avg_art_pop + avg_trk_pop) / 2.0
+        track_artists = Counter()
+        for t in tracks:
+            for a in t.get("artists", [])[:1]:
+                track_artists[a.get("name", "Unknown")] += 1
+        variety = len(track_artists) / len(tracks) if tracks else 0.0
 
-        if overall_pop >= 70:
-            archetype = "Mainstream Hit Enthusiast (Chart-Toppers & Viral Anthems)"
-            archetype_desc = "Your taste leans heavily into widely celebrated global hits and mainstream cultural moments."
-        elif overall_pop >= 55:
-            archetype = "Eclectic Trendsetter (Blend of Popular & Discoveries)"
-            archetype_desc = "You balance popular favorites with emerging acts, staying culturally connected while exploring new sounds."
-        elif overall_pop >= 40:
-            archetype = "Indie Explorer (Selective, Alt & Independent Sounds)"
-            archetype_desc = "You actively seek out independent artists, college radio gems, and deeper sub-genres over radio Top 40."
+        if variety >= 0.8:
+            archetype = "Wide Explorer (Many Different Artists)"
+            archetype_desc = "Your top songs come from a broad spread of artists; you rarely stick with one act for long."
+        elif variety >= 0.5:
+            archetype = "Balanced Listener (Favourites Plus Discoveries)"
+            archetype_desc = "You return to a core set of favourite artists while still mixing in plenty of others."
         else:
-            archetype = "Deep Underground Connoisseur (Niche & Obscure)"
-            archetype_desc = "You live on the cutting edge of obscure, underground, and non-commercial music that most listeners have never heard."
+            archetype = "Devoted Fan (A Few Artists, Many Songs)"
+            archetype_desc = "A handful of artists account for most of your top songs; you dig deep into their catalogues."
 
         eras = Counter()
         explicit_count = 0
         for t in tracks:
             if t.get("explicit"):
                 explicit_count += 1
-            rel = t.get("album", {}).get("release_date", "")[:4]
+            rel = (t.get("album") or {}).get("release_date", "")[:4]
             if rel.isdigit():
-                decade = f"{rel[:3]}0s"
-                eras[decade] += 1
+                eras[f"{rel[:3]}0s"] += 1
 
         lines = [
             "🧬 Spotify Musical Taste Profile & Affinity Analysis:",
-            f"• Musical Archetype: {archetype}",
+            f"• Listener Type: {archetype}",
             f"  {archetype_desc}",
-            f"• Mainstream Index: {overall_pop:.1f}/100 (Artist Pop: {avg_art_pop:.1f}, Track Pop: {avg_trk_pop:.1f})",
-            f"• Unique Genres Discovered: {len(genre_counter)} genres",
-            f"• Explicit Content Affinity: {explicit_count}/{len(tracks)} tracks ({(explicit_count/len(tracks)*100 if tracks else 0):.0f}%)\n",
-            "Top Musical Genres:"
+            f"• Artist Variety: {len(track_artists)} distinct lead artists across {len(tracks)} top songs",
+            f"• Explicit Content Affinity: {explicit_count}/{len(tracks)} tracks ({(explicit_count/len(tracks)*100 if tracks else 0):.0f}%)",
         ]
+        pops = [x["popularity"] for x in artists + tracks if x.get("popularity") is not None]
+        if pops:
+            lines.append(f"• Mainstream Index: {sum(pops) / len(pops):.1f}/100")
 
-        for rank, (genre, cnt) in enumerate(top_genres, 1):
-            pct = (cnt / total_genre_mentions) * 100
-            bar = "█" * int(pct / 3)
-            lines.append(f"  {rank}. {genre.title():<20} {bar:<14} {pct:.1f}%")
+        if artists:
+            lines.append("\nTop Artists:")
+            for rank, a in enumerate(artists[:8], 1):
+                lines.append(f"  {rank}. {a.get('name')}")
+
+        if track_artists:
+            lines.append("\nMost Represented in Your Top Songs:")
+            for rank, (name, cnt) in enumerate(track_artists.most_common(5), 1):
+                lines.append(f"  {rank}. {name} ({cnt} songs)")
+
+        if genre_counter:
+            lines.append("\nTop Musical Genres:")
+            for rank, (genre, cnt) in enumerate(genre_counter.most_common(8), 1):
+                pct = (cnt / total_genre_mentions) * 100
+                bar = "█" * int(pct / 3)
+                lines.append(f"  {rank}. {genre.title():<20} {bar:<14} {pct:.1f}%")
 
         if eras:
             lines.append("\nDecade / Era Spread:")
@@ -483,10 +464,11 @@ def spotify_taste_profile() -> str:
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_playlist_compare(playlist_ids: List[str]) -> str:
-    """Compare multi-playlist audio feature distributions side-by-side.
-    
+    """Compare playlists side-by-side: size, song length, explicit share, artist variety, era and overlap.
+    (Spotify no longer provides audio features such as energy or valence for Development Mode apps.)
+
     Args:
-        playlist_ids: List of 2 or more Spotify playlist IDs or URIs.
+        playlist_ids: List of 2 or more Spotify playlist IDs or URIs (playlists you own or follow).
     """
     try:
         sp = get_spotify_client()
@@ -497,74 +479,55 @@ def spotify_playlist_compare(playlist_ids: List[str]) -> str:
             return "Please provide at least 2 playlist IDs or URIs to compare."
 
         playlists_stats = []
+        skipped = []
 
         for raw_id in playlist_ids[:5]:
             clean_id = _clean_spotify_id(raw_id, "playlist")
-            pl = sp.playlist(clean_id, fields="id,name,tracks.total,owner.display_name")
-            p_name = pl.get("name", "Untitled")
-
-            items_res = sp.playlist_items(clean_id, limit=50, additional_types=('track',))
-            items = items_res.get("items", [])
-            t_ids = [item.get("track", {}).get("id") for item in items if item.get("track") and item.get("track", {}).get("id")]
-
-            if not t_ids:
-                playlists_stats.append({
-                    "name": p_name,
-                    "total_tracks": pl.get("tracks", {}).get("total", 0),
-                    "energy": 0.0, "valence": 0.0, "danceability": 0.0, "acousticness": 0.0, "tempo": 0.0
-                })
+            try:
+                pl = sp.playlist(clean_id, fields="id,name,tracks.total,owner.display_name")
+                items = sp.playlist_items(clean_id, limit=100, additional_types=("track",)).get("items", [])
+            except spotipy.SpotifyException as e:
+                # Spotify returns 403 for playlists this user does not own or follow
+                skipped.append(f"{raw_id} ({'not your playlist' if e.http_status == 403 else e.msg})")
                 continue
 
-            features = sp.audio_features(t_ids[:50])
-            valid_feats = [f for f in features if f]
-
-            if not valid_feats:
-                playlists_stats.append({
-                    "name": p_name,
-                    "total_tracks": pl.get("tracks", {}).get("total", 0),
-                    "energy": 0.0, "valence": 0.0, "danceability": 0.0, "acousticness": 0.0, "tempo": 0.0
-                })
-                continue
-
-            n = len(valid_feats)
-            avg_energy = sum(f.get("energy", 0) for f in valid_feats) / n
-            avg_valence = sum(f.get("valence", 0) for f in valid_feats) / n
-            avg_dance = sum(f.get("danceability", 0) for f in valid_feats) / n
-            avg_acoustic = sum(f.get("acousticness", 0) for f in valid_feats) / n
-            avg_tempo = sum(f.get("tempo", 0) for f in valid_feats) / n
-
+            tracks = [it["track"] for it in items if it.get("track") and it["track"].get("id")]
+            years = sorted(int(y) for y in ((t.get("album") or {}).get("release_date", "")[:4] for t in tracks) if y.isdigit())
+            durations = [t.get("duration_ms") or 0 for t in tracks]
             playlists_stats.append({
-                "name": p_name,
-                "total_tracks": pl.get("tracks", {}).get("total", 0),
-                "energy": avg_energy,
-                "valence": avg_valence,
-                "danceability": avg_dance,
-                "acousticness": avg_acoustic,
-                "tempo": avg_tempo
+                "name": pl.get("name", "Untitled"),
+                "total_tracks": (pl.get("tracks") or {}).get("total", len(tracks)),
+                "avg_duration": _format_duration(sum(durations) // len(durations)) if durations else "0:00",
+                "explicit_pct": (sum(1 for t in tracks if t.get("explicit")) / len(tracks) * 100) if tracks else 0.0,
+                "artists": {a.get("name") for t in tracks for a in t.get("artists", []) if a.get("name")},
+                "uris": {t.get("uri") for t in tracks},
+                "median_year": str(years[len(years) // 2]) if years else "N/A",
             })
 
-        lines = [
-            f"Multi-Playlist Audio Feature Comparison ({len(playlists_stats)} Playlists):",
-            f"{'Playlist':<26} {'Energy':<8} {'Valence':<8} {'Dance':<8} {'Acoustic':<10} {'Tempo':<8}"
-        ]
-        lines.append("-" * 72)
+        if len(playlists_stats) < 2:
+            return "Could not read at least 2 of these playlists." + (f" Skipped: {', '.join(skipped)}." if skipped else "")
 
+        lines = [
+            f"Multi-Playlist Comparison ({len(playlists_stats)} Playlists):",
+            f"{'Playlist':<26} {'Tracks':<8} {'Avg Len':<9} {'Explicit':<10} {'Artists':<9} {'Median Year'}"
+        ]
+        lines.append("-" * 76)
         for s in playlists_stats:
             p_short = (s["name"][:23] + "...") if len(s["name"]) > 25 else s["name"]
             lines.append(
-                f"{p_short:<26} {s['energy']:.2f}     {s['valence']:.2f}     {s['danceability']:.2f}     {s['acousticness']:.2f}       {s['tempo']:.0f} BPM"
+                f"{p_short:<26} {s['total_tracks']:<8} {s['avg_duration']:<9} {s['explicit_pct']:>5.0f}%     {len(s['artists']):<9} {s['median_year']}"
             )
 
-        highest_energy = max(playlists_stats, key=lambda x: x["energy"])
-        highest_valence = max(playlists_stats, key=lambda x: x["valence"])
-        highest_dance = max(playlists_stats, key=lambda x: x["danceability"])
-        highest_acoustic = max(playlists_stats, key=lambda x: x["acousticness"])
+        shared_tracks = set.intersection(*(s["uris"] for s in playlists_stats))
+        shared_artists = set.intersection(*(s["artists"] for s in playlists_stats))
+        most_varied = max(playlists_stats, key=lambda x: len(x["artists"]))
 
         lines.append("\nKey Comparative Observations:")
-        lines.append(f"• Most High-Energy: '{highest_energy['name']}' ({highest_energy['energy']:.2f}/1.0)")
-        lines.append(f"• Most Positive/Happy (Valence): '{highest_valence['name']}' ({highest_valence['valence']:.2f}/1.0)")
-        lines.append(f"• Best for Dancing: '{highest_dance['name']}' ({highest_dance['danceability']:.2f}/1.0)")
-        lines.append(f"• Most Organic/Acoustic: '{highest_acoustic['name']}' ({highest_acoustic['acousticness']:.2f}/1.0)")
+        lines.append(f"• Songs in every playlist: {len(shared_tracks)}")
+        lines.append(f"• Artists in every playlist: {len(shared_artists)}" + (f" ({', '.join(sorted(shared_artists)[:5])})" if shared_artists else ""))
+        lines.append(f"• Most artist variety: '{most_varied['name']}' ({len(most_varied['artists'])} artists)")
+        if skipped:
+            lines.append(f"• Skipped: {', '.join(skipped)}")
 
         return "\n".join(lines)
     except Exception as e:

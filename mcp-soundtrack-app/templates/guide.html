@@ -487,6 +487,7 @@
     .badge-web { background: rgba(29, 185, 84, 0.15); color: var(--spotify-green); border: 1px solid rgba(29, 185, 84, 0.3); }
     .badge-skill { background: rgba(192, 132, 252, 0.15); color: var(--accent-purple); border: 1px solid rgba(192, 132, 252, 0.3); }
     .badge-post { background: rgba(251, 191, 36, 0.15); color: var(--accent-amber); border: 1px solid rgba(251, 191, 36, 0.3); }
+    .badge-off { background: rgba(251, 113, 133, 0.15); color: var(--accent-rose); border: 1px solid rgba(251, 113, 133, 0.3); }
 
     .tool-description {
       color: var(--text-muted);
@@ -927,6 +928,54 @@
       </div>
     </section>
 
+    <!-- Spotify 2026 Development Mode limits -->
+    <section class="arch-card" id="spotify-limits">
+      <div class="arch-header">
+        <h3>⚠️ Spotify 2026 Development Mode Limits</h3>
+        <span style="font-size: 13px; color: var(--text-dim);">Applies to every personal Client ID</span>
+      </div>
+      <p class="deepdive-intro">In 2026 Spotify switched off several Web API features for apps in Development Mode. The tools below work around them where they can:</p>
+      <div class="capabilities-table-container">
+        <table class="capabilities-table">
+          <thead>
+            <tr><th>Spotify feature</th><th>Status</th><th>What the tools do instead</th></tr>
+          </thead>
+          <tbody>
+            <tr>
+              <td class="cap-name">Related artists</td>
+              <td><span class="badge badge-off">Removed</span></td>
+              <td>Related artists are the artists who share the most songs with the artist (collaborators).</td>
+            </tr>
+            <tr>
+              <td class="cap-name">Recommendations &amp; genre seeds</td>
+              <td><span class="badge badge-off">Removed</span></td>
+              <td>Recommendations are songs by the seeds' collaborators plus genre-search picks. Genre Explorer uses a built-in genre list.</td>
+            </tr>
+            <tr>
+              <td class="cap-name">Artist top tracks</td>
+              <td><span class="badge badge-off">Removed</span></td>
+              <td>The artist's top search results stand in.</td>
+            </tr>
+            <tr>
+              <td class="cap-name">Audio features (energy, valence, tempo&hellip;)</td>
+              <td><span class="badge badge-off">Removed</span></td>
+              <td><code>get_audio_features</code> and <code>reorder_playlist_by_audio_features</code> return an "unavailable" message. <code>target_*</code> values are accepted but ignored; moods map to genres.</td>
+            </tr>
+            <tr>
+              <td class="cap-name">Popularity, followers, genres</td>
+              <td><span class="badge badge-off">Empty</span></td>
+              <td>Shown as N/A or left out. Deep cuts are album tracks outside the artist's top search results.</td>
+            </tr>
+            <tr>
+              <td class="cap-name">Other users' profiles &amp; follower checks</td>
+              <td><span class="badge badge-off">Removed</span></td>
+              <td>Profile and follower tools work for your own account only. Playlists you don't own or follow can't be read.</td>
+            </tr>
+          </tbody>
+        </table>
+      </div>
+    </section>
+
     <!-- Dual Paradigm Architecture Explainer -->
     <section class="arch-card">
       <div class="arch-header">
@@ -943,7 +992,7 @@
           <ul>
             <li>
               <span class="bullet">→</span>
-              <span><strong>Visual Interface:</strong> Run at <code>http://127.0.0.1:8000</code>. Users explore filmographies, audition song previews, and tweak audio sliders.</span>
+              <span><strong>Visual Interface:</strong> Run at <code>http://127.0.0.1:8000</code>. Users explore filmographies, audition song previews, and discover music by mood or genre.</span>
             </li>
             <li>
               <span class="bullet">→</span>
@@ -965,11 +1014,11 @@
             </li>
             <li>
               <span class="bullet">→</span>
-              <span><strong>Autonomous Reasoning:</strong> The LLM translates user vibe adjectives into numerical Spotify parameters (energy, valence, tempo).</span>
+              <span><strong>Autonomous Reasoning:</strong> The LLM translates user vibe adjectives into seeds, mood presets and genres.</span>
             </li>
             <li>
               <span class="bullet">→</span>
-              <span><strong>Tool Chaining:</strong> Agent chains tools seamlessly: searches TMDB $\rightarrow$ gets audio features $\rightarrow$ creates playlist $\rightarrow$ adds tracks.</span>
+              <span><strong>Tool Chaining:</strong> Agent chains tools seamlessly: searches TMDB $\rightarrow$ finds the soundtrack on Spotify $\rightarrow$ creates playlist $\rightarrow$ adds tracks.</span>
             </li>
           </ul>
         </div>
@@ -1002,7 +1051,7 @@
     <div class="tool-grid" id="toolGrid">
 
       <!-- TOOL: get_recommendations / Vibe Engine -->
-      <article class="tool-card" data-category="vibe" data-keywords="recommendations vibe mood seeds energy valence danceability acousticness taste inputs parameters scenarios">
+      <article class="tool-card" data-category="vibe" data-keywords="recommendations vibe mood seeds genres collaborators taste inputs parameters scenarios">
         <div class="tool-card-header">
           <div class="tool-identity">
             <div class="tool-icon">✨</div>
@@ -1019,20 +1068,20 @@
         </div>
 
         <p class="tool-description">
-          Generates a targeted set of tracks using Spotify's multi-seed recommender algorithm. Accepts up to 5 combined seeds (genres, track IDs, artist IDs) along with precise target audio characteristics (energy, valence, danceability, acousticness, tempo BPM).
+          Generates a set of tracks from up to 5 combined seeds (genres, track IDs, artist IDs). Spotify removed its recommendations endpoint and audio features for Development Mode apps, so recommendations are songs by the seed artists' collaborators plus picks from a genre search. Audio targets (energy, valence, tempo) are accepted but ignored.
         </p>
 
         <div class="tool-flow-grid">
           <div class="flow-pane web">
             <div class="flow-pane-title">🌐 In the Web UI</div>
-            <p>Click the <strong>✨ Vibe</strong> button in the top control bar to open the modal dialog. Enter comma-separated seed genres/tracks and tweak the audio sliders.</p>
+            <p>Click the <strong>✨ Vibe</strong> button in the top control bar to open the modal dialog. Enter comma-separated seed genres, tracks or artists. The audio sliders no longer change the results.</p>
             <p>Submitting sends a payload to <code>/api/recommendations</code> and renders matching songs directly into the studio grid for previewing and staging.</p>
           </div>
           <div class="flow-pane agent">
             <div class="flow-pane-title">🤖 In the AI Agent</div>
-            <p>The agent translates text prompts like <em>"Give me uplifting dance music like Dua Lipa"</em> into parameters:</p>
+            <p>The agent translates text prompts like <em>"Give me uplifting dance music like Dua Lipa"</em> into seeds:</p>
             <div class="code-preview">
-              <span>get_recommendations(seed_genres=["pop"], target_valence=0.85, target_danceability=0.8)</span>
+              <span>get_recommendations(seed_artists=["Dua_Lipa_ID"], seed_genres=["dance pop"])</span>
               <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
@@ -1040,53 +1089,37 @@
 
         <!-- Deep Dive Breakdown: Inputs, Scenarios, Capability Matrix -->
         <div class="vibe-deepdive">
-          
+
           <!-- 1. The Core Inputs It Accepts -->
           <div class="deepdive-block">
             <h4><span class="deepdive-num">1</span> The Core Inputs It Accepts</h4>
-            <p class="deepdive-intro">To generate recommendations, the tool passes up to 5 Seed Anchors and a set of Target Metric Sliders:</p>
-            
+            <p class="deepdive-intro">To generate recommendations, the tool takes up to 5 Seed Anchors:</p>
+
             <div class="inputs-grid">
               <div class="input-box seeds">
                 <div class="input-box-title">🌱 Seed Anchors (1 to 5 total)</div>
                 <ul class="input-list">
                   <li>
                     <code>seed_tracks</code>
-                    <span>Track IDs (e.g. Spotify track URI / ID)</span>
+                    <span>Track IDs; the track's lead artist becomes a seed</span>
                   </li>
                   <li>
                     <code>seed_artists</code>
-                    <span>Artist IDs (e.g. Spotify artist URI / ID)</span>
+                    <span>Artist IDs; songs by their collaborators are recommended</span>
                   </li>
                   <li>
                     <code>seed_genres</code>
-                    <span>Valid genres (e.g. <code>synthwave</code>, <code>indie-pop</code>, <code>lo-fi</code>, <code>deep-house</code>)</span>
+                    <span>Any genre keyword (e.g. <code>synthwave</code>, <code>indie pop</code>, <code>lo-fi</code>, <code>house</code>)</span>
                   </li>
                 </ul>
               </div>
 
               <div class="input-box sliders">
-                <div class="input-box-title">🎚️ Target Audio Feature Constraints (0.0 to 1.0)</div>
+                <div class="input-box-title">🎚️ Audio Targets (no longer applied)</div>
                 <ul class="input-list">
                   <li>
-                    <code>target_energy</code>
-                    <span>Intensity and activity level</span>
-                  </li>
-                  <li>
-                    <code>target_valence</code>
-                    <span>Positivity, happiness vs. sadness</span>
-                  </li>
-                  <li>
-                    <code>target_danceability</code>
-                    <span>Rhythm stability and tempo suitability</span>
-                  </li>
-                  <li>
-                    <code>target_acousticness</code>
-                    <span>Acoustic vs. electronic instrumentation</span>
-                  </li>
-                  <li>
-                    <code>target_tempo</code>
-                    <span>Specific target BPM</span>
+                    <code>target_energy</code>, <code>target_valence</code>, <code>target_danceability</code>, <code>target_acousticness</code>, <code>target_instrumentalness</code>, <code>target_tempo</code>
+                    <span>Accepted so older prompts still work, but ignored: Spotify no longer provides audio features to Development Mode apps. The output notes when they were ignored.</span>
                   </li>
                 </ul>
               </div>
@@ -1096,7 +1129,7 @@
           <!-- 2. How Vibe & Type Recommendations Work in Practice -->
           <div class="deepdive-block">
             <h4><span class="deepdive-num">2</span> How Vibe &amp; Type Recommendations Work in Practice</h4>
-            <p class="deepdive-intro">When you prompt your AI client (like Claude Desktop or Cursor), the LLM translates your natural language into the <code>get_recommendations</code> call:</p>
+            <p class="deepdive-intro">When you prompt your AI client (like Claude Desktop or Cursor), the LLM translates your natural language into seeds or a mood preset:</p>
 
             <div class="scenarios-grid">
               <div class="scenario-card">
@@ -1108,29 +1141,24 @@
                 <ul class="scenario-params">
                   <li><strong>seed_tracks:</strong> <span class="val">["Blinding_Lights_ID"]</span></li>
                   <li><strong>seed_genres:</strong> <span class="val">["synthwave"]</span></li>
-                  <li><strong>target_energy:</strong> <span class="val">0.85</span> <span class="note">(High energy)</span></li>
-                  <li><strong>target_valence:</strong> <span class="val">0.30</span> <span class="note">(Darker tone)</span></li>
                 </ul>
                 <div class="code-preview" style="margin-top: 4px;">
-                  <span>get_recommendations(seed_tracks=["Blinding_Lights_ID"], seed_genres=["synthwave"], target_energy=0.85, target_valence=0.3)</span>
+                  <span>get_recommendations(seed_tracks=["Blinding_Lights_ID"], seed_genres=["synthwave"], limit=10)</span>
                   <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
                 </div>
               </div>
 
               <div class="scenario-card">
-                <div class="scenario-tag">🌙 Scenario B: Mood/Acoustic Type Matching</div>
+                <div class="scenario-tag">🌙 Scenario B: Mood Matching</div>
                 <div class="scenario-prompt">
-                  <strong>Prompt:</strong> <em>"Find late-night study songs similar to Phoebe Bridgers, but purely instrumental."</em>
+                  <strong>Prompt:</strong> <em>"Find late-night study songs, mostly instrumental."</em>
                 </div>
                 <div class="scenario-exec-label">Tool Call Executed:</div>
                 <ul class="scenario-params">
-                  <li><strong>seed_artists:</strong> <span class="val">["Phoebe_Bridgers_ID"]</span></li>
-                  <li><strong>target_instrumentalness:</strong> <span class="val">0.90</span> <span class="note">(Instrumental focus)</span></li>
-                  <li><strong>target_energy:</strong> <span class="val">0.20</span> <span class="note">(Quiet/Calm)</span></li>
-                  <li><strong>target_valence:</strong> <span class="val">0.25</span> <span class="note">(Melancholic vibe)</span></li>
+                  <li><strong>mood:</strong> <span class="val">"focus"</span> <span class="note">(ambient + classical)</span></li>
                 </ul>
                 <div class="code-preview" style="margin-top: 4px;">
-                  <span>get_recommendations(seed_artists=["Phoebe_Bridgers_ID"], target_instrumentalness=0.9, target_energy=0.2, target_valence=0.25)</span>
+                  <span>spotify_discover_by_mood(mood="focus", limit=20)</span>
                   <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
                 </div>
               </div>
@@ -1151,24 +1179,24 @@
                 </thead>
                 <tbody>
                   <tr>
-                    <td class="cap-name">Numeric Vibe Targets</td>
+                    <td class="cap-name">Artist &amp; Track Seeds</td>
                     <td><span class="badge badge-web">Built-in</span></td>
-                    <td>Accepts raw target values (valence, energy, danceability) directly from Spotify's audio analysis.</td>
+                    <td>Recommends songs by the artists the seeds share songs with (their collaborators).</td>
                   </tr>
                   <tr>
                     <td class="cap-name">Genre Seeding</td>
                     <td><span class="badge badge-web">Built-in</span></td>
-                    <td>Accepts valid Spotify genres to narrow down recommendations.</td>
+                    <td>Searches Spotify with a <code>genre:</code> filter, falling back to a plain search for the genre name.</td>
                   </tr>
                   <tr>
-                    <td class="cap-name">Automatic Clustering</td>
-                    <td><span class="badge badge-web">Built-in</span></td>
-                    <td>Pairs with tools like <code>smart_shuffle</code> or distance algorithms to organize the recommended tracks into a smooth flow.</td>
+                    <td class="cap-name">Numeric Vibe Targets</td>
+                    <td><span class="badge badge-off">Unavailable</span></td>
+                    <td>Spotify no longer provides audio features (valence, energy, danceability, tempo) to Development Mode apps, so these values can't be applied.</td>
                   </tr>
                   <tr>
                     <td class="cap-name">Text Tag Matching</td>
                     <td><span class="badge badge-skill">LLM-Driven</span></td>
-                    <td>Doesn't search plain-text tags like <code>#workout</code> directly; instead, the attached LLM maps text tags (e.g. <em>"upbeat workout"</em>) to numeric parameters (<code>energy=0.9</code>, <code>danceability=0.85</code>).</td>
+                    <td>Doesn't search plain-text tags like <code>#workout</code> directly; instead, the attached LLM maps text tags (e.g. <em>"upbeat workout"</em>) to a mood preset or genres (<code>mood="workout"</code>, <code>seed_genres=["edm"]</code>).</td>
                   </tr>
                 </tbody>
               </table>
@@ -1178,8 +1206,8 @@
         </div>
 
         <div class="tool-footer">
-          <span>Source File: <strong class="tool-file-path">tools/taste.py:132</strong></span>
-          <span>Supports: 5 seeds max (tracks/artists/genres) + 6 audio targets</span>
+          <span>Source Files: <strong class="tool-file-path">tools/taste.py</strong>, <strong class="tool-file-path">tools/discovery.py</strong></span>
+          <span>Supports: 5 seeds max (tracks/artists/genres)</span>
         </div>
       </article>
 
@@ -1504,7 +1532,7 @@
         </div>
 
         <p class="tool-description">
-          Advanced algorithmic playlist manipulation and intelligence suite. Merge multiple playlists into new or existing destinations, split tracks into sub-playlists by artist, perform deep multi-strategy deduplication, export full playlist data and audio features to structured JSON, compare playlists side-by-side with Jaccard similarity metrics, detect cross-playlist track overlaps, discover redundant subset playlists, and absorb missing songs without duplicates.
+          Advanced algorithmic playlist manipulation and intelligence suite. Merge multiple playlists into new or existing destinations, split tracks into sub-playlists by artist, perform deep multi-strategy deduplication, export full playlist data and track metadata to structured JSON, compare playlists side-by-side with Jaccard similarity metrics, detect cross-playlist track overlaps, discover redundant subset playlists, and absorb missing songs without duplicates.
         </p>
 
         <div class="tool-flow-grid">
@@ -1544,8 +1572,8 @@
               <button class="copy-btn" onclick="copySnippet('Absorb missing tracks from my Discover playlist into my Favorites')">Copy</button>
             </div>
             <div class="code-preview">
-              <span>spotify_export_playlist(playlist_id='...', include_audio_features=True)</span>
-              <button class="copy-btn" onclick="copySnippet('Export my playlist and its audio features to JSON')">Copy</button>
+              <span>spotify_export_playlist(playlist_id='...')</span>
+              <button class="copy-btn" onclick="copySnippet('Export my playlist and its track metadata to JSON')">Copy</button>
             </div>
           </div>
         </div>
@@ -1557,7 +1585,7 @@
       </article>
 
       <!-- TOOL: Search, Recommendations & Discovery -->
-      <article class="tool-card" data-category="search" data-keywords="search recommendations discovery related artists network mood valence energy tempo genre seed deep cuts album singles catalog">
+      <article class="tool-card" data-category="search" data-keywords="search recommendations discovery related artists collaborators network mood genre deep cuts album singles catalog">
         <div class="tool-card-header">
           <div class="tool-identity">
             <div class="tool-icon">🔮</div>
@@ -1573,19 +1601,19 @@
         </div>
 
         <p class="tool-description">
-          Complete catalog search across tracks, artists, albums, and playlists; finding similar artists and deriving track recommendations from related artist networks; mood-based discovery across valence, energy, and danceability; exploring Spotify recommendation genre seeds; digging for non-single album deep cuts; and direct seed-based recommendation generation.
+          Complete catalog search across tracks, artists, albums, and playlists; finding connected artists (the ones who share songs with an artist) and recommending their songs; mood presets mapped to genres; sampling tracks by genre; digging for album deep cuts; and seed-based recommendations. Spotify removed related artists, recommendations, genre seeds, top tracks and audio features for Development Mode apps, so these tools rebuild them from search and album data.
         </p>
 
         <div class="two-col-grid">
           <div class="col-box">
             <h4>🖥️ How to Use in Web Studio</h4>
             <ul class="steps-list">
-              <li>Open <strong>Advanced Tools</strong> (<a href="/tools" style="color: var(--spotify-green);">/tools</a>) and switch to the <strong>Search, Recommendations & Discovery Studio</strong>.</li>
+              <li>Open the <strong>Search, Recommendations & Discovery Studio</strong> on the home page (<a href="/" style="color: var(--spotify-green);">/</a>).</li>
               <li>Use <strong>Universal Search</strong> to search tracks, artists, albums, and playlists with one query.</li>
-              <li>Use <strong>Related Artists</strong> & <strong>Artist Network</strong> to discover similar musicians and their sound.</li>
-              <li>Click <strong>Mood Discovery</strong> to select emotional presets (Happy, Chill, Energetic, Focus, Party, Dark, Workout) or tweak custom audio sliders.</li>
-              <li>Browse <strong>Genre Explorer</strong> to sample official Spotify genre seeds.</li>
-              <li>Run <strong>Deep Cuts Finder</strong> on an artist or album to unearth obscure, non-single hidden album gems with low popularity thresholds.</li>
+              <li>Use <strong>Related Artists</strong> & <strong>Artist Network</strong> to find the artists who share songs with a musician.</li>
+              <li>Click <strong>Mood Discovery</strong> to select emotional presets (Happy, Chill, Energetic, Focus, Party, Dark, Workout); each maps to genres.</li>
+              <li>Browse <strong>Genre Explorer</strong> to sample tracks from the built-in genre list or any genre keyword.</li>
+              <li>Run <strong>Deep Cuts Finder</strong> on an artist or album to unearth album tracks that aren't among their top search results.</li>
             </ul>
           </div>
 
@@ -1597,39 +1625,39 @@
             </div>
             <div class="code-preview">
               <span>spotify_related_artists(artist='Hans Zimmer')</span>
-              <button class="copy-btn" onclick="copySnippet('Find artists similar to Hans Zimmer on Spotify')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet('Find artists who collaborate with Hans Zimmer on Spotify')">Copy</button>
             </div>
             <div class="code-preview">
               <span>spotify_discover_by_artist(artist='Coldplay', limit=15)</span>
-              <button class="copy-btn" onclick="copySnippet('Recommend tracks derived from Coldplay related artist network')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet('Recommend tracks by artists who collaborate with Coldplay')">Copy</button>
             </div>
             <div class="code-preview">
-              <span>spotify_discover_by_mood(mood='chill', target_valence=0.5, target_energy=0.3)</span>
-              <button class="copy-btn" onclick="copySnippet('Discover chill, low energy tracks on Spotify')">Copy</button>
+              <span>spotify_discover_by_mood(mood='chill', limit=20)</span>
+              <button class="copy-btn" onclick="copySnippet('Discover chill tracks on Spotify')">Copy</button>
             </div>
             <div class="code-preview">
               <span>spotify_genre_explorer(genres=['synthwave', 'lo-fi'], limit=15)</span>
               <button class="copy-btn" onclick="copySnippet('Sample tracks across synthwave and lo-fi genres')">Copy</button>
             </div>
             <div class="code-preview">
-              <span>spotify_discover_deep_cuts(artist_or_album='Radiohead', max_popularity=35)</span>
-              <button class="copy-btn" onclick="copySnippet('Find obscure album-only deep cuts by Radiohead with popularity under 35')">Copy</button>
+              <span>spotify_discover_deep_cuts(artist_or_album='Radiohead', limit=15)</span>
+              <button class="copy-btn" onclick="copySnippet('Find album deep cuts by Radiohead that are not their hits')">Copy</button>
             </div>
             <div class="code-preview">
-              <span>spotify_get_recommendations(seed_genres=['jazz'], target_energy=0.4, limit=20)</span>
-              <button class="copy-btn" onclick="copySnippet('Get 20 jazz recommendations with target energy 0.4')">Copy</button>
+              <span>spotify_get_recommendations(seed_genres=['jazz'], limit=20)</span>
+              <button class="copy-btn" onclick="copySnippet('Get 20 jazz recommendations')">Copy</button>
             </div>
           </div>
         </div>
 
         <div class="tool-footer">
-          <span>Source File: <strong class="tool-file-path">tools/search.py</strong></span>
+          <span>Source Files: <strong class="tool-file-path">tools/search.py</strong>, <strong class="tool-file-path">tools/discovery.py</strong></span>
           <span>REST Endpoints: /api/spotify/search, /api/artist/related, /api/discover/by_artist, /api/discover/by_mood, /api/genres/explore, /api/discover/deep_cuts, /api/recommendations</span>
         </div>
       </article>
 
       <!-- TOOL: Audio Features & Vibe Sorter -->
-      <article class="tool-card" data-category="vibe" data-keywords="audio features valence energy tempo bpm sort flow reorder">
+      <article class="tool-card" data-category="vibe" data-keywords="audio features valence energy tempo bpm sort flow reorder unavailable removed">
         <div class="tool-card-header">
           <div class="tool-identity">
             <div class="tool-icon">📊</div>
@@ -1639,32 +1667,32 @@
             </div>
           </div>
           <div class="tool-badges">
-            <span class="badge badge-mcp">MCP Tool</span>
+            <span class="badge badge-off">Unavailable</span>
             <span class="badge badge-skill">Agent Skill</span>
           </div>
         </div>
 
         <p class="tool-description">
-          Inspects raw acoustic metrics (valence, energy, danceability, tempo BPM, acousticness, key, mode) and allows re-sorting any playlist so that the musical flow seamlessly builds up or chills down.
+          Spotify no longer provides audio features (valence, energy, danceability, tempo, key) to Development Mode apps, so these two tools only return an "unavailable" message and never change your playlist. They stay registered so existing prompts get a clear answer instead of an error.
         </p>
 
         <div class="tool-flow-grid">
           <div class="flow-pane web">
             <div class="flow-pane-title">🌐 In the Web UI</div>
-            <p>Audio feature radar and metric bars are computed dynamically during recommendation generation to match slider targets.</p>
+            <p>The audio-feature inspector and Smart Sorter were removed from the web studio.</p>
           </div>
           <div class="flow-pane agent">
             <div class="flow-pane-title">🤖 In the AI Agent</div>
-            <p>Triggered by <code>playlist_vibe_sorter</code> skill. Say: <em>"Sort my Gym playlist by energy from high to low."</em></p>
+            <p>The <code>playlist_vibe_sorter</code> skill explains the limit and offers what still works: manual reordering, shuffle, splitting by artist, or a new mood playlist.</p>
             <div class="code-preview">
-              <span>reorder_playlist_by_audio_features(playlist_id="...", feature="energy", order="desc")</span>
+              <span>spotify_reorder_playlist(playlist_id="...", range_start=10, insert_before=0, range_length=5)</span>
               <button class="copy-btn" onclick="copySnippet(this)">Copy</button>
             </div>
           </div>
         </div>
 
         <div class="tool-footer">
-          <span>Source File: <strong class="tool-file-path">tools/taste.py:58</strong> &amp; <strong class="tool-file-path">tools/playlists.py</strong></span>
+          <span>Source File: <strong class="tool-file-path">tools/taste.py</strong> &amp; <strong class="tool-file-path">tools/playlists.py</strong></span>
           <span>Skill: skills/playlist-vibe-sorter.md</span>
         </div>
       </article>
@@ -1789,13 +1817,13 @@
         </div>
 
         <p class="tool-description">
-          A full-fidelity listening telemetry and comparative audio analytics studio. Inspect personal short, medium, and long term track/artist affinity, hourly volume curves, listener taste archetypes, multi-playlist audio feature distributions, and library playlist freshness audits.
+          A listening telemetry and comparison studio. Inspect personal short, medium, and long term track/artist affinity, hourly volume curves, your taste profile (top artists, artist variety, eras), side-by-side playlist comparisons, and playlist freshness audits. Spotify no longer returns audio features, popularity or genres to Development Mode apps, so there are no energy, valence or mainstream scores.
         </p>
 
         <div class="tool-flow-grid">
           <div class="flow-pane web">
             <div class="flow-pane-title">🌐 In the Web UI (/tools)</div>
-            <p>Access the <strong>📊 Stats, Analytics & Insights Studio</strong> with interactive tabs for Top Tracks, Top Artists, Recently Played, Listening Patterns (with 24-hr bar chart), Taste Profile (with Archetype Card & Obscurity Index), Multi-Playlist Compare, and Freshness Audit.</p>
+            <p>Access the <strong>📊 Stats, Analytics & Insights Studio</strong> with interactive tabs for Top Tracks, Top Artists, Recently Played, Listening Patterns (with 24-hr bar chart), Taste Profile, Multi-Playlist Compare, and Freshness Audit.</p>
           </div>
           <div class="flow-pane agent">
             <div class="flow-pane-title">🤖 In the MCP AI Agent</div>
@@ -1809,12 +1837,12 @@
               <button class="copy-btn" onclick="copySnippet('What are my peak Spotify listening hours and repeat tracks?')">Copy</button>
             </div>
             <div class="code-preview" style="margin-bottom: 6px;">
-              <span>spotify_taste_profile(time_range="medium_term")  # Archetype</span>
-              <button class="copy-btn" onclick="copySnippet('Analyze my musical taste profile and obscure artist affinity')">Copy</button>
+              <span>spotify_taste_profile()  # Listener type, top artists, eras</span>
+              <button class="copy-btn" onclick="copySnippet('Analyze my musical taste profile')">Copy</button>
             </div>
             <div class="code-preview" style="margin-bottom: 6px;">
               <span>spotify_playlist_compare(playlist_ids=["id1", "id2"])</span>
-              <button class="copy-btn" onclick="copySnippet('Compare the audio features of these two playlists')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet('Compare these two playlists: size, artists, eras and shared songs')">Copy</button>
             </div>
             <div class="code-preview">
               <span>spotify_playlist_freshness(stale_days_threshold=60)</span>
@@ -1903,13 +1931,13 @@
         </div>
 
         <p class="tool-description">
-          Deep-dive inspection into Spotify catalog entities. Inspect detailed track metadata (ISRC codes, 30s audio previews, popularity metrics), full album information (record label, legal copyrights, full tracklists), artist profiles (global followers, genre tags, popularity index), complete discographies (albums, singles, compilations), and public user profiles with their public playlists.
+          Deep-dive inspection into Spotify catalog entities. Inspect detailed track metadata (ISRC codes, 30s audio previews), full album information (record label, legal copyrights, full tracklists), artist profiles, complete discographies (albums, singles, compilations), and your own user profile. Spotify no longer returns popularity, followers or genres, or other users' profiles, to Development Mode apps; those fields show N/A.
         </p>
 
         <div class="tool-flow-grid">
           <div class="flow-pane web">
             <div class="flow-pane-title">🌐 In the Web UI (/tools)</div>
-            <p>Access the <strong>🔎 Catalog & Entity Inspection Studio</strong> with dedicated tabs for Track Details (with audio preview playback), Album Details (with copyright and tracklist), Artist Profile, Discography, and User Profile.</p>
+            <p>Access the <strong>🔎 Catalog & Entity Inspection Studio</strong> with dedicated tabs for Track Details (with audio preview playback), Album Details (with copyright and tracklist), Artist Profile, and Discography.</p>
           </div>
           <div class="flow-pane agent">
             <div class="flow-pane-title">🤖 In the MCP AI Agent</div>
@@ -1924,22 +1952,22 @@
             </div>
             <div class="code-preview" style="margin-bottom: 6px;">
               <span>spotify_get_artist(artist_id="Radiohead")</span>
-              <button class="copy-btn" onclick="copySnippet('Get genres, follower count, and popularity for Radiohead')">Copy</button>
+              <button class="copy-btn" onclick="copySnippet('Show the Spotify artist profile for Radiohead')">Copy</button>
             </div>
             <div class="code-preview" style="margin-bottom: 6px;">
               <span>spotify_get_artist_albums(artist_id="Daft Punk", include_groups="album,single")</span>
               <button class="copy-btn" onclick="copySnippet('List all albums and singles by Daft Punk')">Copy</button>
             </div>
             <div class="code-preview">
-              <span>spotify_get_user(user_id="spotify:user:wizzler")</span>
-              <button class="copy-btn" onclick="copySnippet('Fetch public profile information and playlists for this user')">Copy</button>
+              <span>spotify_get_user(user_id="me")</span>
+              <button class="copy-btn" onclick="copySnippet('Show my Spotify profile and playlists')">Copy</button>
             </div>
           </div>
         </div>
 
         <div class="tool-footer">
           <span>Source Files: <strong class="tool-file-path">tools/browse.py</strong>, <strong class="tool-file-path">mcp-soundtrack-app/server.py</strong></span>
-          <span>Scope: Public Catalog & User Profile Inspection</span>
+          <span>Scope: Public Catalog & Your Own Profile</span>
         </div>
       </article>
 

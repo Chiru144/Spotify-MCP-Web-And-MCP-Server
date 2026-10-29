@@ -8,15 +8,29 @@ This repository contains a FastMCP application integrating Spotify and TMDB (The
 
 ## Highlights
 
-- **108 FastMCP Tools & 20 Agent Skills**: Comprehensive toolkit covering cinema filmography discovery, smart playlist management, acoustic feature reordering, deep taste analytics, catalog browsing, library management, and complete Spotify Connect hardware control.
+- **108 FastMCP Tools & 20 Agent Skills**: Comprehensive toolkit covering cinema filmography discovery, smart playlist management, artist-network and mood discovery, taste analytics, catalog browsing, library management, and complete Spotify Connect hardware control.
 - **PKCE OAuth & Flexible Auth**: Built-in Spotify PKCE authentication removes the need for a client secret via simple one-click browser login, alongside intelligent TMDB authentication accepting either an API Key or Read Access Token.
 - **Cross-Domain Media Blending**: Bridges cinema and music by letting your AI dynamically look up movies, cast, or crew on TMDB and map them into custom Spotify playlists.
 - **Dual Web & Agent Design**: Built on FastAPI/Uvicorn, it functions as both a flexible web endpoint and an MCP server, supporting remote hosting and multiple networked AI connections.
 - **Modular Architecture**: The codebase is cleanly separated into specialized tool modules (`playback.py`, `playlists.py`, `taste.py`, `search.py`, `library.py`, `browse.py`, `web_app.py`), making it highly scalable and completely unit-testable.
 
+## Spotify 2026 Development Mode Limits
+
+In 2026 Spotify switched off several Web API features for apps in Development Mode, which is what a personal Client ID is. The tools work around them where they can:
+
+| Spotify feature | Status | What the tools do instead |
+| :--- | :--- | :--- |
+| Related artists | Removed (403) | `spotify_related_artists` and `get_artist_network` list the artists who share the most songs with the artist. |
+| Recommendations and genre seeds | Removed (404) | `spotify_get_recommendations`, `get_recommendations` and `spotify_discover_by_artist` recommend songs by the seeds' collaborators plus genre-search picks. `spotify_genre_explorer` lists a built-in set of genres. |
+| Artist top tracks | Removed (403) | The artist's top search results stand in. |
+| Audio features (energy, valence, tempo...) | Removed (403) | `get_audio_features` and `reorder_playlist_by_audio_features` return an "unavailable" message. `target_*` arguments are accepted but ignored. Moods map to genres. |
+| Popularity, followers, genres | Returned as null | Shown as N/A or left out. `spotify_discover_deep_cuts` treats "deep cut" as "an album track outside the artist's top search results", and `spotify_taste_profile` reports artist variety and eras instead of a mainstream score. |
+| Other users' profiles, follower checks and unfollowed playlists | Removed (403) | `spotify_get_user` and `spotify_check_playlist_followers` work for your own account only. |
+| Search `limit` above 10 | Rejected | The client fetches larger searches 10 at a time. |
+
 ## Features & Capabilities
 
-For an in-depth breakdown of features, feature comparison tables, the cinema filmography pipeline, audio feature calculations, the complete 108-tool catalog, and 20 autonomous agent skills, please refer to **[CONTRIBUTING.md](CONTRIBUTING.md#features--technical-overview)**.
+For an in-depth breakdown of features, feature comparison tables, the cinema filmography pipeline, the complete 108-tool catalog, and 20 autonomous agent skills, please refer to **[CONTRIBUTING.md](CONTRIBUTING.md#features--technical-overview)**.
 
 ## Complete FastMCP Tools Catalog (108 Registered Tools)
 
@@ -36,12 +50,12 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 | search_singers | Search for singers, musical artists, or bands on Spotify. |
 | search_songs | Search for songs or tracks on Spotify with detailed track metadata. |
 | search_spotify | Search for songs, albums, artists, or playlists on Spotify. |
-| spotify_discover_by_artist | Generate track recommendations derived from related artist networks. |
-| spotify_discover_by_mood | Discover tracks using target audio parameters (valence, energy, tempo, etc.) or mood presets. |
-| spotify_discover_deep_cuts | Discover non-single, album-only deep cut tracks from an artist or album. |
-| spotify_genre_explorer | Browse and sample tracks across specific seed genres or list all available genre seeds. |
-| spotify_get_recommendations | Direct wrapper for Spotify Recommendations API using seeds and target audio features. |
-| spotify_related_artists | Find artists similar to a target artist. |
+| spotify_discover_by_artist | Recommend songs by the artists a seed artist collaborates with. |
+| spotify_discover_by_mood | Discover tracks for a mood preset or a set of genres. |
+| spotify_discover_deep_cuts | Discover album tracks from an artist or album that are not among their best-known songs. |
+| spotify_genre_explorer | Sample tracks across specific genres, or list suggested genres. |
+| spotify_get_recommendations | Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks). |
+| spotify_related_artists | Find artists connected to a target artist (the artists who share the most songs with them). |
 | spotify_search | Search Spotify catalog for tracks, artists, albums, or playlists. |
 
 </details>
@@ -61,14 +75,14 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 | get_playlist_tracks | Get the tracks currently inside a specific playlist. |
 | get_user_playlists | Get the current user's playlists with song counts. |
 | remove_tracks_from_playlist | Remove one or more tracks from a playlist by their URIs. |
-| reorder_playlist_by_audio_features | Smart Reorder: Sorts a user's playlist by a given audio feature (energy, valence, danceability, etc). |
+| reorder_playlist_by_audio_features | Unavailable: Spotify no longer provides audio features (energy, valence, danceability, tempo) for Development Mode apps, so playlists cannot be sorted by them. The playlist is left unchanged. |
 | shuffle_playlist | Mix and shuffle all songs in a Spotify playlist into a completely new random order. |
 | spotify_absorb_playlist | Pull only missing/unique tracks from a source playlist into a destination playlist. |
 | spotify_add_to_playlist | Append tracks to an existing playlist. |
-| spotify_check_playlist_followers | Check if specific users follow a playlist. |
+| spotify_check_playlist_followers | Check whether you follow (have saved) a playlist. Spotify no longer answers this for other users for Development Mode apps, so only your own user ID can be checked. |
 | spotify_create_playlist | Create a new empty playlist. |
 | spotify_deduplicate_playlist | Scan and strip out duplicate tracks from a playlist. |
-| spotify_export_playlist | Export full playlist data, track metadata, and audio features to structured JSON. |
+| spotify_export_playlist | Export full playlist data and track metadata to structured JSON. |
 | spotify_find_playlist_overlaps | Scan all user playlists to identify cross-playlist overlaps. |
 | spotify_find_playlist_subsets | Detect if any user playlists are complete or near-complete subsets of another playlist. |
 | spotify_follow_playlist | Add a playlist to the user's library (Follow). |
@@ -127,22 +141,22 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 </details>
 
 <details>
-<summary><b>Taste Analytics, Audio Features & Insights</b> (<code>tools/taste.py</code> &mdash; 14 tools)</summary>
+<summary><b>Taste Analytics & Insights</b> (<code>tools/taste.py</code> &mdash; 14 tools)</summary>
 
 | Tool Name | Description |
 | :--- | :--- |
-| get_artist_network | Map an artist's network by fetching related artists. |
-| get_audio_features | Get audio features (danceability, energy, valence, etc) for multiple tracks. |
-| get_recommendations | Get track recommendations based on seeds and audio features. |
+| get_artist_network | Map an artist's network: the artists who share the most songs with them. |
+| get_audio_features | Unavailable: Spotify no longer provides audio features (danceability, energy, valence, tempo) for Development Mode apps. |
+| get_recommendations | Get track recommendations from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks). |
 | get_saved_tracks | Get tracks from the user's Library (Saved Tracks). |
 | get_user_top_artists | Get the current user's top artists over a specified period. |
 | get_user_top_songs | Get the current user's top songs over a specified period. |
 | get_user_top_tracks | Get the current user's top songs over a specified period. |
 | spotify_listening_patterns | Analyze listening volume distributions across hours and days. |
-| spotify_playlist_compare | Compare multi-playlist audio feature distributions side-by-side. |
+| spotify_playlist_compare | Compare playlists side-by-side: size, song length, explicit share, artist variety, era and overlap. (Spotify no longer provides audio features such as energy or valence for Development Mode apps.) |
 | spotify_playlist_freshness | Sort playlists by last update timestamp to identify stale lists. |
 | spotify_recently_played | Fetch recent track listening history. |
-| spotify_taste_profile | Generate an overview of genre diversity and niche artist affinity. |
+| spotify_taste_profile | Generate an overview of your top artists, artist variety, eras and (when Spotify provides them) genres. |
 | spotify_top_artists | Fetch user's top artists over short, medium, or long term. |
 | spotify_top_tracks | Fetch user's top tracks over short, medium, or long term. |
 
@@ -170,10 +184,10 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 | Tool Name | Description |
 | :--- | :--- |
 | spotify_get_album | Inspect full album details including copyrights, label, release date, and complete tracklist. |
-| spotify_get_artist | Inspect artist details including genres, follower count, popularity, and profile images. |
+| spotify_get_artist | Inspect artist details and profile images (Spotify no longer returns genres, followers or popularity for Development Mode apps; these show N/A). |
 | spotify_get_artist_albums | Get all albums, singles, and compilations released by a specific artist. |
 | spotify_get_track | Inspect full track metadata including ISRC, popularity, audio preview URL, and album details. |
-| spotify_get_user | Fetch public profile information and public playlists for any Spotify user. |
+| spotify_get_user | Fetch your own Spotify profile and playlists. Other users' profiles are unavailable: Spotify no longer provides them to Development Mode apps. |
 
 </details>
 
@@ -206,12 +220,12 @@ In addition to individual FastMCP tools, this repository packages **20 autonomou
 | [playlist-deduplicator.md](skills/playlist-deduplicator.md) | **Spotify Playlist Deduplicator** | A single-purpose skill that finds duplicate songs in a playlist and removes them. |
 | [playlist-operations.md](skills/playlist-operations.md) | **Spotify Playlist Operations** | A comprehensive skill for creating, updating, organizing, reordering, and inspecting Spotify playlists. |
 | [playlist-power-tools.md](skills/playlist-power-tools.md) | **Playlist Power Tools Skill Guide** | This skill equips AI agents to execute advanced, programmatic playlist curation, restructuring, and library analysis through the 8 **Playlist Power Tools**. |
-| [playlist-vibe-sorter.md](skills/playlist-vibe-sorter.md) | **Spotify Playlist Vibe Sorter** | A single-purpose skill that reorders an existing playlist based on audio features like energy, danceability, or valence. |
+| [playlist-vibe-sorter.md](skills/playlist-vibe-sorter.md) | **Spotify Playlist Vibe Sorter** | Explains that sorting by audio features is no longer possible (Spotify removed them for Development Mode apps) and offers the reorder, shuffle and split tools instead. |
 | [prompt-clarification-protocol.md](skills/prompt-clarification-protocol.md) | **Prompt Clarification Protocol Skill** | Guidelines for evaluating prompt specificity and resolving ambiguity before triggering large playlist creation or batch operations. |
 | [queue-flow-manager.md](skills/queue-flow-manager.md) | **Playback Queue & Flow Manager Skill** | Inspect, curate, and dynamically inject tracks into the user's upcoming Spotify playback queue. |
-| [search-recommendations.md](skills/search-recommendations.md) | **Search, Recommendations & Discovery Skill Guide** | This skill equips AI agents to search Spotify's catalog, explore artist networks, discover music by mood and audio attributes, sample genre seeds, unearth hidden album deep cuts, and generate fine-tuned recommendations through the 7 **Search, Recommendations & Discovery Tools**. |
+| [search-recommendations.md](skills/search-recommendations.md) | **Search, Recommendations & Discovery Skill Guide** | This skill equips AI agents to search Spotify's catalog, explore artist networks, discover music by mood and genre, unearth hidden album deep cuts, and generate seed-based recommendations through the 7 **Search, Recommendations & Discovery Tools**. |
 | [soundtrack-staging-studio.md](skills/soundtrack-staging-studio.md) | **Soundtrack Curator & Staging Studio Skill** | Interactive visual curation workflow for launching, previewing, and staging soundtracks via the local Soundtrack Curator & Staging Studio web application. |
-| [stats-analytics.md](skills/stats-analytics.md) | **Stats, Analytics & Insights Skill** | Comprehensive listening telemetry, temporal volume distributions, taste archetype classification, multi-playlist audio feature comparisons, and library maintenance audits. |
+| [stats-analytics.md](skills/stats-analytics.md) | **Stats, Analytics & Insights Skill** | Comprehensive listening telemetry, temporal volume distributions, taste profiles, multi-playlist comparisons, and library maintenance audits. |
 | [taste-analyzer.md](skills/taste-analyzer.md) | **Spotify Taste Analyzer** | A single-purpose skill that analyzes the user's Spotify listening habits, saved music library, and reports on their top tracks or artists. |
 
 ## Prerequisites
@@ -304,11 +318,11 @@ To prevent flooding the LLM context window in AI clients (Cursor, Claude Desktop
 
 | Toolset Profile | Exposed Tools | Token Footprint | Best For |
 | :--- | :--- | :--- | :--- |
-| **`core`** *(Default)* | **16 tools** | **~2,757 tokens** | Filmography curation, movie soundtracks, search, dedupe, audio features, staging studio |
+| **`core`** *(Default)* | **16 tools** | **~2,757 tokens** | Filmography curation, movie soundtracks, search, dedupe, staging studio |
 | **`playback`** | 31 tools | ~5,800 tokens | DJ controls, Spotify Connect device switching, queue management |
 | **`playlists`** | 33 tools | ~7,400 tokens | Advanced playlist diff, subset detection, merging, sorting, splitting |
 | **`search`** | 16 tools | ~3,600 tokens | Music exploration, mood/genre search, TMDB movie & actor filmography lookup |
-| **`taste`** | 14 tools | ~3,100 tokens | Top tracks, listening patterns, taste profile, audio feature comparisons |
+| **`taste`** | 14 tools | ~3,100 tokens | Top tracks, listening patterns, taste profile, playlist comparisons |
 | **`library`** | 8 tools | ~1,800 tokens | Saved tracks, saved albums, follower management |
 | **`browse`** | 5 tools | ~1,100 tokens | Spotify catalog lookup (artist, album, track, user) |
 | **`all`** | 108 tools | ~21,376 tokens | Full access to every tool across all domains |
@@ -366,7 +380,7 @@ Spotify-MCP-Web-MCP-Server/
 │   ├── core.py                # FastMCP server instance, Spotify/TMDB client helpers
 │   ├── playlists.py           # Core playlist curation & power tools
 │   ├── playback.py            # Spotify Connect playback & hardware controls
-│   ├── taste.py               # Deep audio features, taste analytics & listening trends
+│   ├── taste.py               # Taste analytics & listening trends
 │   ├── search.py              # Music discovery, search & TMDB filmography tools
 │   ├── library.py             # Saved tracks, albums & library management
 │   ├── browse.py              # Catalog entity inspection & artist discography

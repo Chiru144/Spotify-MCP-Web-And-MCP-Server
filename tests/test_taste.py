@@ -20,11 +20,18 @@ def test_taste_tools(mock_clients):
     taste.get_user_top_tracks()
     taste.get_user_top_songs()
     taste.get_user_top_artists()
-    taste.get_audio_features(["spotify:track:123"])
-    taste.get_artist_network("Artist Name")
+    assert "no longer provides audio features" in taste.get_audio_features(["spotify:track:123"])
+    assert "Artist" in taste.get_artist_network("Artist Name")
     taste.get_saved_tracks()
-    sp_mock.recommendations.return_value = {"tracks": [{"name": "Song 1", "artists": [{"name": "Artist 1"}], "uri": "spotify:track:1"}]}
-    taste.get_recommendations(limit=5, seed_genres=["rock"])
+    sp_mock.search.return_value = {"tracks": {"items": [{"name": "Song 1", "artists": [{"name": "Artist 1"}], "uri": "spotify:track:1"}]}}
+    res = taste.get_recommendations(limit=5, seed_genres=["rock"], target_energy=0.5)
+    assert "Song 1" in res
+    assert "ignored" in res
+    assert sp_mock.search.call_args.kwargs["q"] == 'genre:"rock"'
+
+    # Spotify (2026) switched these off for Development Mode apps; no tool may call them
+    for name in ["artist_related_artists", "recommendations", "audio_features"]:
+        getattr(sp_mock, name).assert_not_called()
 
 
 def test_stats_analytics_tools(mock_clients):
@@ -92,12 +99,43 @@ def test_stats_analytics_tools(mock_clients):
 
     # 5. spotify_taste_profile
     res_taste = taste.spotify_taste_profile()
-    assert "Archetype" in res_taste
+    assert "Listener Type" in res_taste
+    assert "Indie Rock" in res_taste
+    assert "2020s" in res_taste
 
-    # 6. spotify_playlist_compare
+    # 6. spotify_playlist_compare (no audio features any more)
     res_compare = taste.spotify_playlist_compare(playlist_ids=["spotify:playlist:p1", "spotify:playlist:p2"])
-    assert "Playlist Audio Feature Comparison" in res_compare
+    assert "Multi-Playlist Comparison" in res_compare
+    assert "Songs in every playlist: 1" in res_compare
+    sp_mock.audio_features.assert_not_called()
 
     # 7. spotify_playlist_freshness
     res_fresh = taste.spotify_playlist_freshness(limit=10, stale_days_threshold=60)
     assert "Freshness Audit" in res_fresh
+
+
+def test_taste_profile_without_genres_or_popularity(mock_clients):
+    """Spotify now returns null genres and popularity for Development Mode apps."""
+    sp_mock = mock_clients.return_value
+    sp_mock.current_user_top_artists.return_value = {"items": [{"name": "A", "genres": None, "popularity": None}]}
+    sp_mock.current_user_top_tracks.return_value = {"items": [
+        {"name": f"T{i}", "artists": [{"name": "A"}], "album": {"release_date": "1999"}, "popularity": None} for i in range(4)
+    ]}
+    res = taste.spotify_taste_profile()
+    assert "Devoted Fan" in res
+    assert "Mainstream Index" not in res
+    assert "Top Musical Genres" not in res
+    assert "A (4 songs)" in res
+
+
+def test_playlist_compare_skips_unreadable_playlists(mock_clients):
+    import spotipy
+    sp_mock = mock_clients.return_value
+    sp_mock.playlist.side_effect = [
+        {"name": "Mine", "tracks": {"total": 1}},
+        spotipy.SpotifyException(403, -1, "Forbidden"),
+    ]
+    sp_mock.playlist_items.return_value = {"items": []}
+    res = taste.spotify_playlist_compare(["p1", "p2"])
+    assert "Could not read at least 2" in res
+    assert "not your playlist" in res

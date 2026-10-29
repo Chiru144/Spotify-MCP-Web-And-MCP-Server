@@ -162,14 +162,14 @@ def test_spotify_get_artist_albums(mock_clients):
 
 def test_spotify_get_user(mock_clients):
     sp_mock = mock_clients.return_value
-    sp_mock.user.return_value = {
+    sp_mock.me.return_value = {
         "id": "wizzler",
         "display_name": "Matt Ogle",
         "followers": {"total": 4500},
         "images": [{"url": "https://i.scdn.co/image/user.jpg"}],
         "external_urls": {"spotify": "https://open.spotify.com/user/wizzler"}
     }
-    sp_mock.user_playlists.return_value = {
+    sp_mock.current_user_playlists.return_value = {
         "items": [
             {
                 "name": "Morning Coffee",
@@ -179,7 +179,26 @@ def test_spotify_get_user(mock_clients):
         ]
     }
 
-    res = browse.spotify_get_user("wizzler")
+    res = browse.spotify_get_user("spotify:user:wizzler")
     assert "Matt Ogle" in res
     assert "4,500" in res
     assert "Morning Coffee" in res
+
+    # Other users' profiles return 403 for Development Mode apps, so they are not requested
+    res_other = browse.spotify_get_user("someone_else")
+    assert "no longer provides" in res_other
+    sp_mock.user.assert_not_called()
+    sp_mock.user_playlists.assert_not_called()
+
+
+def test_spotify_get_artist_null_stats(mock_clients):
+    sp_mock = mock_clients.return_value
+    sp_mock.artist.return_value = {
+        "id": "4Z8W4fKeB5YxbusRsdQVPb", "name": "Radiohead",
+        "followers": None, "popularity": None, "genres": None,
+        "uri": "spotify:artist:4Z8W4fKeB5YxbusRsdQVPb"
+    }
+    res = browse.spotify_get_artist("spotify:artist:4Z8W4fKeB5YxbusRsdQVPb")
+    assert "Radiohead" in res
+    assert "Followers: N/A" in res
+    assert "None listed" in res

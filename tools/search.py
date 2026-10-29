@@ -1,6 +1,7 @@
 from typing import Optional, List, Dict, Any
 from mcp.types import ToolAnnotations
-from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration
+from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration, _stats
+from tools import discovery
 import spotipy
 import difflib
 import re
@@ -190,7 +191,7 @@ def search_spotify(query: str, search_type: str = "track", limit: int = 5) -> st
             items = results["artists"]["items"]
             lines.append(f"\nArtists (Total count: {len(items)}):")
             for art in items:
-                lines.append(f"- {art['name']} (URI: {art['uri']}, Followers: {art.get('followers', {}).get('total', 0):,})")
+                lines.append(f"- {art['name']} (URI: {art['uri']}{_stats(art)})")
 
         if "playlists" in results and results["playlists"]["items"]:
             items = [p for p in results["playlists"]["items"] if p]
@@ -249,16 +250,14 @@ def spotify_search(
                 artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
                 album = t.get("album", {}).get("name", "Unknown Album")
                 dur = _format_duration(t.get("duration_ms", 0))
-                pop = t.get("popularity", 0)
-                output.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (Popularity: {pop}/100, URI: {t.get('uri')})")
+                output.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')}{_stats(t)})")
 
         if "artists" in results and results["artists"]["items"]:
             items = results["artists"]["items"]
             output.append(f"\n🎤 Artists ({len(items)}):")
             for idx, a in enumerate(items, 1):
-                genres = ", ".join(a.get("genres", [])[:3]) or "No genres listed"
-                followers = a.get("followers", {}).get("total", 0)
-                output.append(f"{idx}. {a.get('name')} [Genres: {genres}] ({followers:,} followers, URI: {a.get('uri')})")
+                genres = ", ".join((a.get("genres") or [])[:3]) or "No genres listed"
+                output.append(f"{idx}. {a.get('name')} [Genres: {genres}] (URI: {a.get('uri')}{_stats(a)})")
 
         if "albums" in results and results["albums"]["items"]:
             items = results["albums"]["items"]
@@ -282,51 +281,45 @@ def spotify_search(
         return f"Error searching Spotify catalog: {str(e)}"
 
 
+def _track_line(idx: int, t: Dict[str, Any]) -> str:
+    artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
+    album = (t.get("album") or {}).get("name", "Unknown Album")
+    dur = _format_duration(t.get("duration_ms", 0))
+    return f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')})"
+
+
+def _as_list(value) -> List[str]:
+    if isinstance(value, str):
+        return [v.strip() for v in value.split(",") if v.strip()]
+    return [v for v in (value or []) if v]
+
+
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_related_artists(artist: str) -> str:
-    """Find artists similar to a target artist.
-    
+    """Find artists connected to a target artist (the artists who share the most songs with them).
+
     Args:
         artist: Artist name, Spotify artist ID, or Spotify artist URI (e.g. 'Hans Zimmer', 'spotify:artist:0YC192cP3KPCRWx8zr8MfZ').
     """
     try:
         sp = get_spotify_client()
-        clean_id = _clean_spotify_id(artist, "artist")
-
-        is_uri_or_id = artist.startswith("spotify:") or "spotify.com" in artist or len(clean_id) == 22
-        if not is_uri_or_id:
-            search_res = sp.search(q=artist, type="artist", limit=1)
-            items = search_res.get("artists", {}).get("items", [])
-            if not items:
-                return f"Artist '{artist}' not found on Spotify."
-            target_artist = items[0]
-            artist_id = target_artist.get("id", clean_id)
-        else:
-            target_artist = sp.artist(clean_id)
-            artist_id = target_artist.get("id", clean_id)
+        target_artist = discovery.find_artist(sp, artist)
+        if not target_artist:
+            return f"Artist '{artist}' not found on Spotify."
 
         artist_name = target_artist.get("name", artist)
-        related_data = sp.artist_related_artists(artist_id)
-        related_items = related_data.get("artists", [])
-
+        # Spotify removed related-artists: use the artists who share the most songs with them
+        related_items = discovery.collaborators(sp, target_artist)
         if not related_items:
-            return f"No related artists found on Spotify for '{artist_name}'."
+            return f"No collaborating artists found on Spotify for '{artist_name}'."
 
-        genres = ", ".join(target_artist.get("genres", [])[:4]) or "N/A"
-        followers = target_artist.get("followers", {}).get("total", 0)
         lines = [
-            f"Related Artists for '{artist_name}' (Followers: {followers:,}, Genres: {genres}):",
-            f"Found {len(related_items)} similar artists on Spotify:\n"
+            f"Related Artists for '{artist_name}':",
+            f"Found {len(related_items)} artists who share songs with them:\n"
         ]
-
         for idx, a in enumerate(related_items, 1):
-            a_genres = ", ".join(a.get("genres", [])[:3]) or "N/A"
-            a_followers = a.get("followers", {}).get("total", 0)
-            a_pop = a.get("popularity", 0)
-            lines.append(f"{idx}. {a.get('name')} [Popularity: {a_pop}/100, Followers: {a_followers:,}]")
-            lines.append(f"   Genres: {a_genres}")
+            lines.append(f"{idx}. {a.get('name')} [Shared songs: {a.get('shared_tracks', 0)}]")
             lines.append(f"   URI: {a.get('uri')}")
-
         return "\n".join(lines)
     except Exception as e:
         return f"Error finding related artists: {str(e)}"
@@ -338,63 +331,40 @@ def spotify_discover_by_artist(
     limit: int = 15,
     include_artist_top_tracks: bool = True
 ) -> str:
-    """Generate track recommendations derived from related artist networks.
-    
+    """Recommend songs by the artists a seed artist collaborates with.
+
     Args:
         artist: Seed artist name, ID, or URI.
         limit: Number of recommended tracks to return (default: 15, max: 50).
-        include_artist_top_tracks: Whether to include top tracks from the seed artist (default: True).
+        include_artist_top_tracks: Whether to include the seed artist's own top search results (default: True).
     """
     try:
         sp = get_spotify_client()
-        clean_id = _clean_spotify_id(artist, "artist")
-
-        is_uri_or_id = artist.startswith("spotify:") or "spotify.com" in artist or len(clean_id) == 22
-        if not is_uri_or_id:
-            search_res = sp.search(q=artist, type="artist", limit=1)
-            items = search_res.get("artists", {}).get("items", [])
-            if not items:
-                return f"Artist '{artist}' not found on Spotify."
-            seed_artist = items[0]
-            artist_id = seed_artist.get("id", clean_id)
-        else:
-            seed_artist = sp.artist(clean_id)
-            artist_id = seed_artist.get("id", clean_id)
+        seed_artist = discovery.find_artist(sp, artist)
+        if not seed_artist:
+            return f"Artist '{artist}' not found on Spotify."
 
         artist_name = seed_artist.get("name", artist)
-        related_res = sp.artist_related_artists(artist_id)
-        related_artists = related_res.get("artists", [])
-
-        seed_pool = [artist_id]
-        related_names = []
-        for a in related_artists[:4]:
-            if a.get("id"):
-                seed_pool.append(a["id"])
-                related_names.append(a.get("name", "Unknown"))
-
-        rec_limit = max(1, min(limit, 50))
-        recs = sp.recommendations(seed_artists=seed_pool[:5], limit=rec_limit)
-        rec_tracks = recs.get("tracks", [])
+        limit = max(1, min(limit, 50))
+        # Spotify removed related-artists, recommendations and top-tracks: recommend songs by the
+        # artist's collaborators, and use their own search hits as "top tracks"
+        own_tracks = discovery.artist_tracks(sp, seed_artist)
+        related_artists = discovery.collaborators(sp, seed_artist, own_tracks, limit=4)
+        per_artist = max(1, -(-limit // max(1, len(related_artists))))
+        rec_tracks = discovery.tracks_by_artists(sp, related_artists, per_artist=per_artist,
+                                                 exclude=[t["uri"] for t in own_tracks])[:limit]
 
         lines = [
             f"Artist Network Discovery for '{artist_name}':",
-            f"Related Artist Seeds: {', '.join(related_names) if related_names else 'None'}\n",
+            f"Collaborator Seeds: {', '.join(a.get('name', 'Unknown') for a in related_artists) or 'None'}\n",
             f"Recommended Tracks ({len(rec_tracks)}):"
         ]
+        lines.extend(_track_line(idx, t) for idx, t in enumerate(rec_tracks, 1))
 
-        for idx, t in enumerate(rec_tracks, 1):
-            artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
-            album = t.get("album", {}).get("name", "Unknown Album")
-            dur = _format_duration(t.get("duration_ms", 0))
-            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')})")
-
-        if include_artist_top_tracks:
-            top_res = sp.artist_top_tracks(artist_id)
-            top_tracks = top_res.get("tracks", [])[:3]
-            if top_tracks:
-                lines.append(f"\nTop Tracks by Seed Artist '{artist_name}':")
-                for idx, t in enumerate(top_tracks, 1):
-                    lines.append(f"• {t.get('name')} (URI: {t.get('uri')})")
+        if include_artist_top_tracks and own_tracks:
+            lines.append(f"\nTop Tracks by Seed Artist '{artist_name}':")
+            for t in own_tracks[:3]:
+                lines.append(f"• {t.get('name')} (URI: {t.get('uri')})")
 
         return "\n".join(lines)
     except Exception as e:
@@ -412,73 +382,34 @@ def spotify_discover_by_mood(
     target_tempo: Optional[float] = None,
     limit: int = 20
 ) -> str:
-    """Discover tracks using target audio parameters (valence, energy, tempo, etc.) or mood presets.
-    
+    """Discover tracks for a mood preset or a set of genres.
+
     Args:
         mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-        seed_genres: Optional list of seed genres (e.g. ['pop', 'indie', 'electronic']). Max 5 combined seeds.
-        target_valence: Musical positiveness ($0.0$ to $1.0$).
-        target_energy: Intensity and activity ($0.0$ to $1.0$).
-        target_danceability: Suitability for dancing ($0.0$ to $1.0$).
-        target_acousticness: Confidence measure from $0.0$ to $1.0$ of whether track is acoustic.
-        target_tempo: Target tempo in BPM (beats per minute).
+        seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
+        target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_energy: Ignored (see target_valence).
+        target_danceability: Ignored (see target_valence).
+        target_acousticness: Ignored (see target_valence).
+        target_tempo: Ignored (see target_valence).
         limit: Number of tracks to discover (default: 20, max: 100).
     """
     try:
         sp = get_spotify_client()
-        mood_presets = {
-            "happy": {"target_valence": 0.85, "target_energy": 0.75, "genres": ["pop", "happy"]},
-            "sad": {"target_valence": 0.18, "target_energy": 0.25, "target_acousticness": 0.70, "genres": ["sad", "acoustic"]},
-            "chill": {"target_valence": 0.50, "target_energy": 0.30, "target_acousticness": 0.50, "genres": ["chill", "ambient"]},
-            "energetic": {"target_valence": 0.75, "target_energy": 0.90, "target_danceability": 0.75, "genres": ["dance", "electronic"]},
-            "focus": {"target_valence": 0.40, "target_energy": 0.30, "target_instrumentalness": 0.80, "genres": ["ambient", "study"]},
-            "party": {"target_valence": 0.80, "target_energy": 0.85, "target_danceability": 0.85, "genres": ["dance", "party"]},
-            "dark": {"target_valence": 0.20, "target_energy": 0.75, "genres": ["metal", "industrial"]},
-            "romantic": {"target_valence": 0.60, "target_energy": 0.40, "target_acousticness": 0.60, "genres": ["r-n-b", "romance"]},
-            "workout": {"target_valence": 0.70, "target_energy": 0.95, "target_tempo": 135.0, "genres": ["work-out"]}
-        }
-
-        active_preset = mood_presets.get((mood or "").lower().strip(), {})
-        kwargs = {}
-
-        v = target_valence if target_valence is not None else active_preset.get("target_valence")
-        e = target_energy if target_energy is not None else active_preset.get("target_energy")
-        d = target_danceability if target_danceability is not None else active_preset.get("target_danceability")
-        a = target_acousticness if target_acousticness is not None else active_preset.get("target_acousticness")
-        t = target_tempo if target_tempo is not None else active_preset.get("target_tempo")
-
-        if v is not None: kwargs["target_valence"] = max(0.0, min(1.0, float(v)))
-        if e is not None: kwargs["target_energy"] = max(0.0, min(1.0, float(e)))
-        if d is not None: kwargs["target_danceability"] = max(0.0, min(1.0, float(d)))
-        if a is not None: kwargs["target_acousticness"] = max(0.0, min(1.0, float(a)))
-        if t is not None: kwargs["target_tempo"] = float(t)
-        if "target_instrumentalness" in active_preset:
-            kwargs["target_instrumentalness"] = active_preset["target_instrumentalness"]
-
-        genres = seed_genres or active_preset.get("genres", ["pop"])
-        if isinstance(genres, str):
-            genres = [g.strip() for g in genres.split(",") if g.strip()]
-
-        rec_limit = max(1, min(limit, 100))
-        results = sp.recommendations(seed_genres=genres[:5], limit=rec_limit, **kwargs)
-        tracks = results.get("tracks", [])
-
+        genres = _as_list(seed_genres)
+        mood_key = (mood or "").lower().strip()
+        used_genres = (genres or discovery.MOOD_GENRES.get(mood_key) or [mood_key or "pop"])[:5]
+        # Spotify removed /recommendations and audio features: moods are matched through genres
+        tracks = discovery.mood_tracks(sp, mood, genres, max(1, min(limit, 100)))
         if not tracks:
-            return f"No tracks discovered for mood '{mood}' with seeds {genres}."
+            return f"No tracks discovered for mood '{mood}' with genres {used_genres}."
 
-        params_str = ", ".join(f"{k}={v}" for k, v in kwargs.items())
-        lines = [
-            f"Mood Discovery Results (Mood: '{mood or 'custom'}', Seeds: {', '.join(genres[:5])}):",
-            f"Active Audio Targets: {params_str or 'None'}\n",
-            f"Discovered Tracks ({len(tracks)}):"
-        ]
-
-        for idx, trk in enumerate(tracks, 1):
-            artists = ", ".join(art.get("name", "Unknown") for art in trk.get("artists", []))
-            album = trk.get("album", {}).get("name", "Unknown Album")
-            dur = _format_duration(trk.get("duration_ms", 0))
-            lines.append(f"{idx}. {trk.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {trk.get('uri')})")
-
+        lines = [f"Mood Discovery Results (Mood: '{mood or 'custom'}', Genres: {', '.join(used_genres)}):"]
+        targets = [target_valence, target_energy, target_danceability, target_acousticness, target_tempo]
+        if any(v is not None for v in targets):
+            lines.append("Note: audio-feature targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
+        lines.append(f"\nDiscovered Tracks ({len(tracks)}):")
+        lines.extend(_track_line(idx, t) for idx, t in enumerate(tracks, 1))
         return "\n".join(lines)
     except Exception as e:
         return f"Error discovering tracks by mood: {str(e)}"
@@ -490,46 +421,32 @@ def spotify_genre_explorer(
     limit: int = 15,
     market: Optional[str] = None
 ) -> str:
-    """Browse and sample tracks across specific seed genres or list all available genre seeds.
-    
+    """Sample tracks across specific genres, or list suggested genres.
+
     Args:
-        genres: Optional list of genre seed keywords (e.g. ['synthwave', 'indie-pop', 'jazz']). If None or empty, returns all available Spotify genre seeds.
+        genres: Optional list of genre keywords (e.g. ['synthwave', 'indie pop', 'jazz']). If None or empty, returns the suggested genre list.
         limit: Number of tracks to sample (default: 15, max: 50).
-        market: Optional ISO country code.
+        market: Unused; kept for compatibility.
     """
     try:
-        sp = get_spotify_client()
-        available_genres = sp.recommendation_genre_seeds().get("genres", [])
-
+        genres = _as_list(genres)
         if not genres:
+            # Spotify removed the genre-seeds endpoint; these genres work with search's genre: filter
             lines = [
-                f"Spotify Recommendation Genre Seeds (Total: {len(available_genres)}):",
-                "You can use any of these seeds in recommendations and mood discovery:\n"
+                f"Suggested Genres (Total: {len(discovery.GENRES)}):",
+                "Any of these work with genre discovery and mood discovery:\n"
             ]
-            cols = [", ".join(available_genres[i:i + 6]) for i in range(0, len(available_genres), 6)]
-            lines.extend(cols)
+            lines.extend(", ".join(discovery.GENRES[i:i + 6]) for i in range(0, len(discovery.GENRES), 6))
             lines.append("\nTip: Pass specific genres to this tool (e.g. genres=['ambient', 'lo-fi']) to sample tracks.")
             return "\n".join(lines)
 
-        if isinstance(genres, str):
-            genres = [g.strip() for g in genres.split(",") if g.strip()]
-
-        rec_limit = max(1, min(limit, 50))
-        results = sp.recommendations(seed_genres=genres[:5], limit=rec_limit, market=market)
-        tracks = results.get("tracks", [])
-
+        sp = get_spotify_client()
+        tracks = discovery.genre_tracks(sp, genres, max(1, min(limit, 50)))
         if not tracks:
-            return f"No tracks found for genre seeds: {', '.join(genres)}."
+            return f"No tracks found for genres: {', '.join(genres)}."
 
-        lines = [
-            f"Genre Explorer: Sample tracks for {', '.join(genres[:5])} (Total: {len(tracks)}):"
-        ]
-        for idx, t in enumerate(tracks, 1):
-            artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
-            album = t.get("album", {}).get("name", "Unknown Album")
-            dur = _format_duration(t.get("duration_ms", 0))
-            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')})")
-
+        lines = [f"Genre Explorer: Sample tracks for {', '.join(genres[:5])} (Total: {len(tracks)}):"]
+        lines.extend(_track_line(idx, t) for idx, t in enumerate(tracks, 1))
         return "\n".join(lines)
     except Exception as e:
         return f"Error exploring genres: {str(e)}"
@@ -541,102 +458,32 @@ def spotify_discover_deep_cuts(
     max_popularity: int = 40,
     limit: int = 15
 ) -> str:
-    """Discover non-single, album-only deep cut tracks from an artist or album.
-    
+    """Discover album tracks from an artist or album that are not among their best-known songs.
+
     Args:
         artist_or_album: Name, ID, or URI of an artist or album (e.g. 'Radiohead', 'The Dark Side of the Moon').
-        max_popularity: Maximum popularity threshold (0-100, default: 40). Tracks with popularity <= this threshold are considered deep cuts.
-        limit: Maximum number of deep cuts to return (default: 15).
+        max_popularity: Ignored. Spotify no longer returns track popularity, so deep cuts are album tracks outside the top search results.
+        limit: Maximum number of deep cuts to return (default: 15, max: 50).
     """
     try:
         sp = get_spotify_client()
-        clean_input = artist_or_album.strip()
-        limit = max(1, min(limit, 50))
-
-        # Check if artist
-        artist_res = sp.search(q=clean_input, type="artist", limit=1)
-        artist_items = artist_res.get("artists", {}).get("items", [])
-
-        deep_cuts = []
-        target_name = clean_input
-
-        if artist_items:
-            artist = artist_items[0]
-            artist_id = artist.get("id", clean_input)
-            target_name = artist.get("name", clean_input)
-
-            # Get artist's top tracks to exclude popular singles
-            top_tracks_res = sp.artist_top_tracks(artist_id)
-            top_track_uris = {t["uri"] for t in top_tracks_res.get("tracks", [])}
-
-            # Fetch studio albums
-            albums_res = sp.artist_albums(artist_id, album_type="album", limit=8)
-            albums = albums_res.get("items", [])
-
-            track_ids = []
-            track_album_map = {}
-
-            for alb in albums:
-                alb_id = alb.get("id")
-                if not alb_id:
-                    continue
-                alb_tracks = sp.album_tracks(alb_id, limit=30).get("items", [])
-                for t in alb_tracks:
-                    if t.get("uri") not in top_track_uris and t.get("id"):
-                        track_ids.append(t["id"])
-                        track_album_map[t["id"]] = alb.get("name", "Album")
-
-            # Batch retrieve tracks with popularity
-            for i in range(0, min(len(track_ids), 100), 50):
-                batch = track_ids[i:i + 50]
-                detailed_tracks = sp.tracks(batch).get("tracks", [])
-                for dt in detailed_tracks:
-                    if dt and dt.get("popularity", 100) <= max_popularity:
-                        deep_cuts.append({
-                            "name": dt.get("name"),
-                            "artist": ", ".join(a.get("name") for a in dt.get("artists", [])),
-                            "album": track_album_map.get(dt.get("id"), "Album"),
-                            "popularity": dt.get("popularity", 0),
-                            "duration_ms": dt.get("duration_ms", 0),
-                            "uri": dt.get("uri")
-                        })
-        else:
-            # Fallback to album search
-            album_res = sp.search(q=clean_input, type="album", limit=1)
-            alb_items = album_res.get("albums", {}).get("items", [])
-            if not alb_items:
-                return f"Could not find artist or album '{artist_or_album}' on Spotify."
-            alb = alb_items[0]
-            target_name = alb.get("name", clean_input)
-            alb_tracks = sp.album_tracks(alb.get("id", clean_input), limit=50).get("items", [])
-            t_ids = [t["id"] for t in alb_tracks if t.get("id")]
-            if t_ids:
-                detailed = sp.tracks(t_ids[:50]).get("tracks", [])
-                for dt in detailed:
-                    if dt and dt.get("popularity", 100) <= max_popularity:
-                        deep_cuts.append({
-                            "name": dt.get("name"),
-                            "artist": ", ".join(a.get("name") for a in dt.get("artists", [])),
-                            "album": alb.get("name"),
-                            "popularity": dt.get("popularity", 0),
-                            "duration_ms": dt.get("duration_ms", 0),
-                            "uri": dt.get("uri")
-                        })
-
-        deep_cuts.sort(key=lambda x: x["popularity"])
-        selected_cuts = deep_cuts[:limit]
-
-        if not selected_cuts:
-            return f"No deep cuts found for '{target_name}' with popularity <= {max_popularity}. Try raising max_popularity."
+        result = discovery.deep_cuts(sp, artist_or_album.strip(), max(1, min(limit, 50)))
+        target_name = result.get("name")
+        if not target_name:
+            return f"Could not find artist or album '{artist_or_album}' on Spotify."
+        cuts = result.get("tracks", [])
+        if not cuts:
+            return f"No deep cuts found for '{target_name}'."
 
         lines = [
-            f"Deep Cut Gems for '{target_name}' (Max Popularity Threshold: {max_popularity}/100):",
-            f"Found {len(selected_cuts)} album-only hidden tracks:\n"
+            f"Deep Cut Gems for '{target_name}':",
+            f"Found {len(cuts)} album tracks outside their top search results:\n"
         ]
-        for idx, cut in enumerate(selected_cuts, 1):
-            dur = _format_duration(cut["duration_ms"])
-            lines.append(f"{idx}. '{cut['name']}' - {cut['artist']} [Album: {cut['album']}] (Popularity: {cut['popularity']}/100, {dur}, URI: {cut['uri']})")
-
+        for idx, cut in enumerate(cuts, 1):
+            artists = ", ".join(a.get("name", "Unknown") for a in cut.get("artists", []))
+            album = (cut.get("album") or {}).get("name", "Album")
+            dur = _format_duration(cut.get("duration_ms", 0))
+            lines.append(f"{idx}. '{cut.get('name')}' - {artists} [Album: {album}] ({dur}, URI: {cut.get('uri')})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error discovering deep cuts: {str(e)}"
@@ -658,83 +505,48 @@ def spotify_get_recommendations(
     max_popularity: Optional[int] = None,
     market: Optional[str] = None
 ) -> str:
-    """Direct wrapper for Spotify Recommendations API using seeds and target audio features.
-    
+    """Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
+
     Args:
         limit: Number of recommendations to return (default: 20, max: 100).
         seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
         seed_artists: List of Spotify artist IDs or URIs.
-        seed_genres: List of seed genres (e.g. ['pop', 'rock', 'synthwave']).
-        target_energy: Target energy (0.0 to 1.0).
-        target_valence: Target valence (0.0 to 1.0).
-        target_danceability: Target danceability (0.0 to 1.0).
-        target_acousticness: Target acousticness (0.0 to 1.0).
-        target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-        target_tempo: Target tempo in BPM.
-        min_popularity: Minimum track popularity (0-100).
-        max_popularity: Maximum track popularity (0-100).
-        market: Optional ISO 3166-1 alpha-2 country code.
+        seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
+        target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_valence: Ignored (see target_energy).
+        target_danceability: Ignored (see target_energy).
+        target_acousticness: Ignored (see target_energy).
+        target_instrumentalness: Ignored (see target_energy).
+        target_tempo: Ignored (see target_energy).
+        min_popularity: Ignored. Spotify no longer returns track popularity.
+        max_popularity: Ignored (see min_popularity).
+        market: Unused; kept for compatibility.
     """
     try:
         sp = get_spotify_client()
-
-        clean_tracks = [_clean_spotify_id(t, "track") for t in (seed_tracks or []) if t]
-        clean_artists = [_clean_spotify_id(a, "artist") for a in (seed_artists or []) if a]
-        clean_genres = [g.strip().lower() for g in (seed_genres or []) if g]
-
-        num_seeds = len(clean_tracks) + len(clean_artists) + len(clean_genres)
-        if num_seeds == 0:
+        clean_tracks = [_clean_spotify_id(t, "track") for t in _as_list(seed_tracks)]
+        clean_artists = [_clean_spotify_id(a, "artist") for a in _as_list(seed_artists)]
+        clean_genres = [g.strip().lower() for g in _as_list(seed_genres)]
+        if not (clean_tracks or clean_artists or clean_genres):
             clean_genres = ["pop"]
-            num_seeds = 1
 
-        if num_seeds > 5:
-            total = [("track", t) for t in clean_tracks] + [("artist", a) for a in clean_artists] + [("genre", g) for g in clean_genres]
-            total = total[:5]
-            clean_tracks = [x[1] for x in total if x[0] == "track"]
-            clean_artists = [x[1] for x in total if x[0] == "artist"]
-            clean_genres = [x[1] for x in total if x[0] == "genre"]
-
-        kwargs = {}
-        if target_energy is not None: kwargs["target_energy"] = max(0.0, min(1.0, float(target_energy)))
-        if target_valence is not None: kwargs["target_valence"] = max(0.0, min(1.0, float(target_valence)))
-        if target_danceability is not None: kwargs["target_danceability"] = max(0.0, min(1.0, float(target_danceability)))
-        if target_acousticness is not None: kwargs["target_acousticness"] = max(0.0, min(1.0, float(target_acousticness)))
-        if target_instrumentalness is not None: kwargs["target_instrumentalness"] = max(0.0, min(1.0, float(target_instrumentalness)))
-        if target_tempo is not None: kwargs["target_tempo"] = float(target_tempo)
-        if min_popularity is not None: kwargs["min_popularity"] = max(0, min(100, int(min_popularity)))
-        if max_popularity is not None: kwargs["max_popularity"] = max(0, min(100, int(max_popularity)))
-
-        rec_limit = max(1, min(limit, 100))
-        results = sp.recommendations(
-            seed_tracks=clean_tracks or None,
-            seed_artists=clean_artists or None,
-            seed_genres=clean_genres or None,
-            limit=rec_limit,
-            market=market,
-            **kwargs
-        )
-
-        tracks = results.get("tracks", [])
+        # Spotify removed /recommendations: build them from the seeds' collaborators and genres
+        tracks = discovery.recommend(sp, clean_artists, clean_tracks, clean_genres, max(1, min(limit, 100)))
         if not tracks:
-            return "No recommendations found for the provided seeds and parameters."
+            return "No recommendations found for the provided seeds."
 
         seeds_desc = []
         if clean_tracks: seeds_desc.append(f"Tracks: {len(clean_tracks)}")
         if clean_artists: seeds_desc.append(f"Artists: {len(clean_artists)}")
         if clean_genres: seeds_desc.append(f"Genres: {', '.join(clean_genres)}")
 
-        lines = [
-            f"Spotify Recommendations (Seeds: {', '.join(seeds_desc)}):",
-            f"Found {len(tracks)} track recommendations:\n"
-        ]
-
-        for idx, t in enumerate(tracks, 1):
-            artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
-            album = t.get("album", {}).get("name", "Unknown Album")
-            dur = _format_duration(t.get("duration_ms", 0))
-            pop = t.get("popularity", 0)
-            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (Popularity: {pop}/100, URI: {t.get('uri')})")
-
+        lines = [f"Spotify Recommendations (Seeds: {', '.join(seeds_desc)}):"]
+        ignored = [target_energy, target_valence, target_danceability, target_acousticness,
+                   target_instrumentalness, target_tempo, min_popularity, max_popularity]
+        if any(v is not None for v in ignored):
+            lines.append("Note: audio-feature and popularity targets were ignored; Spotify no longer provides them for Development Mode apps.")
+        lines.append(f"Found {len(tracks)} track recommendations:\n")
+        lines.extend(_track_line(idx, t) for idx, t in enumerate(tracks, 1))
         return "\n".join(lines)
     except Exception as e:
         return f"Error fetching Spotify recommendations: {str(e)}"
@@ -1025,10 +837,8 @@ def search_singers(query: str, limit: int = 10) -> str:
 
         lines = [f"Singers & Artists found for '{query}':"]
         for idx, a in enumerate(items, 1):
-            genres = ", ".join(a.get("genres", [])) or "None specified"
-            followers = a.get("followers", {}).get("total", 0)
-            pop = a.get("popularity", 0)
-            lines.append(f"{idx}. {a.get('name')} (Followers: {followers:,}, Popularity: {pop}/100, Genres: {genres}, URI: {a.get('uri')})")
+            genres = ", ".join(a.get("genres") or []) or "None specified"
+            lines.append(f"{idx}. {a.get('name')} (Genres: {genres}, URI: {a.get('uri')}{_stats(a)})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error searching singers: {str(e)}"
@@ -1054,8 +864,7 @@ def search_songs(query: str, limit: int = 10) -> str:
             artists = ", ".join(a.get("name", "Unknown") for a in t.get("artists", []))
             album = t.get("album", {}).get("name", "Unknown Album")
             dur = _format_duration(t.get("duration_ms", 0))
-            pop = t.get("popularity", 0)
-            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (Popularity: {pop}/100, URI: {t.get('uri')})")
+            lines.append(f"{idx}. {t.get('name')} - {artists} ({dur}) [Album: {album}] (URI: {t.get('uri')}{_stats(t)})")
         return "\n".join(lines)
     except Exception as e:
         return f"Error searching songs: {str(e)}"

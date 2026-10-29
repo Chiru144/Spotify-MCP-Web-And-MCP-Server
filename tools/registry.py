@@ -242,7 +242,8 @@ Args:
     return _dispatch("tools.playlists", "get_user_playlists", **locals())
 
 def _stub_reorder_playlist_by_audio_features(playlist_id: str, feature: str = 'energy', order: str = 'desc', ascending: bool | None = None) -> str:
-    """Smart Reorder: Sorts a user's playlist by a given audio feature (energy, valence, danceability, etc).
+    """Unavailable: Spotify no longer provides audio features (energy, valence, danceability, tempo) for
+Development Mode apps, so playlists cannot be sorted by them. The playlist is left unchanged.
 
 Args:
     playlist_id: Spotify playlist ID or URI.
@@ -361,11 +362,12 @@ Args:
     return _dispatch("tools.playlists", "spotify_get_playlist_cover", **locals())
 
 def _stub_spotify_check_playlist_followers(playlist_id: str, user_ids: List[str]) -> str:
-    """Check if specific users follow a playlist.
+    """Check whether you follow (have saved) a playlist. Spotify no longer answers this for
+other users for Development Mode apps, so only your own user ID can be checked.
 
 Args:
     playlist_id: Spotify playlist ID or URI.
-    user_ids: List of Spotify user IDs to check (e.g. ['user1', 'user2'])."""
+    user_ids: List of Spotify user IDs to check; only your own ID is supported (e.g. ['your_user_id'])."""
     return _dispatch("tools.playlists", "spotify_check_playlist_followers", **locals())
 
 def _stub_spotify_merge_playlists(playlist_ids: List[str], target_playlist_id: str | None = None, new_name: str | None = 'Merged Playlist', description: str | None = 'Merged playlist created via Spotify MCP Power Tools', public: bool = False, deduplicate: bool = True) -> str:
@@ -400,11 +402,11 @@ Args:
     return _dispatch("tools.playlists", "spotify_deduplicate_playlist", **locals())
 
 def _stub_spotify_export_playlist(playlist_id: str, include_audio_features: bool = False) -> str:
-    """Export full playlist data, track metadata, and audio features to structured JSON.
+    """Export full playlist data and track metadata to structured JSON.
 
 Args:
     playlist_id: Spotify playlist ID, URI, or URL.
-    include_audio_features: Whether to include audio features (tempo, energy, valence, danceability, etc.). Default: False."""
+    include_audio_features: Ignored. Spotify no longer provides audio features for Development Mode apps."""
     return _dispatch("tools.playlists", "spotify_export_playlist", **locals())
 
 def _stub_spotify_playlist_diff(playlist_id_a: str, playlist_id_b: str, strategy: str = 'uri') -> str:
@@ -462,14 +464,14 @@ Args:
     return _dispatch("tools.taste", "get_user_top_artists", **locals())
 
 def _stub_get_audio_features(track_uris: list[str]) -> str:
-    """Get audio features (danceability, energy, valence, etc) for multiple tracks.
+    """Unavailable: Spotify no longer provides audio features (danceability, energy, valence, tempo) for Development Mode apps.
 
 Args:
     track_uris: List of Spotify track URIs (max 100)."""
     return _dispatch("tools.taste", "get_audio_features", **locals())
 
 def _stub_get_artist_network(artist_name_or_id: str) -> str:
-    """Map an artist's network by fetching related artists.
+    """Map an artist's network: the artists who share the most songs with them.
 
 Args:
     artist_name_or_id: Name or Spotify ID of the artist."""
@@ -480,19 +482,19 @@ def _stub_get_saved_tracks(limit: int = 50, offset: int = 0) -> str:
     return _dispatch("tools.taste", "get_saved_tracks", **locals())
 
 def _stub_get_recommendations(limit: int = 10, seed_tracks: List[str] | None = None, seed_artists: List[str] | None = None, seed_genres: List[str] | None = None, target_energy: float | None = None, target_valence: float | None = None, target_danceability: float | None = None, target_acousticness: float | None = None, target_instrumentalness: float | None = None, target_tempo: float | None = None) -> str:
-    """Get track recommendations based on seeds and audio features.
+    """Get track recommendations from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
 
 Args:
     limit: Number of recommendations to return (default: 10, max: 100).
     seed_tracks: List of Spotify track IDs or URIs.
     seed_artists: List of Spotify artist IDs or URIs.
-    seed_genres: List of genres (e.g., 'synthwave', 'indie-pop').
-    target_energy: Target energy (0.0 to 1.0).
-    target_valence: Target valence (0.0 to 1.0).
-    target_danceability: Target danceability (0.0 to 1.0).
-    target_acousticness: Target acousticness (0.0 to 1.0).
-    target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-    target_tempo: Target tempo in BPM."""
+    seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
+    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_valence: Ignored (see target_energy).
+    target_danceability: Ignored (see target_energy).
+    target_acousticness: Ignored (see target_energy).
+    target_instrumentalness: Ignored (see target_energy).
+    target_tempo: Ignored (see target_energy)."""
     return _dispatch("tools.taste", "get_recommendations", **locals())
 
 def _stub_spotify_top_tracks(time_range: str = 'medium_term', limit: int = 20, offset: int = 0) -> str:
@@ -527,14 +529,15 @@ def _stub_spotify_listening_patterns() -> str:
     return _dispatch("tools.taste", "spotify_listening_patterns", **locals())
 
 def _stub_spotify_taste_profile() -> str:
-    """Generate an overview of genre diversity and niche artist affinity."""
+    """Generate an overview of your top artists, artist variety, eras and (when Spotify provides them) genres."""
     return _dispatch("tools.taste", "spotify_taste_profile", **locals())
 
 def _stub_spotify_playlist_compare(playlist_ids: List[str]) -> str:
-    """Compare multi-playlist audio feature distributions side-by-side.
+    """Compare playlists side-by-side: size, song length, explicit share, artist variety, era and overlap.
+(Spotify no longer provides audio features such as energy or valence for Development Mode apps.)
 
 Args:
-    playlist_ids: List of 2 or more Spotify playlist IDs or URIs."""
+    playlist_ids: List of 2 or more Spotify playlist IDs or URIs (playlists you own or follow)."""
     return _dispatch("tools.taste", "spotify_playlist_compare", **locals())
 
 def _stub_spotify_playlist_freshness(limit: int = 50, stale_days_threshold: int = 90) -> str:
@@ -605,70 +608,70 @@ Args:
     return _dispatch("tools.search", "spotify_search", **locals())
 
 def _stub_spotify_related_artists(artist: str) -> str:
-    """Find artists similar to a target artist.
+    """Find artists connected to a target artist (the artists who share the most songs with them).
 
 Args:
     artist: Artist name, Spotify artist ID, or Spotify artist URI (e.g. 'Hans Zimmer', 'spotify:artist:0YC192cP3KPCRWx8zr8MfZ')."""
     return _dispatch("tools.search", "spotify_related_artists", **locals())
 
 def _stub_spotify_discover_by_artist(artist: str, limit: int = 15, include_artist_top_tracks: bool = True) -> str:
-    """Generate track recommendations derived from related artist networks.
+    """Recommend songs by the artists a seed artist collaborates with.
 
 Args:
     artist: Seed artist name, ID, or URI.
     limit: Number of recommended tracks to return (default: 15, max: 50).
-    include_artist_top_tracks: Whether to include top tracks from the seed artist (default: True)."""
+    include_artist_top_tracks: Whether to include the seed artist's own top search results (default: True)."""
     return _dispatch("tools.search", "spotify_discover_by_artist", **locals())
 
 def _stub_spotify_discover_by_mood(mood: str | None = None, seed_genres: List[str] | None = None, target_valence: float | None = None, target_energy: float | None = None, target_danceability: float | None = None, target_acousticness: float | None = None, target_tempo: float | None = None, limit: int = 20) -> str:
-    """Discover tracks using target audio parameters (valence, energy, tempo, etc.) or mood presets.
+    """Discover tracks for a mood preset or a set of genres.
 
 Args:
     mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-    seed_genres: Optional list of seed genres (e.g. ['pop', 'indie', 'electronic']). Max 5 combined seeds.
-    target_valence: Musical positiveness ($0.0$ to $1.0$).
-    target_energy: Intensity and activity ($0.0$ to $1.0$).
-    target_danceability: Suitability for dancing ($0.0$ to $1.0$).
-    target_acousticness: Confidence measure from $0.0$ to $1.0$ of whether track is acoustic.
-    target_tempo: Target tempo in BPM (beats per minute).
+    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
+    target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_energy: Ignored (see target_valence).
+    target_danceability: Ignored (see target_valence).
+    target_acousticness: Ignored (see target_valence).
+    target_tempo: Ignored (see target_valence).
     limit: Number of tracks to discover (default: 20, max: 100)."""
     return _dispatch("tools.search", "spotify_discover_by_mood", **locals())
 
 def _stub_spotify_genre_explorer(genres: List[str] | None = None, limit: int = 15, market: str | None = None) -> str:
-    """Browse and sample tracks across specific seed genres or list all available genre seeds.
+    """Sample tracks across specific genres, or list suggested genres.
 
 Args:
-    genres: Optional list of genre seed keywords (e.g. ['synthwave', 'indie-pop', 'jazz']). If None or empty, returns all available Spotify genre seeds.
+    genres: Optional list of genre keywords (e.g. ['synthwave', 'indie pop', 'jazz']). If None or empty, returns the suggested genre list.
     limit: Number of tracks to sample (default: 15, max: 50).
-    market: Optional ISO country code."""
+    market: Unused; kept for compatibility."""
     return _dispatch("tools.search", "spotify_genre_explorer", **locals())
 
 def _stub_spotify_discover_deep_cuts(artist_or_album: str, max_popularity: int = 40, limit: int = 15) -> str:
-    """Discover non-single, album-only deep cut tracks from an artist or album.
+    """Discover album tracks from an artist or album that are not among their best-known songs.
 
 Args:
     artist_or_album: Name, ID, or URI of an artist or album (e.g. 'Radiohead', 'The Dark Side of the Moon').
-    max_popularity: Maximum popularity threshold (0-100, default: 40). Tracks with popularity <= this threshold are considered deep cuts.
-    limit: Maximum number of deep cuts to return (default: 15)."""
+    max_popularity: Ignored. Spotify no longer returns track popularity, so deep cuts are album tracks outside the top search results.
+    limit: Maximum number of deep cuts to return (default: 15, max: 50)."""
     return _dispatch("tools.search", "spotify_discover_deep_cuts", **locals())
 
 def _stub_spotify_get_recommendations(limit: int = 20, seed_tracks: List[str] | None = None, seed_artists: List[str] | None = None, seed_genres: List[str] | None = None, target_energy: float | None = None, target_valence: float | None = None, target_danceability: float | None = None, target_acousticness: float | None = None, target_instrumentalness: float | None = None, target_tempo: float | None = None, min_popularity: int | None = None, max_popularity: int | None = None, market: str | None = None) -> str:
-    """Direct wrapper for Spotify Recommendations API using seeds and target audio features.
+    """Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
 
 Args:
     limit: Number of recommendations to return (default: 20, max: 100).
     seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
     seed_artists: List of Spotify artist IDs or URIs.
-    seed_genres: List of seed genres (e.g. ['pop', 'rock', 'synthwave']).
-    target_energy: Target energy (0.0 to 1.0).
-    target_valence: Target valence (0.0 to 1.0).
-    target_danceability: Target danceability (0.0 to 1.0).
-    target_acousticness: Target acousticness (0.0 to 1.0).
-    target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-    target_tempo: Target tempo in BPM.
-    min_popularity: Minimum track popularity (0-100).
-    max_popularity: Maximum track popularity (0-100).
-    market: Optional ISO 3166-1 alpha-2 country code."""
+    seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
+    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_valence: Ignored (see target_energy).
+    target_danceability: Ignored (see target_energy).
+    target_acousticness: Ignored (see target_energy).
+    target_instrumentalness: Ignored (see target_energy).
+    target_tempo: Ignored (see target_energy).
+    min_popularity: Ignored. Spotify no longer returns track popularity.
+    max_popularity: Ignored (see min_popularity).
+    market: Unused; kept for compatibility."""
     return _dispatch("tools.search", "spotify_get_recommendations", **locals())
 
 def _stub_fetch_soundtrack_tracks(movie_title: str, language_name: str | None = None, release_year: str | None = None, actor_name: str | None = None) -> List[Dict[str, Any]]:
@@ -774,7 +777,7 @@ Args:
     return _dispatch("tools.browse", "spotify_get_album", **locals())
 
 def _stub_spotify_get_artist(artist_id: str) -> str:
-    """Inspect artist details including genres, follower count, popularity, and profile images.
+    """Inspect artist details and profile images (Spotify no longer returns genres, followers or popularity for Development Mode apps; these show N/A).
 
 Args:
     artist_id: Spotify artist ID, URI, URL, or artist name (e.g. 'Radiohead' or 'spotify:artist:4Z8W4fKeB5YxbusRsdQVPb')."""
@@ -792,10 +795,11 @@ Args:
     return _dispatch("tools.browse", "spotify_get_artist_albums", **locals())
 
 def _stub_spotify_get_user(user_id: str) -> str:
-    """Fetch public profile information and public playlists for any Spotify user.
+    """Fetch your own Spotify profile and playlists. Other users' profiles are unavailable:
+Spotify no longer provides them to Development Mode apps.
 
 Args:
-    user_id: Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler')."""
+    user_id: Your Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler'), or 'me'."""
     return _dispatch("tools.browse", "spotify_get_user", **locals())
 
 def _stub_open_soundtrack_studio() -> str:
@@ -1197,14 +1201,15 @@ Args:
         "fn": _stub_reorder_playlist_by_audio_features,
         "module": "tools.playlists",
         "fn_name": "reorder_playlist_by_audio_features",
-        "doc": """Smart Reorder: Sorts a user's playlist by a given audio feature (energy, valence, danceability, etc).
+        "doc": """Unavailable: Spotify no longer provides audio features (energy, valence, danceability, tempo) for
+Development Mode apps, so playlists cannot be sorted by them. The playlist is left unchanged.
 
 Args:
     playlist_id: Spotify playlist ID or URI.
     feature: The audio feature to sort by (e.g., 'energy', 'valence', 'danceability', 'tempo').
     order: 'asc' for ascending, 'desc' for descending.
     ascending: Optional boolean (True for 'asc', False for 'desc'). Overrides order if provided.""",
-        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True),
+        "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['playlists', 'core']
     },
     "update_playlist": {
@@ -1376,11 +1381,12 @@ Args:
         "fn": _stub_spotify_check_playlist_followers,
         "module": "tools.playlists",
         "fn_name": "spotify_check_playlist_followers",
-        "doc": """Check if specific users follow a playlist.
+        "doc": """Check whether you follow (have saved) a playlist. Spotify no longer answers this for
+other users for Development Mode apps, so only your own user ID can be checked.
 
 Args:
     playlist_id: Spotify playlist ID or URI.
-    user_ids: List of Spotify user IDs to check (e.g. ['user1', 'user2']).""",
+    user_ids: List of Spotify user IDs to check; only your own ID is supported (e.g. ['your_user_id']).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['playlists']
     },
@@ -1431,11 +1437,11 @@ Args:
         "fn": _stub_spotify_export_playlist,
         "module": "tools.playlists",
         "fn_name": "spotify_export_playlist",
-        "doc": """Export full playlist data, track metadata, and audio features to structured JSON.
+        "doc": """Export full playlist data and track metadata to structured JSON.
 
 Args:
     playlist_id: Spotify playlist ID, URI, or URL.
-    include_audio_features: Whether to include audio features (tempo, energy, valence, danceability, etc.). Default: False.""",
+    include_audio_features: Ignored. Spotify no longer provides audio features for Development Mode apps.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['playlists']
     },
@@ -1525,7 +1531,7 @@ Args:
         "fn": _stub_get_audio_features,
         "module": "tools.taste",
         "fn_name": "get_audio_features",
-        "doc": """Get audio features (danceability, energy, valence, etc) for multiple tracks.
+        "doc": """Unavailable: Spotify no longer provides audio features (danceability, energy, valence, tempo) for Development Mode apps.
 
 Args:
     track_uris: List of Spotify track URIs (max 100).""",
@@ -1536,7 +1542,7 @@ Args:
         "fn": _stub_get_artist_network,
         "module": "tools.taste",
         "fn_name": "get_artist_network",
-        "doc": """Map an artist's network by fetching related artists.
+        "doc": """Map an artist's network: the artists who share the most songs with them.
 
 Args:
     artist_name_or_id: Name or Spotify ID of the artist.""",
@@ -1555,19 +1561,19 @@ Args:
         "fn": _stub_get_recommendations,
         "module": "tools.taste",
         "fn_name": "get_recommendations",
-        "doc": """Get track recommendations based on seeds and audio features.
+        "doc": """Get track recommendations from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
 
 Args:
     limit: Number of recommendations to return (default: 10, max: 100).
     seed_tracks: List of Spotify track IDs or URIs.
     seed_artists: List of Spotify artist IDs or URIs.
-    seed_genres: List of genres (e.g., 'synthwave', 'indie-pop').
-    target_energy: Target energy (0.0 to 1.0).
-    target_valence: Target valence (0.0 to 1.0).
-    target_danceability: Target danceability (0.0 to 1.0).
-    target_acousticness: Target acousticness (0.0 to 1.0).
-    target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-    target_tempo: Target tempo in BPM.""",
+    seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
+    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_valence: Ignored (see target_energy).
+    target_danceability: Ignored (see target_energy).
+    target_acousticness: Ignored (see target_energy).
+    target_instrumentalness: Ignored (see target_energy).
+    target_tempo: Ignored (see target_energy).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['taste', 'core']
     },
@@ -1622,7 +1628,7 @@ Args:
         "fn": _stub_spotify_taste_profile,
         "module": "tools.taste",
         "fn_name": "spotify_taste_profile",
-        "doc": """Generate an overview of genre diversity and niche artist affinity.""",
+        "doc": """Generate an overview of your top artists, artist variety, eras and (when Spotify provides them) genres.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['taste']
     },
@@ -1630,10 +1636,11 @@ Args:
         "fn": _stub_spotify_playlist_compare,
         "module": "tools.taste",
         "fn_name": "spotify_playlist_compare",
-        "doc": """Compare multi-playlist audio feature distributions side-by-side.
+        "doc": """Compare playlists side-by-side: size, song length, explicit share, artist variety, era and overlap.
+(Spotify no longer provides audio features such as energy or valence for Development Mode apps.)
 
 Args:
-    playlist_ids: List of 2 or more Spotify playlist IDs or URIs.""",
+    playlist_ids: List of 2 or more Spotify playlist IDs or URIs (playlists you own or follow).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['taste']
     },
@@ -1740,7 +1747,7 @@ Args:
         "fn": _stub_spotify_related_artists,
         "module": "tools.search",
         "fn_name": "spotify_related_artists",
-        "doc": """Find artists similar to a target artist.
+        "doc": """Find artists connected to a target artist (the artists who share the most songs with them).
 
 Args:
     artist: Artist name, Spotify artist ID, or Spotify artist URI (e.g. 'Hans Zimmer', 'spotify:artist:0YC192cP3KPCRWx8zr8MfZ').""",
@@ -1751,12 +1758,12 @@ Args:
         "fn": _stub_spotify_discover_by_artist,
         "module": "tools.search",
         "fn_name": "spotify_discover_by_artist",
-        "doc": """Generate track recommendations derived from related artist networks.
+        "doc": """Recommend songs by the artists a seed artist collaborates with.
 
 Args:
     artist: Seed artist name, ID, or URI.
     limit: Number of recommended tracks to return (default: 15, max: 50).
-    include_artist_top_tracks: Whether to include top tracks from the seed artist (default: True).""",
+    include_artist_top_tracks: Whether to include the seed artist's own top search results (default: True).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
     },
@@ -1764,16 +1771,16 @@ Args:
         "fn": _stub_spotify_discover_by_mood,
         "module": "tools.search",
         "fn_name": "spotify_discover_by_mood",
-        "doc": """Discover tracks using target audio parameters (valence, energy, tempo, etc.) or mood presets.
+        "doc": """Discover tracks for a mood preset or a set of genres.
 
 Args:
     mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-    seed_genres: Optional list of seed genres (e.g. ['pop', 'indie', 'electronic']). Max 5 combined seeds.
-    target_valence: Musical positiveness ($0.0$ to $1.0$).
-    target_energy: Intensity and activity ($0.0$ to $1.0$).
-    target_danceability: Suitability for dancing ($0.0$ to $1.0$).
-    target_acousticness: Confidence measure from $0.0$ to $1.0$ of whether track is acoustic.
-    target_tempo: Target tempo in BPM (beats per minute).
+    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
+    target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_energy: Ignored (see target_valence).
+    target_danceability: Ignored (see target_valence).
+    target_acousticness: Ignored (see target_valence).
+    target_tempo: Ignored (see target_valence).
     limit: Number of tracks to discover (default: 20, max: 100).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
@@ -1782,12 +1789,12 @@ Args:
         "fn": _stub_spotify_genre_explorer,
         "module": "tools.search",
         "fn_name": "spotify_genre_explorer",
-        "doc": """Browse and sample tracks across specific seed genres or list all available genre seeds.
+        "doc": """Sample tracks across specific genres, or list suggested genres.
 
 Args:
-    genres: Optional list of genre seed keywords (e.g. ['synthwave', 'indie-pop', 'jazz']). If None or empty, returns all available Spotify genre seeds.
+    genres: Optional list of genre keywords (e.g. ['synthwave', 'indie pop', 'jazz']). If None or empty, returns the suggested genre list.
     limit: Number of tracks to sample (default: 15, max: 50).
-    market: Optional ISO country code.""",
+    market: Unused; kept for compatibility.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
     },
@@ -1795,12 +1802,12 @@ Args:
         "fn": _stub_spotify_discover_deep_cuts,
         "module": "tools.search",
         "fn_name": "spotify_discover_deep_cuts",
-        "doc": """Discover non-single, album-only deep cut tracks from an artist or album.
+        "doc": """Discover album tracks from an artist or album that are not among their best-known songs.
 
 Args:
     artist_or_album: Name, ID, or URI of an artist or album (e.g. 'Radiohead', 'The Dark Side of the Moon').
-    max_popularity: Maximum popularity threshold (0-100, default: 40). Tracks with popularity <= this threshold are considered deep cuts.
-    limit: Maximum number of deep cuts to return (default: 15).""",
+    max_popularity: Ignored. Spotify no longer returns track popularity, so deep cuts are album tracks outside the top search results.
+    limit: Maximum number of deep cuts to return (default: 15, max: 50).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
     },
@@ -1808,22 +1815,22 @@ Args:
         "fn": _stub_spotify_get_recommendations,
         "module": "tools.search",
         "fn_name": "spotify_get_recommendations",
-        "doc": """Direct wrapper for Spotify Recommendations API using seeds and target audio features.
+        "doc": """Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks).
 
 Args:
     limit: Number of recommendations to return (default: 20, max: 100).
     seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
     seed_artists: List of Spotify artist IDs or URIs.
-    seed_genres: List of seed genres (e.g. ['pop', 'rock', 'synthwave']).
-    target_energy: Target energy (0.0 to 1.0).
-    target_valence: Target valence (0.0 to 1.0).
-    target_danceability: Target danceability (0.0 to 1.0).
-    target_acousticness: Target acousticness (0.0 to 1.0).
-    target_instrumentalness: Target instrumentalness (0.0 to 1.0).
-    target_tempo: Target tempo in BPM.
-    min_popularity: Minimum track popularity (0-100).
-    max_popularity: Maximum track popularity (0-100).
-    market: Optional ISO 3166-1 alpha-2 country code.""",
+    seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
+    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_valence: Ignored (see target_energy).
+    target_danceability: Ignored (see target_energy).
+    target_acousticness: Ignored (see target_energy).
+    target_instrumentalness: Ignored (see target_energy).
+    target_tempo: Ignored (see target_energy).
+    min_popularity: Ignored. Spotify no longer returns track popularity.
+    max_popularity: Ignored (see min_popularity).
+    market: Unused; kept for compatibility.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
     },
@@ -1985,7 +1992,7 @@ Args:
         "fn": _stub_spotify_get_artist,
         "module": "tools.browse",
         "fn_name": "spotify_get_artist",
-        "doc": """Inspect artist details including genres, follower count, popularity, and profile images.
+        "doc": """Inspect artist details and profile images (Spotify no longer returns genres, followers or popularity for Development Mode apps; these show N/A).
 
 Args:
     artist_id: Spotify artist ID, URI, URL, or artist name (e.g. 'Radiohead' or 'spotify:artist:4Z8W4fKeB5YxbusRsdQVPb').""",
@@ -2011,10 +2018,11 @@ Args:
         "fn": _stub_spotify_get_user,
         "module": "tools.browse",
         "fn_name": "spotify_get_user",
-        "doc": """Fetch public profile information and public playlists for any Spotify user.
+        "doc": """Fetch your own Spotify profile and playlists. Other users' profiles are unavailable:
+Spotify no longer provides them to Development Mode apps.
 
 Args:
-    user_id: Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler').""",
+    user_id: Your Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler'), or 'me'.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['browse']
     },

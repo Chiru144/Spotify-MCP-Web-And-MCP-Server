@@ -1,6 +1,6 @@
 from typing import Optional, List, Dict, Any
 from mcp.types import ToolAnnotations
-from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration
+from tools.core import mcp, get_spotify_client, _clean_spotify_id, _format_duration, _followers, _unavailable
 import spotipy
 
 
@@ -34,7 +34,7 @@ def spotify_get_track(track_id: str, market: Optional[str] = None) -> str:
         album_name = album.get("name", "Unknown Album")
         release_date = album.get("release_date", "Unknown Date")
         dur = _format_duration(t.get("duration_ms", 0))
-        pop = t.get("popularity", 0)
+        pop = t.get("popularity")
         explicit = "Yes ⚠️" if t.get("explicit") else "No"
         track_num = t.get("track_number", 1)
         disc_num = t.get("disc_number", 1)
@@ -51,7 +51,7 @@ def spotify_get_track(track_id: str, market: Optional[str] = None) -> str:
             f"• Artist(s): {artists}",
             f"• Album: {album_name} ({release_date})",
             f"• Duration: {dur} ({t.get('duration_ms', 0):,} ms)",
-            f"• Popularity: {pop}/100",
+            f"• Popularity: {pop if pop is not None else 'N/A'}/100",
             f"• Explicit: {explicit}",
             f"• Position: Track {track_num}, Disc {disc_num}",
             f"• ISRC: {isrc}",
@@ -95,8 +95,8 @@ def spotify_get_album(album_id: str, market: Optional[str] = None) -> str:
         total_tracks = alb.get("total_tracks", 0)
         release_date = alb.get("release_date", "Unknown Date")
         label = alb.get("label", "Unknown Label")
-        pop = alb.get("popularity", 0)
-        genres = ", ".join(alb.get("genres", [])) or "None listed"
+        pop = alb.get("popularity")
+        genres = ", ".join(alb.get("genres") or []) or "None listed"
         copyrights = ", ".join(c.get("text", "") for c in alb.get("copyrights", [])) or "None listed"
         spotify_url = alb.get("external_urls", {}).get("spotify", "")
 
@@ -107,7 +107,7 @@ def spotify_get_album(album_id: str, market: Optional[str] = None) -> str:
             f"• Released: {release_date} | Total Tracks: {total_tracks}",
             f"• Label: {label}",
             f"• Copyrights: {copyrights}",
-            f"• Popularity: {pop}/100 | Genres: {genres}",
+            f"• Popularity: {pop if pop is not None else 'N/A'}/100 | Genres: {genres}",
             f"• URI: {alb.get('uri')}",
             f"• Spotify Link: {spotify_url}\n",
             f"Tracklist ({len(tracks_items)} tracks):"
@@ -127,7 +127,7 @@ def spotify_get_album(album_id: str, market: Optional[str] = None) -> str:
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_get_artist(artist_id: str) -> str:
-    """Inspect artist details including genres, follower count, popularity, and profile images.
+    """Inspect artist details and profile images (Spotify no longer returns genres, followers or popularity for Development Mode apps; these show N/A).
     
     Args:
         artist_id: Spotify artist ID, URI, URL, or artist name (e.g. 'Radiohead' or 'spotify:artist:4Z8W4fKeB5YxbusRsdQVPb').
@@ -147,17 +147,18 @@ def spotify_get_artist(artist_id: str) -> str:
         if not a:
             return f"Error: Artist '{artist_id}' not found."
 
-        genres = ", ".join(a.get("genres", [])) or "None listed"
-        followers = a.get("followers", {}).get("total", 0)
-        pop = a.get("popularity", 0)
+        # Spotify now returns null genres, followers and popularity for Development Mode apps
+        genres = ", ".join(a.get("genres") or []) or "None listed"
+        followers = _followers(a)
+        pop = a.get("popularity")
         spotify_url = a.get("external_urls", {}).get("spotify", "")
         images = a.get("images", [])
         image_url = images[0].get("url") if images else "None"
 
         lines = [
             f"🎤 Artist Profile: {a.get('name')}",
-            f"• Followers: {followers:,}",
-            f"• Popularity: {pop}/100",
+            f"• Followers: {f'{followers:,}' if followers is not None else 'N/A'}",
+            f"• Popularity: {pop if pop is not None else 'N/A'}/100",
             f"• Genres: {genres}",
             f"• Profile Image: {image_url}",
             f"• URI: {a.get('uri')}",
@@ -231,10 +232,11 @@ def spotify_get_artist_albums(
 
 @mcp.tool(annotations=ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True))
 def spotify_get_user(user_id: str) -> str:
-    """Fetch public profile information and public playlists for any Spotify user.
-    
+    """Fetch your own Spotify profile and playlists. Other users' profiles are unavailable:
+    Spotify no longer provides them to Development Mode apps.
+
     Args:
-        user_id: Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler').
+        user_id: Your Spotify user ID, URI, or profile URL (e.g. 'spotify:user:wizzler' or 'wizzler'), or 'me'.
     """
     try:
         sp = get_spotify_client()
@@ -242,38 +244,42 @@ def spotify_get_user(user_id: str) -> str:
         if not clean_id:
             return "Error: Please provide a valid user ID or URI."
 
-        user = sp.user(clean_id)
-        if not user:
-            return f"Error: User profile '{clean_id}' not found."
+        # Spotify returns 403 for /users/{id} of anyone but the current user
+        user = sp.me()
+        if clean_id.lower() not in ("me", (user.get("id") or "").lower()):
+            return _unavailable("other users' profiles or playlists")
 
+        clean_id = user.get("id", clean_id)
         display_name = user.get("display_name") or clean_id
-        followers = user.get("followers", {}).get("total", 0)
+        followers = _followers(user)
         spotify_url = user.get("external_urls", {}).get("spotify", "")
         images = user.get("images", [])
         image_url = images[0].get("url") if images else "None"
 
-        # Try fetching public playlists
         playlists = []
         try:
-            pl_res = sp.user_playlists(clean_id, limit=15)
-            playlists = pl_res.get("items", [])
+            pl_res = sp.current_user_playlists(limit=15)
+            playlists = [p for p in pl_res.get("items", []) if p]
         except Exception:
             pass
 
         lines = [
             f"👤 Spotify User Profile: {display_name}",
             f"• User ID: {clean_id}",
-            f"• Followers: {followers:,}",
+        ]
+        if followers is not None:
+            lines.append(f"• Followers: {followers:,}")
+        lines.extend([
             f"• Avatar URL: {image_url}",
             f"• Profile Link: {spotify_url}\n",
-            f"Public Playlists ({len(playlists)} found):"
-        ]
+            f"Playlists ({len(playlists)} found):"
+        ])
 
         if not playlists:
-            lines.append("  (No public playlists available or user library is private)")
+            lines.append("  (No playlists found)")
         else:
             for idx, p in enumerate(playlists, 1):
-                tracks_count = p.get("tracks", {}).get("total", 0)
+                tracks_count = (p.get("tracks") or {}).get("total", 0)
                 lines.append(f"  {idx}. {p.get('name')} ({tracks_count} tracks) - URI: {p.get('uri')}")
 
         return "\n".join(lines)

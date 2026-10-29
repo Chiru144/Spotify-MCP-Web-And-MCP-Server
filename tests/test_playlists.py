@@ -1,3 +1,4 @@
+import json
 import pytest
 from unittest.mock import patch, MagicMock
 
@@ -35,7 +36,7 @@ def test_playlists_tools(mock_clients):
     playlists.update_playlist("playlist_id", name="New Name")
     playlists.get_playlist_tracks("playlist_id")
     playlists.remove_tracks_from_playlist("playlist_id", ["spotify:track:123"])
-    playlists.reorder_playlist_by_audio_features("playlist_id")
+    assert "no longer provides audio features" in playlists.reorder_playlist_by_audio_features("playlist_id")
 
     # Test the 12 standard spotify_* playlist tools
     sp_mock.current_user_playlists.return_value = {"items": [], "total": 0}
@@ -92,7 +93,6 @@ def test_playlists_tools(mock_clients):
         "next": None
     }
     sp_mock.playlist_items.return_value = sample_tracks
-    sp_mock.audio_features.return_value = [{"id": "t1", "energy": 0.8, "valence": 0.5}]
     sp_mock.current_user_playlists.return_value = {
         "items": [
             {"id": "p1", "name": "Rock Classics"},
@@ -112,5 +112,31 @@ def test_playlists_tools(mock_clients):
     playlists.spotify_find_playlist_overlaps(limit=20, min_overlap=1)
     playlists.spotify_find_playlist_subsets(limit=20, threshold=0.5)
     playlists.spotify_absorb_playlist("p1", "p2")
+
+
+def test_playlist_tools_without_removed_endpoints():
+    """Spotify (2026) blocks audio features and other users' follower checks for Development Mode apps."""
+    sp_mock = MagicMock()
+    sp_mock.me.return_value = {"id": "user1"}
+    sp_mock.playlist_is_following.return_value = [True]
+    sp_mock.playlist.return_value = {"id": "p1", "name": "P1", "owner": {"id": "user1"}, "followers": None}
+    with patch("tools.playlists.get_spotify_client", return_value=sp_mock), \
+         patch("tools.playlists._fetch_all_playlist_tracks", return_value=[
+             {"track": {"id": "t1", "name": "Song 1", "uri": "spotify:track:1", "artists": [], "album": {}}}
+         ]):
+        assert "no longer provides audio features" in playlists.reorder_playlist_by_audio_features("p1")
+        sp_mock.playlist_replace_items.assert_not_called()
+
+        assert "Follows this playlist" in playlists.spotify_check_playlist_followers("p1", ["user1"])
+        sp_mock.playlist_is_following.reset_mock()
+        assert "no longer provides" in playlists.spotify_check_playlist_followers("p1", ["user1", "user2"])
+        sp_mock.playlist_is_following.assert_not_called()
+
+        exported = json.loads(playlists.spotify_export_playlist("p1", include_audio_features=True))
+        assert [t["name"] for t in exported["tracks"]] == ["Song 1"]
+        assert exported["playlist"]["followers"] == 0
+        assert "no longer provides" in exported["audio_features"]
+
+    sp_mock.audio_features.assert_not_called()
 
 

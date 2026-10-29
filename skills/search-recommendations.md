@@ -1,6 +1,9 @@
 # Search, Recommendations & Discovery Skill Guide
 
-This skill equips AI agents to search Spotify's catalog, explore artist networks, discover music by mood and audio attributes, sample genre seeds, unearth hidden album deep cuts, and generate fine-tuned recommendations through the 7 **Search, Recommendations & Discovery Tools**.
+This skill equips AI agents to search Spotify's catalog, explore artist networks, discover music by mood and genre, unearth hidden album deep cuts, and generate seed-based recommendations through the 7 **Search, Recommendations & Discovery Tools**.
+
+> [!NOTE]
+> In 2026 Spotify switched off related artists, recommendations, genre seeds, artist top tracks and audio features for Development Mode apps, and now returns null popularity, followers and genres. These tools rebuild discovery from search and album data instead: "related" artists are the ones who share the most songs with an artist, moods map to genres, and `target_*` / popularity arguments are accepted but ignored (the tool output says so). Don't promise users valence, energy, tempo or popularity filtering.
 
 ---
 
@@ -8,13 +11,15 @@ This skill equips AI agents to search Spotify's catalog, explore artist networks
 
 | Tool | Action | Primary Parameters | Key Output |
 | :--- | :--- | :--- | :--- |
-| **`spotify_search`** | Search catalog for tracks, artists, albums, playlists | `query` (str), `types` (List[str]), `limit` (int), `market` (Optional[str]) | Formatted list grouped by item type with URIs & metrics |
-| **`spotify_related_artists`** | Find similar artists to a target artist | `artist` (name, ID, or URI) | List of related artists with popularity, genres, followers |
-| **`spotify_discover_by_artist`** | Derive tracks from artist network | `artist` (str), `limit` (int), `include_artist_top_tracks` (bool) | Recommended tracks from peer network + top tracks |
-| **`spotify_discover_by_mood`** | Discover tracks by mood or audio parameters | `mood` (preset name), `seed_genres`, `target_valence`, `target_energy`, `target_tempo`, `limit` | Curated tracks matching target emotional vibe |
-| **`spotify_genre_explorer`** | Browse and sample Spotify genre seeds | `genres` (Optional[List[str]]), `limit` (int), `market` (Optional[str]) | Sample tracks across genre seeds or list all available seeds |
-| **`spotify_discover_deep_cuts`** | Unearth non-single, album-only hidden tracks | `artist_or_album` (str), `max_popularity` (int, default 40), `limit` (int) | Low-popularity album gems excluding popular singles |
-| **`spotify_get_recommendations`** | Direct wrapper for Spotify Recommendations API | `limit`, `seed_tracks`, `seed_artists`, `seed_genres`, `target_*`, `min_popularity`, `max_popularity` | Seed-based recommendations filtered by audio targets |
+| **`spotify_search`** | Search catalog for tracks, artists, albums, playlists | `query` (str), `types` (List[str]), `limit` (int), `market` (Optional[str]) | Formatted list grouped by item type with URIs |
+| **`spotify_related_artists`** | Find artists connected to a target artist | `artist` (name, ID, or URI) | Artists who share the most songs with the target, with shared-song counts |
+| **`spotify_discover_by_artist`** | Derive tracks from the artist's collaborators | `artist` (str), `limit` (int), `include_artist_top_tracks` (bool) | Songs by collaborators + the artist's own top search results |
+| **`spotify_discover_by_mood`** | Discover tracks by mood preset or genres | `mood` (preset name), `seed_genres`, `limit` | Genre-matched tracks for the mood |
+| **`spotify_genre_explorer`** | List suggested genres or sample tracks for genres | `genres` (Optional[List[str]]), `limit` (int) | Built-in genre list, or sample tracks per genre |
+| **`spotify_discover_deep_cuts`** | Unearth album tracks that aren't the artist's hits | `artist_or_album` (str), `limit` (int) | Album tracks outside the artist's or album's top search results |
+| **`spotify_get_recommendations`** | Seed-based recommendations | `limit`, `seed_tracks`, `seed_artists`, `seed_genres` | Songs by the seeds' collaborators plus genre picks |
+
+Mood presets: `happy`, `sad`, `chill`, `energetic`, `focus`, `party`, `dark`, `romantic`, `workout` (each maps to two genres).
 
 ---
 
@@ -35,6 +40,7 @@ spotify_search(
 ```python
 spotify_related_artists(artist="Ludovico Einaudi")
 ```
+Tell the user these are collaborators (artists who appear on songs with them), not Spotify's old "Fans also like" list.
 
 ### 3. Artist Network Recommendations
 > *"Find me 15 tracks from artists related to Radiohead, and include their top tracks."*
@@ -46,52 +52,46 @@ spotify_discover_by_artist(
 )
 ```
 
-### 4. Mood Discovery with Emotional Presets & Audio Sliders
-> *"Find me 20 energetic workout tracks with high tempo."*
+### 4. Mood Discovery
+> *"Find me 20 energetic workout tracks."*
 ```python
-spotify_discover_by_mood(
-    mood="workout",
-    target_energy=0.95,
-    target_tempo=135.0,
-    limit=20
-)
+spotify_discover_by_mood(mood="workout", limit=20)
+
+# Or pick the genres yourself:
+spotify_discover_by_mood(seed_genres=["edm", "hip hop"], limit=20)
 ```
 
-### 5. Genre Seed Sampling
-> *"What genre seeds can I use on Spotify? Also sample 10 synthwave and lo-fi tracks."*
+### 5. Genre Sampling
+> *"What genres can I explore? Also sample 10 synthwave and lo-fi tracks."*
 ```python
-# To inspect all available genre seeds:
+# To list the suggested genres:
 spotify_genre_explorer()
 
-# To sample specific genres:
+# To sample specific genres (any genre keyword works, not only the listed ones):
 spotify_genre_explorer(genres=["synthwave", "lo-fi"], limit=10)
 ```
 
 ### 6. Deep Cuts Finder (Hidden Gems)
 > *"I love Pink Floyd but I want to discover their lesser-known album cuts, not 'Comfortably Numb' or 'Money'."*
 ```python
-spotify_discover_deep_cuts(
-    artist_or_album="Pink Floyd",
-    max_popularity=35,
-    limit=15
-)
+spotify_discover_deep_cuts(artist_or_album="Pink Floyd", limit=15)
 ```
 
-### 7. Precise Multi-Seed Recommendations
-> *"Generate 20 recommendations using the track 'Billie Jean' and genre 'funk' with high danceability and low valence."*
+### 7. Multi-Seed Recommendations
+> *"Generate 20 recommendations using the track 'Billie Jean' and genre 'funk'."*
 ```python
 spotify_get_recommendations(
     seed_tracks=["spotify:track:5ChkMS8Otdzsq2oj5BKx9Y"],
     seed_genres=["funk"],
-    target_danceability=0.85,
-    target_valence=0.35,
     limit=20
 )
 ```
+If the user asks for "high danceability" or "low valence", explain that Spotify no longer provides audio features, and suggest a mood preset or genres that fit instead.
 
 ---
 
 ## Technical Constraints & Safety Rules
-- **Seed Limit**: Spotify Recommendations API strictly enforces $1 \le \text{total seeds} \le 5$ (sum of tracks, artists, and genres). All tools automatically enforce and truncate excess seeds.
-- **Deep Cuts Singles Filtering**: `spotify_discover_deep_cuts` pulls artist top tracks and removes those URIs before scanning studio album tracklists.
+- **Seed Limit**: `get_recommendations` accepts at most 5 seeds in total; `spotify_get_recommendations` uses the first 2 artists and 3 tracks plus up to 5 genres.
+- **Deep Cuts**: `spotify_discover_deep_cuts` takes the artist's top search results as their hits and returns other tracks from up to 4 of their albums.
+- **Call Budget**: Spotify search pages hold 10 items, so each discovery call makes several searches. Avoid looping these tools over many artists in a row; this app has been rate-limited before.
 - **URI Cleaning**: All IDs, full Spotify URLs (`https://open.spotify.com/track/...`), and URIs (`spotify:track:...`) are normalized automatically.

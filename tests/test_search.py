@@ -41,56 +41,94 @@ def test_spotify_search_discovery_tools(mock_clients):
     assert "Spotify Search Results" in res_search
     assert "Track A" in res_search
 
-    # 2. spotify_related_artists
-    sp_mock.artist.return_value = {"id": "art_1", "name": "Artist 1", "genres": ["rock"], "followers": {"total": 10000}, "uri": "spotify:artist:art_1"}
-    sp_mock.artist_related_artists.return_value = {
-        "artists": [{"id": "rel_1", "name": "Related 1", "genres": ["indie"], "popularity": 70, "followers": {"total": 5000}, "uri": "spotify:artist:rel_1"}]
+    # Spotify (2026) switched these off for Development Mode apps; no tool may call them
+    removed = ["artist_related_artists", "recommendations", "recommendation_genre_seeds",
+               "artist_top_tracks", "audio_features"]
+    seed = {"id": "art_1", "name": "Artist 1", "uri": "spotify:artist:art_1"}
+    peer = {"id": "rel_1", "name": "Related 1", "uri": "spotify:artist:rel_1"}
+    tracks_by = {
+        "Artist 1": [
+            {"name": "Top Track 1", "uri": "spotify:track:top_1", "artists": [seed, peer], "album": {"name": "Duets"}, "duration_ms": 200000},
+            {"name": "Top Track 2", "uri": "spotify:track:top_2", "artists": [seed], "album": {"name": "Solo"}, "duration_ms": 200000},
+        ],
+        "Related 1": [
+            {"name": "Rec Track 1", "uri": "spotify:track:rec_1", "artists": [peer], "album": {"name": "Album P"}, "duration_ms": 200000},
+        ],
     }
+
+    def fake_search(q, type="track", limit=10, **kwargs):
+        if type == "artist":
+            return {"artists": {"items": [seed]}}
+        if type == "album":
+            return {"albums": {"items": [{"id": "alb_1", "name": "Deep Album"}]}}
+        items = tracks_by.get(q) or [{"name": f"Genre Song {q}", "uri": f"spotify:track:{q}", "artists": [peer], "album": {"name": "G"}, "duration_ms": 1000}]
+        return {"tracks": {"items": items}}
+
+    sp_mock.search.side_effect = fake_search
+    sp_mock.artist.return_value = seed
+    sp_mock.track.return_value = tracks_by["Artist 1"][0]
+
+    # 2. spotify_related_artists -> collaborators
     res_rel = search.spotify_related_artists("spotify:artist:art_1")
     assert "Related Artists for 'Artist 1'" in res_rel
     assert "Related 1" in res_rel
+    assert "Shared songs: 1" in res_rel
 
-    # 3. spotify_discover_by_artist
-    sp_mock.recommendations.return_value = {
-        "tracks": [{"name": "Rec Track 1", "artists": [{"name": "Peer 1"}], "album": {"name": "Album P"}, "duration_ms": 200000, "uri": "spotify:track:rec_1"}]
-    }
-    sp_mock.artist_top_tracks.return_value = {
-        "tracks": [{"name": "Top Track 1", "uri": "spotify:track:top_1"}]
-    }
+    # 3. spotify_discover_by_artist -> collaborators' songs plus own search hits
     res_disc_art = search.spotify_discover_by_artist("spotify:artist:art_1", limit=10, include_artist_top_tracks=True)
     assert "Artist Network Discovery" in res_disc_art
     assert "Rec Track 1" in res_disc_art
     assert "Top Track 1" in res_disc_art
 
-    # 4. spotify_discover_by_mood
+    # 4. spotify_discover_by_mood -> genre search; audio targets are reported as ignored
     res_mood = search.spotify_discover_by_mood(mood="chill", target_valence=0.5, target_energy=0.3, limit=10)
     assert "Mood Discovery Results" in res_mood
+    assert "chill, lo-fi" in res_mood
+    assert "ignored" in res_mood
+    assert any('genre:"chill"' in c.kwargs.get("q", "") for c in sp_mock.search.call_args_list)
 
-    # 5. spotify_genre_explorer
-    sp_mock.recommendation_genre_seeds.return_value = {"genres": ["ambient", "lo-fi", "synthwave", "rock", "pop", "jazz"]}
+    # 5. spotify_genre_explorer -> built-in genre list, then genre search
     res_genres_all = search.spotify_genre_explorer()
-    assert "Spotify Recommendation Genre Seeds" in res_genres_all
-    
+    assert "Suggested Genres" in res_genres_all
+    assert "synthwave" in res_genres_all
+
     res_genres_sample = search.spotify_genre_explorer(genres=["synthwave", "lo-fi"], limit=5)
     assert "Genre Explorer: Sample tracks" in res_genres_sample
 
-    # 6. spotify_discover_deep_cuts
+    # 6. spotify_discover_deep_cuts -> album tracks outside the top search results
     sp_mock.artist_albums.return_value = {"items": [{"id": "alb_1", "name": "Deep Album"}]}
-    sp_mock.album_tracks.return_value = {"items": [{"id": "deep_trk_1", "uri": "spotify:track:deep_1"}]}
-    sp_mock.tracks.return_value = {
-        "tracks": [{"id": "deep_trk_1", "name": "Hidden Gem", "artists": [{"name": "Artist 1"}], "popularity": 25, "duration_ms": 210000, "uri": "spotify:track:deep_1"}]
-    }
+    sp_mock.album_tracks.return_value = {"items": [
+        {"id": "top_1", "name": "Top Track 1", "uri": "spotify:track:top_1", "artists": [seed]},
+        {"id": "deep_1", "name": "Hidden Gem", "uri": "spotify:track:deep_1", "artists": [seed], "duration_ms": 210000},
+    ]}
     res_deep = search.spotify_discover_deep_cuts("spotify:artist:art_1", max_popularity=40, limit=10)
     assert "Deep Cut Gems" in res_deep
     assert "Hidden Gem" in res_deep
+    assert "Top Track 1" not in res_deep
 
-    # 7. spotify_get_recommendations
-    sp_mock.recommendations.return_value = {
-        "tracks": [{"name": "Smart Rec 1", "artists": [{"name": "Rec Artist"}], "album": {"name": "Rec Album"}, "popularity": 75, "duration_ms": 190000, "uri": "spotify:track:srec_1"}]
-    }
-    res_recs = search.spotify_get_recommendations(seed_genres=["jazz"], target_energy=0.4, limit=10)
+    # 7. spotify_get_recommendations -> collaborators and genres
+    res_recs = search.spotify_get_recommendations(seed_artists=["spotify:artist:art_1"], seed_genres=["jazz"], target_energy=0.4, limit=10)
     assert "Spotify Recommendations" in res_recs
-    assert "Smart Rec 1" in res_recs
+    assert "Rec Track 1" in res_recs
+    assert "Genre Song" in res_recs
+    assert "ignored" in res_recs
+
+    for name in removed:
+        getattr(sp_mock, name).assert_not_called()
+
+
+def test_search_tools_handle_null_artist_stats(mock_clients):
+    """Spotify now returns null popularity, followers and genres for Development Mode apps."""
+    sp_mock = mock_clients[0].return_value
+    sp_mock.search.return_value = {
+        "artists": {"items": [{"id": "a", "name": "Null Stats", "genres": None, "followers": None, "popularity": None, "uri": "spotify:artist:a"}]},
+        "tracks": {"items": [{"name": "T", "artists": [{"name": "Null Stats"}], "album": {"name": "A"}, "duration_ms": 1000, "popularity": None, "uri": "spotify:track:t"}]},
+    }
+    res = search.spotify_search("x", types=["artist", "track"])
+    assert "Null Stats" in res and "None/100" not in res and "Error" not in res
+    assert "Null Stats" in search.search_singers("x")
+    assert "None/100" not in search.search_songs("x")
+    assert "Null Stats" in search.search_spotify("x", search_type="artist")
 
 
 def test_fetch_tracks_for_movie_uses_soundtrack_album(mock_clients):
