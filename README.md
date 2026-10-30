@@ -7,7 +7,7 @@
 This repository contains a FastMCP application that connects Spotify with TMDB (The Movie Database). It has **115 registered MCP tools** and **20 autonomous agent skills**, and lets you build movie soundtrack playlists, automate playlist curation, explore your listening taste, and use a local web app, the Soundtrack Curator & Staging Studio.
 
 > [!NOTE]
-> **Built mostly for Indian users.** The project is designed around Indian film music: it builds playlists from an actor's filmography and matches soundtracks for Telugu, Tamil, Kannada, Malayalam and Hindi movies, including songs credited as 'From "Movie Name"' and releases tagged with a language, such as "[Telugu]". It works for any music on Spotify, but Indian cinema is where it is strongest.
+> **Built mostly for Indian users.** The project is designed around Indian film music: it builds playlists from an actor's filmography and matches soundtracks for Kannada, Telugu, Tamil, Malayalam and Hindi movies, including songs credited as 'From "Movie Name"' and releases tagged with a language, such as "[Kannada]". It works for any music on Spotify, but Indian cinema is where it is strongest.
 
 ## Highlights
 
@@ -42,7 +42,7 @@ In 2026, Spotify switched off several Web API features for apps in Development M
 
 Every generator shows a preview first and only creates a playlist when called with `create=True`.
 
-**How vibes are estimated:** Spotify no longer gives this app audio features or artist genres, so each genre has an estimated energy and valence (`GENRE_VIBES` in `tools/discovery.py`). A song gets its vibe from the genre searches its artist appears in, plus words in its track, album and playlist names ("Unplugged" means acoustic; a playlist called "Gym" means workout). Spotify's genre search mostly covers mainstream Western genres, so songs from other scenes, such as Telugu or Tamil film music, are often left unplaced. Naming your playlists by mood helps.
+**How vibes are estimated:** Spotify no longer gives this app audio features or artist genres, so each genre has an estimated energy and valence (`GENRE_VIBES` in `tools/discovery.py`). A song gets its vibe from the genre searches its artist appears in, plus words in its track, album and playlist names ("Unplugged" means acoustic; a playlist called "Gym" means workout). Spotify's genre search mostly covers mainstream Western genres, so songs from other scenes, such as Kannada, Telugu or Tamil film music, are often left unplaced. Naming your playlists by mood helps.
 
 Run `spotify_sync_library` again whenever your library changes. A sync makes about one Spotify call per 50 Liked Songs, plus one or more per playlist.
 

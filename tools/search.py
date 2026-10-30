@@ -573,7 +573,7 @@ def fetch_soundtrack_tracks_with_client(
     
     Args:
         movie_title: Title of the movie
-        language_name: Optional language filter (e.g. 'Hindi', 'Telugu', 'English')
+        language_name: Optional language filter (e.g. 'Kannada', 'Telugu', 'Hindi', 'English')
         release_year: Optional movie release year (e.g. '2023')
         actor_name: Optional actor name to narrow down soundtrack
         sp: Optional spotipy.Spotify client instance
@@ -628,7 +628,7 @@ def fetch_soundtrack_tracks_with_client(
             
             if lang:
                 lang_lower = lang.lower()
-                common_langs = {"hindi", "telugu", "tamil", "malayalam", "kannada", "english"}
+                common_langs = {"kannada", "telugu", "tamil", "malayalam", "hindi", "english"}
                 target_words = set(t_norm.split())
                 for cl in common_langs:
                     if cl != lang_lower and cl in target_words and lang_lower not in target_words:
@@ -818,7 +818,7 @@ def fetch_soundtrack_tracks(
     
     Args:
         movie_title: Title of the movie
-        language_name: Optional language filter (e.g. 'Hindi', 'Telugu', 'English')
+        language_name: Optional language filter (e.g. 'Kannada', 'Telugu', 'Hindi', 'English')
         release_year: Optional movie release year (e.g. '2023')
         actor_name: Optional actor name to narrow down soundtrack
     """

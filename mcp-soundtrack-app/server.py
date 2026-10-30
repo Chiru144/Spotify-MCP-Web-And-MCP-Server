@@ -221,7 +221,7 @@ def get_movie_soundtracks(
     actor_name: Optional[str] = Query(None, description="Actor name")
 ):
     """Fetches official soundtrack tracks on demand when a movie card is clicked."""
-    lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
+    lang_map = {"kn": "Kannada", "te": "Telugu", "ta": "Tamil", "ml": "Malayalam", "hi": "Hindi", "en": "English"}
     tracks = fetch_soundtrack_tracks(movie_title, language_name=lang_map.get(lang), release_year=release_year, actor_name=actor_name)
     return {"movie_title": movie_title, "tracks": tracks}
 
@@ -321,7 +321,7 @@ def search_movies_only(
     lang: Optional[str] = Query(None, description="Language filter")
 ):
     """Dedicated Movie Search: searches TMDB specifically for movies and loads soundtrack songs."""
-    lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
+    lang_map = {"kn": "Kannada", "te": "Telugu", "ta": "Tamil", "ml": "Malayalam", "hi": "Hindi", "en": "English"}
     lang_name = lang_map.get(lang)
     headers, params = _get_tmdb_headers_and_params({
         "query": query,
@@ -411,7 +411,7 @@ def search_actors_only(
     lang: Optional[str] = Query(None, description="Language filter")
 ):
     """Dedicated Actor Search: searches TMDB for actors, their career filmography, and soundtrack songs."""
-    lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
+    lang_map = {"kn": "Kannada", "te": "Telugu", "ta": "Tamil", "ml": "Malayalam", "hi": "Hindi", "en": "English"}
     lang_name = lang_map.get(lang)
     
     import re
@@ -570,7 +570,7 @@ def search_songs(
     lang: Optional[str] = Query(None, description="Language filter")
 ):
     """Direct Spotify Song & Soundtrack Search with limit and ranking filters."""
-    lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
+    lang_map = {"kn": "Kannada", "te": "Telugu", "ta": "Tamil", "ml": "Malayalam", "hi": "Hindi", "en": "English"}
     if lang and lang in lang_map:
         query = f"{query} {lang_map[lang]}"
         
@@ -683,7 +683,7 @@ def search_singers(
     lang: Optional[str] = Query(None, description="Language filter")
 ):
     """Searches for singers/artists and returns their discography and songs."""
-    lang_map = {"en": "English", "hi": "Hindi", "te": "Telugu", "ta": "Tamil", "kn": "Kannada", "ml": "Malayalam"}
+    lang_map = {"kn": "Kannada", "te": "Telugu", "ta": "Tamil", "ml": "Malayalam", "hi": "Hindi", "en": "English"}
     if lang and lang in lang_map:
         query = f"{query} {lang_map[lang]}"
     client = _get_valid_user_client() or public_sp

@@ -679,7 +679,7 @@ def _stub_fetch_soundtrack_tracks(movie_title: str, language_name: str | None = 
 
 Args:
     movie_title: Title of the movie
-    language_name: Optional language filter (e.g. 'Hindi', 'Telugu', 'English')
+    language_name: Optional language filter (e.g. 'Kannada', 'Telugu', 'Hindi', 'English')
     release_year: Optional movie release year (e.g. '2023')
     actor_name: Optional actor name to narrow down soundtrack"""
     return _dispatch("tools.search", "fetch_soundtrack_tracks", **locals())
@@ -1922,7 +1922,7 @@ Args:
 
 Args:
     movie_title: Title of the movie
-    language_name: Optional language filter (e.g. 'Hindi', 'Telugu', 'English')
+    language_name: Optional language filter (e.g. 'Kannada', 'Telugu', 'Hindi', 'English')
     release_year: Optional movie release year (e.g. '2023')
     actor_name: Optional actor name to narrow down soundtrack""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),

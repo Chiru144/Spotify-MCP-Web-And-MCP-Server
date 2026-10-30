@@ -361,7 +361,7 @@ def get_actor_filmography(actor_name: str, limit: int = 30, sort_by: str = "popu
 
 
 _LANGUAGE_WORDS = {
-    "hindi", "telugu", "tamil", "malayalam", "kannada", "english",
+    "kannada", "telugu", "tamil", "malayalam", "hindi", "english",
     "bengali", "marathi", "punjabi", "gujarati", "odia",
 }
 _SOUNDTRACK_NOISE = re.compile(
