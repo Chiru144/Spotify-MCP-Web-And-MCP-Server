@@ -1,4 +1,4 @@
-# Spotify & TMDB Web MCP Server
+# Spotify & TMDB Web and MCP Server
 
 [![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-mcp-server)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-115%20Registered-1DB954?style=flat&logo=spotify)](tools/)
