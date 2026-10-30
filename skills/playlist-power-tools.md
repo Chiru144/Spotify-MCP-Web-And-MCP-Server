@@ -74,3 +74,23 @@ spotify_absorb_playlist(source_playlist_id="...", target_playlist_id="...", stra
 ```python
 spotify_export_playlist(playlist_id="...")
 ```
+
+---
+
+## Playlist Generators
+
+| Tool | Builds | Key Parameters |
+| :--- | :--- | :--- |
+| **`spotify_vibe_playlist`** | Songs matching a mood or energy/valence target, from the cached library or all of Spotify | `mood`, `target_energy`, `target_valence`, `genres`, `from_library` |
+| **`spotify_radio_playlist`** | An artist's songs mixed with songs by their collaborators | `seed` (artist or track) |
+| **`spotify_era_playlist`** | Songs released in a year range | `start_year`, `end_year`, `genres`, `from_library` |
+| **`spotify_time_capsule_playlist`** | Songs saved in a given year, or all-time top tracks | `year` |
+
+All four take `limit`, `create`, `name` and `public`. They only preview their picks until called with `create=True`, so show the preview and ask before creating.
+
+> *"Make a workout playlist from songs I already like."*
+```python
+spotify_sync_library()  # once
+spotify_vibe_playlist(mood="workout", from_library=True)
+spotify_vibe_playlist(mood="workout", from_library=True, create=True, name="Gym Mix")
+```

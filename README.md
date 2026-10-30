@@ -1,18 +1,18 @@
 # Spotify & TMDB Web MCP Server
 
 [![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-mcp-server)
-[![MCP Tools](https://img.shields.io/badge/MCP%20Tools-108%20Registered-1DB954?style=flat&logo=spotify)](tools/)
+[![MCP Tools](https://img.shields.io/badge/MCP%20Tools-115%20Registered-1DB954?style=flat&logo=spotify)](tools/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-20%20Packaged-8A2BE2?style=flat)](skills/)
 
-This repository contains a FastMCP application integrating Spotify and TMDB (The Movie Database), powered by **108 registered MCP tools** and **20 autonomous agent skills**. It allows you to build custom soundtracks, automate playlist curation, explore listening taste, and interact with a local web-based Soundtrack Curator & Staging Studio.
+This repository contains a FastMCP application integrating Spotify and TMDB (The Movie Database), powered by **115 registered MCP tools** and **20 autonomous agent skills**. It allows you to build custom soundtracks, automate playlist curation, explore listening taste, and interact with a local web-based Soundtrack Curator & Staging Studio.
 
 ## Highlights
 
-- **108 FastMCP Tools & 20 Agent Skills**: Comprehensive toolkit covering cinema filmography discovery, smart playlist management, artist-network and mood discovery, taste analytics, catalog browsing, library management, and complete Spotify Connect hardware control.
+- **115 FastMCP Tools & 20 Agent Skills**: Comprehensive toolkit covering cinema filmography discovery, smart playlist management, artist-network and mood discovery, a local library cache, vibe/radio/era/time-capsule playlist generators, taste analytics, catalog browsing, library management, and complete Spotify Connect hardware control.
 - **PKCE OAuth & Flexible Auth**: Built-in Spotify PKCE authentication removes the need for a client secret via simple one-click browser login, alongside intelligent TMDB authentication accepting either an API Key or Read Access Token.
 - **Cross-Domain Media Blending**: Bridges cinema and music by letting your AI dynamically look up movies, cast, or crew on TMDB and map them into custom Spotify playlists.
 - **Dual Web & Agent Design**: Built on FastAPI/Uvicorn, it functions as both a flexible web endpoint and an MCP server, supporting remote hosting and multiple networked AI connections.
-- **Modular Architecture**: The codebase is cleanly separated into specialized tool modules (`playback.py`, `playlists.py`, `taste.py`, `search.py`, `library.py`, `browse.py`, `web_app.py`), making it highly scalable and completely unit-testable.
+- **Modular Architecture**: The codebase is cleanly separated into specialized tool modules (`playback.py`, `playlists.py`, `taste.py`, `search.py`, `library.py`, `library_cache.py`, `generators.py`, `browse.py`, `web_app.py`), making it highly scalable and completely unit-testable.
 
 ## Spotify 2026 Development Mode Limits
 
@@ -23,10 +23,25 @@ In 2026 Spotify switched off several Web API features for apps in Development Mo
 | Related artists | Removed (403) | `spotify_related_artists` and `get_artist_network` list the artists who share the most songs with the artist. |
 | Recommendations and genre seeds | Removed (404) | `spotify_get_recommendations`, `get_recommendations` and `spotify_discover_by_artist` recommend songs by the seeds' collaborators plus genre-search picks. `spotify_genre_explorer` lists a built-in set of genres. |
 | Artist top tracks | Removed (403) | The artist's top search results stand in. |
-| Audio features (energy, valence, tempo...) | Removed (403) | `get_audio_features` and `reorder_playlist_by_audio_features` return an "unavailable" message. `target_*` arguments are accepted but ignored. Moods map to genres. |
+| Audio features (energy, valence, tempo...) | Removed (403) | `get_audio_features` and `reorder_playlist_by_audio_features` return an "unavailable" message. `target_energy` and `target_valence` pick the genres whose estimated energy/valence is closest; other `target_*` arguments are ignored. Moods map to genres. |
 | Popularity, followers, genres | Returned as null | Shown as N/A or left out. `spotify_discover_deep_cuts` treats "deep cut" as "an album track outside the artist's top search results", and `spotify_taste_profile` reports artist variety and eras instead of a mainstream score. |
 | Other users' profiles, follower checks and unfollowed playlists | Removed (403) | `spotify_get_user` and `spotify_check_playlist_followers` work for your own account only. |
 | Search `limit` above 10 | Rejected | The client fetches larger searches 10 at a time. |
+
+## Local Library Cache & Playlist Generators
+
+`spotify_sync_library` downloads your Liked Songs and the playlists you own into a JSON file: `~/.cache/spotify-mcp/library.json`, or `%LOCALAPPDATA%\spotify-mcp\library.json` on Windows (set `SPOTIFY_MCP_LIBRARY_PATH` to change it). After that:
+
+- `spotify_query_library` and `spotify_library_stats` answer questions about your music without calling Spotify.
+- `spotify_vibe_playlist` builds a playlist for a mood or an energy/valence target from songs you already like.
+- `spotify_era_playlist` (`from_library=True`) and `spotify_time_capsule_playlist` (songs you saved in a given year) also use the cache.
+- `spotify_radio_playlist` mixes an artist's songs with songs by the artists they collaborate with.
+
+Every generator previews its picks first and only creates a playlist when called with `create=True`.
+
+**How vibes are estimated:** Spotify no longer gives this app audio features or artist genres, so each genre has an estimated energy and valence (`GENRE_VIBES` in `tools/discovery.py`). A song gets a vibe from the genre searches its artist appears in, plus words in its track, album and playlist names ("Unplugged" means acoustic, a playlist called "Gym" means workout). Spotify's genre search mostly covers mainstream Western genres, so songs from other scenes (for example Telugu or Tamil film music) are often left unplaced. Naming your playlists by mood helps.
+
+Run `spotify_sync_library` again whenever your library changes. A sync makes about one Spotify call per 50 Liked Songs and one or more per playlist.
 
 ## Features & Capabilities
 
@@ -38,7 +53,7 @@ The server and the web studio are published as two Python packages:
 
 | Package | What it gives you | Commands |
 | :--- | :--- | :--- |
-| `spotify-soundtrack-mcp` | The MCP server with all 108 tools and 20 skills | `spotify-mcp`, `spotify-soundtrack-mcp`, `spotify-mcp-auth` |
+| `spotify-soundtrack-mcp` | The MCP server with all 115 tools and 20 skills | `spotify-mcp`, `spotify-soundtrack-mcp`, `spotify-mcp-auth` |
 | `spotify-mcp-web` | The Soundtrack Curator & Staging Studio web app | `soundtrack-studio` |
 
 ### 1. Install
@@ -201,21 +216,21 @@ python auth_spotify.py
 
 To prevent flooding the LLM context window in AI clients (Cursor, Claude Desktop, Antigravity), this server implements **Modular Toolsets** and **On-Demand Lazy Loading**:
 
-- **Context Window Protection**: The full catalog of 108 tools consumes **~21,376 tokens**. Running with `--toolsets=core` exposes only the **16 essential curation tools (~2,757 tokens)** &mdash; an **87% context reduction**!
+- **Context Window Protection**: The full catalog of 115 tools consumes **~25,600 tokens**. Running with `--toolsets=core` exposes only the **16 essential curation tools (~4,100 tokens)** &mdash; an **84% context reduction**!
 - **On-Demand Lazy Loading**: Modules (`spotipy`, `requests`, `bs4`, `ddgs`, etc.) are **never loaded at startup**. When an LLM calls a tool, the module is imported on-demand and cached in memory for instantaneous (0 ms) subsequent executions.
 
 ### Available Toolsets
 
 | Toolset Profile | Exposed Tools | Token Footprint | Best For |
 | :--- | :--- | :--- | :--- |
-| **`core`** *(Default)* | **16 tools** | **~2,757 tokens** | Filmography curation, movie soundtracks, search, dedupe, staging studio |
-| **`playback`** | 31 tools | ~5,800 tokens | DJ controls, Spotify Connect device switching, queue management |
-| **`playlists`** | 33 tools | ~7,400 tokens | Advanced playlist diff, subset detection, merging, sorting, splitting |
-| **`search`** | 16 tools | ~3,600 tokens | Music exploration, mood/genre search, TMDB movie & actor filmography lookup |
+| **`core`** *(Default)* | **16 tools** | **~4,100 tokens** | Filmography curation, movie soundtracks, search, dedupe, staging studio |
+| **`playback`** | 31 tools | ~4,700 tokens | DJ controls, Spotify Connect device switching, queue management |
+| **`playlists`** | 37 tools | ~9,500 tokens | Advanced playlist diff, subset detection, merging, sorting, splitting, vibe/radio/era/time-capsule generators |
+| **`search`** | 16 tools | ~4,500 tokens | Music exploration, mood/genre search, TMDB movie & actor filmography lookup |
 | **`taste`** | 14 tools | ~3,100 tokens | Top tracks, listening patterns, taste profile, playlist comparisons |
-| **`library`** | 8 tools | ~1,800 tokens | Saved tracks, saved albums, follower management |
-| **`browse`** | 5 tools | ~1,100 tokens | Spotify catalog lookup (artist, album, track, user) |
-| **`all`** | 108 tools | ~21,376 tokens | Full access to every tool across all domains |
+| **`library`** | 11 tools | ~2,400 tokens | Saved tracks, saved albums, local library cache (sync, stats, query) |
+| **`browse`** | 5 tools | ~1,200 tokens | Spotify catalog lookup (artist, album, track, your profile) |
+| **`all`** | 115 tools | ~25,600 tokens | Full access to every tool across all domains |
 
 ### Running with Toolset Flags
 
@@ -229,7 +244,7 @@ python mcp.py --toolsets=core
 # Combine multiple toolsets:
 python server.py --toolsets=core,playback
 
-# Run with the complete catalog (108 tools):
+# Run with the complete catalog (115 tools):
 python server.py --toolsets=all
 ```
 
@@ -265,7 +280,7 @@ Spotify-MCP-Web-MCP-Server/
 ├── requirements.txt           # Python dependencies
 ├── Procfile                   # Cloud Run / web deployment entrypoint
 ├── SPOTIFY_RULES.md           # Master MCP tools & agent clarification protocol
-├── tools/                     # Modular MCP tool implementations (108 tools)
+├── tools/                     # Modular MCP tool implementations (115 tools)
 │   ├── registry.py            # Modular toolset catalog, CLI toolset router & lazy loader
 │   ├── core.py                # FastMCP server instance, Spotify/TMDB client helpers
 │   ├── playlists.py           # Core playlist curation & power tools
@@ -273,6 +288,9 @@ Spotify-MCP-Web-MCP-Server/
 │   ├── taste.py               # Taste analytics & listening trends
 │   ├── search.py              # Music discovery, search & TMDB filmography tools
 │   ├── library.py             # Saved tracks, albums & library management
+│   ├── library_cache.py       # Local JSON cache of Liked Songs & your playlists
+│   ├── generators.py          # Vibe, radio, era & time-capsule playlist generators
+│   ├── discovery.py           # Search-based discovery & genre vibe estimates (2026 API workarounds)
 │   ├── browse.py              # Catalog entity inspection & artist discography
 │   ├── tmdb_helpers.py        # TMDB API client & DuckDuckGo/Wikipedia fallback engines
 │   ├── web_app.py             # MCP tool to open Soundtrack Studio UI
@@ -287,6 +305,7 @@ Spotify-MCP-Web-MCP-Server/
 ├── tests/                     # Pytest unit & integration test suites
 │   ├── test_browse.py
 │   ├── test_library.py
+│   ├── test_library_cache.py
 │   ├── test_playback.py
 │   ├── test_playlists.py
 │   ├── test_search.py

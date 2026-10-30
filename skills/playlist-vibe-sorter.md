@@ -12,5 +12,6 @@ Handles requests to sort a playlist by audio features like energy, danceability,
    - Move tracks or blocks of tracks by hand with `spotify_reorder_playlist(playlist_id, range_start, insert_before, range_length)`.
    - Shuffle the playlist with `shuffle_playlist(playlist_id)`.
    - Split it into per-artist playlists with `spotify_split_playlist_by_artist(playlist_id)`.
-   - Build a new mood playlist with `spotify_discover_by_mood(mood=...)`, then add the tracks with `spotify_add_to_playlist`.
+   - Build a new mood playlist from songs they already like with `spotify_vibe_playlist(mood=..., from_library=True)` (run `spotify_sync_library` first). Its vibe is estimated from genres and playlist names, so present it as an approximation.
+   - Or find new songs for a mood with `spotify_discover_by_mood(mood=...)`, then add the tracks with `spotify_add_to_playlist`.
 3. If the user picks one, find the playlist ID (using `get_user_playlists` if not provided) and run it.

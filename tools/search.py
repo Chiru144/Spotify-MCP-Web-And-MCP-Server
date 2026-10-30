@@ -382,22 +382,26 @@ def spotify_discover_by_mood(
     target_tempo: Optional[float] = None,
     limit: int = 20
 ) -> str:
-    """Discover tracks for a mood preset or a set of genres.
+    """Discover tracks for a mood preset, a set of genres, or energy/valence targets.
 
     Args:
         mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-        seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
-        target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
-        target_energy: Ignored (see target_valence).
-        target_danceability: Ignored (see target_valence).
-        target_acousticness: Ignored (see target_valence).
-        target_tempo: Ignored (see target_valence).
+        seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood and targets.
+        target_valence: Optional positivity 0.0-1.0. Matched against estimated genre vibes (Spotify no longer provides per-track audio features).
+        target_energy: Optional intensity 0.0-1.0, matched the same way.
+        target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_acousticness: Ignored (see target_danceability).
+        target_tempo: Ignored (see target_danceability).
         limit: Number of tracks to discover (default: 20, max: 100).
     """
     try:
         sp = get_spotify_client()
         genres = _as_list(seed_genres)
         mood_key = (mood or "").lower().strip()
+        vibe_used = not genres and (target_energy is not None or target_valence is not None)
+        if vibe_used:
+            # Spotify removed audio features: pick the genres whose estimated vibe is closest
+            genres = discovery.vibe_genres(discovery.vibe_target(mood, target_energy, target_valence))
         used_genres = (genres or discovery.MOOD_GENRES.get(mood_key) or [mood_key or "pop"])[:5]
         # Spotify removed /recommendations and audio features: moods are matched through genres
         tracks = discovery.mood_tracks(sp, mood, genres, max(1, min(limit, 100)))
@@ -405,9 +409,10 @@ def spotify_discover_by_mood(
             return f"No tracks discovered for mood '{mood}' with genres {used_genres}."
 
         lines = [f"Mood Discovery Results (Mood: '{mood or 'custom'}', Genres: {', '.join(used_genres)}):"]
-        targets = [target_valence, target_energy, target_danceability, target_acousticness, target_tempo]
-        if any(v is not None for v in targets):
-            lines.append("Note: audio-feature targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
+        if vibe_used:
+            lines.append("Energy/valence targets were matched to genres with similar estimated vibes (Spotify no longer provides per-track audio features).")
+        if any(v is not None for v in [target_danceability, target_acousticness, target_tempo]):
+            lines.append("Note: danceability, acousticness and tempo targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
         lines.append(f"\nDiscovered Tracks ({len(tracks)}):")
         lines.extend(_track_line(idx, t) for idx, t in enumerate(tracks, 1))
         return "\n".join(lines)
@@ -512,12 +517,12 @@ def spotify_get_recommendations(
         seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
         seed_artists: List of Spotify artist IDs or URIs.
         seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
-        target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-        target_valence: Ignored (see target_energy).
-        target_danceability: Ignored (see target_energy).
-        target_acousticness: Ignored (see target_energy).
-        target_instrumentalness: Ignored (see target_energy).
-        target_tempo: Ignored (see target_energy).
+        target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+        target_valence: Optional positivity 0.0-1.0, used the same way.
+        target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_acousticness: Ignored (see target_danceability).
+        target_instrumentalness: Ignored (see target_danceability).
+        target_tempo: Ignored (see target_danceability).
         min_popularity: Ignored. Spotify no longer returns track popularity.
         max_popularity: Ignored (see min_popularity).
         market: Unused; kept for compatibility.
@@ -527,6 +532,9 @@ def spotify_get_recommendations(
         clean_tracks = [_clean_spotify_id(t, "track") for t in _as_list(seed_tracks)]
         clean_artists = [_clean_spotify_id(a, "artist") for a in _as_list(seed_artists)]
         clean_genres = [g.strip().lower() for g in _as_list(seed_genres)]
+        vibe_used = not clean_genres and (target_energy is not None or target_valence is not None)
+        if vibe_used:
+            clean_genres = discovery.vibe_genres(discovery.vibe_target(None, target_energy, target_valence))
         if not (clean_tracks or clean_artists or clean_genres):
             clean_genres = ["pop"]
 
@@ -541,10 +549,12 @@ def spotify_get_recommendations(
         if clean_genres: seeds_desc.append(f"Genres: {', '.join(clean_genres)}")
 
         lines = [f"Spotify Recommendations (Seeds: {', '.join(seeds_desc)}):"]
-        ignored = [target_energy, target_valence, target_danceability, target_acousticness,
-                   target_instrumentalness, target_tempo, min_popularity, max_popularity]
+        if vibe_used:
+            lines.append("Energy/valence targets were matched to genres with similar estimated vibes (Spotify no longer provides per-track audio features).")
+        ignored = [target_danceability, target_acousticness, target_instrumentalness, target_tempo,
+                   min_popularity, max_popularity]
         if any(v is not None for v in ignored):
-            lines.append("Note: audio-feature and popularity targets were ignored; Spotify no longer provides them for Development Mode apps.")
+            lines.append("Note: danceability, acousticness, instrumentalness, tempo and popularity targets were ignored; Spotify no longer provides them for Development Mode apps.")
         lines.append(f"Found {len(tracks)} track recommendations:\n")
         lines.extend(_track_line(idx, t) for idx, t in enumerate(tracks, 1))
         return "\n".join(lines)

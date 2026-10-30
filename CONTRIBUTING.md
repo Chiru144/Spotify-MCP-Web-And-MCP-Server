@@ -13,9 +13,9 @@ We love your input! We want to make contributing to this project as easy and tra
 ### Features
 
 - **Full Playback Control**: Play, pause, skip, seek to specific times, adjust volume, toggle repeat/shuffle, switch active devices (Premium), and manage your queue.
-- **Smart Playlist Management**: Create playlists, combine, dedupe, and intelligently reorder tracks based on audio features (e.g., sorting by energy arcs or valence).
-- **Search & Library Access**: Search for tracks, albums, artists, or playlists on Spotify, and access your saved playlists.
-- **Deep Taste Analysis & Insights**: Retrieve top played songs and artists (short/medium/long term), analyze deep audio features (danceability, valence, energy), and map related artist networks.
+- **Smart Playlist Management**: Create playlists, combine, dedupe, split, diff and merge, and generate vibe, radio, era and time-capsule playlists.
+- **Search & Library Access**: Search for tracks, albums, artists, or playlists on Spotify, and keep a local cache of your Liked Songs and playlists for fast "songs I already like" queries.
+- **Deep Taste Analysis & Insights**: Retrieve top played songs and artists (short/medium/long term), profile your taste by artist variety and era, and map artist networks through collaborations.
 - **TMDB Movie & Actor Search**: Look up rich biographical profiles for actors or get release details, overviews, and ratings for movies directly from The Movie Database.
 - **Soundtrack Curator**: Integrated with TMDB and DuckDuckGo to automatically discover an actor's filmography, find the corresponding soundtracks, and build a dedicated Spotify playlist.
 - **Soundtrack Staging Studio**: A local web interface to visualize and manage your curated soundtracks.
@@ -32,12 +32,14 @@ Why use this server over standard Spotify MCP integrations? Most basic MCP serve
 | **Soundtrack Staging Studio & Send Box** (Interactive Web UI with 30s track previews) | ✅ Yes | ❌ No |
 | **Dual Paradigm Architecture** (Simultaneous Web Dashboard + FastMCP stdio/SSE server) | ✅ Yes | ❌ No |
 | **Tkinter GUI OAuth Popup** (Desktop dialog preventing MCP stdio hangs/corruption) | ✅ Yes | ❌ No |
-| **Smart Shuffle** (Random playlist mix & audio feature reordering by energy, valence, tempo) | ✅ Yes | ❌ No |
+| **Smart Shuffle** (Random playlist mix into a new playlist) | ✅ Yes | ❌ No |
 | **Smart Playlist Deduplication** (In-place duplicate song removal preserving first occurrence) | ✅ Yes | ❌ No |
 | **Multi-Playlist Combiner** (Merges multiple playlists with auto-pagination & deduping) | ✅ Yes | ❌ No |
-| **Multi-Seed Vibe & Mood Engine** (5 seeds + 6 tunable acoustic metric targets $0.0-1.0$) | ✅ Yes | ❌ No |
+| **Multi-Seed Vibe & Mood Engine** (5 seeds + energy/valence targets matched to genre vibe estimates) | ✅ Yes | ❌ No |
+| **Local Library Cache** (Liked Songs & your playlists cached as JSON for offline queries) | ✅ Yes | ❌ No |
+| **Playlist Generators** (vibe, artist radio, era, time capsule; preview before creating) | ✅ Yes | ❌ No |
 | **Web & Browser Song Tagger** (Autonomous agent research via DuckDuckGo to tag tracks) | ✅ Yes | ❌ No |
-| **Artist Network & Taste Insights** (Related artist mapping + short/med/long listening analytics) | ✅ Yes | ❌ No |
+| **Artist Network & Taste Insights** (Collaborator mapping + short/med/long listening analytics) | ✅ Yes | ❌ No |
 | **Full Playback & Device Switching** (Spotify Connect controls + active hardware switching) | ✅ Yes | ⚠️ Partial (Raw playback only) |
 
 #### Filmography & Cinema Soundtrack Pipeline
@@ -47,23 +49,20 @@ Unlike standard music-only integrations, this server deeply integrates TMDB (The
 - **Soundtrack Resolution**: Searches Spotify for official soundtracks and scores, falling back to track-level searches and DuckDuckGo tracklist discovery when albums are unlinked.
 - **Automated Curation**: Creates dedicated actor or movie playlists in seconds (`create_actor_playlist`, `add_movie_songs_to_playlist`).
 
-#### Vibe & Mood Sorting (audio_features)
+#### Vibe & Mood Matching (genre estimates)
 
-Instead of arbitrary text labels, this server pulls standard audio feature scores ($0.0$ to $1.0$) for tracks:
-- **Valence**: Positivity, musical cheerfulness, or sadness.
-- **Energy**: Intensity, loudness, and fast-paced activity.
-- **Danceability**: Rhythm stability, beat strength, and tempo consistency.
-- **Acousticness & Instrumentalness**: Acoustic instrument usage vs. purely vocal/electronic elements.
-
-Using these metrics, the AI calculates a track's "vibe profile". For example, a song with high valence and high energy is tagged by the LLM as "Upbeat Workout", while low valence and high acousticness is tagged as "Melancholic Chill".
+Spotify stopped giving Development Mode apps per-track audio features (valence, energy, danceability) and artist genres in 2026. Instead, this server keeps an estimated energy and valence for each genre (`GENRE_VIBES` in `tools/discovery.py`) and a target for each mood preset (`MOOD_VIBES`):
+- **Energy/valence targets** pick the genres whose estimates are closest, then sample songs from those genres.
+- **Songs in your library** get a vibe from the genre searches their artist appears in, plus words in the track, album and playlist names (e.g. "Unplugged" means acoustic, a "Gym" playlist means workout). Songs nothing can be inferred about are skipped rather than guessed.
+- **Coverage:** Spotify's genre search mostly covers mainstream Western genres, so songs from other scenes are often left unplaced.
 
 #### Song & Type Suggestions (get_recommendations)
 
-For song suggestions, it wraps Spotify's native Recommendations API, which accepts seed constraints (genres, audio targets, and seed tracks/artists).
+Spotify's Recommendations API is gone for Development Mode apps, so suggestions are rebuilt from search: songs by the artists the seeds collaborate with, plus genre-search picks (including genres chosen from energy/valence targets).
 
-### Complete FastMCP Tools Catalog (108 Registered Tools)
+### Complete FastMCP Tools Catalog (115 Registered Tools)
 
-The FastMCP server exposes **108 registered tools** organized across 7 specialized domain modules in `tools/`:
+The FastMCP server exposes **115 registered tools** organized across 9 specialized domain modules in `tools/`:
 
 <details>
 <summary><b>Cinema, Filmography & Search Tools</b> (<code>tools/search.py</code> &mdash; 16 tools)</summary>
@@ -80,7 +79,7 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 | search_songs | Search for songs or tracks on Spotify with detailed track metadata. |
 | search_spotify | Search for songs, albums, artists, or playlists on Spotify. |
 | spotify_discover_by_artist | Recommend songs by the artists a seed artist collaborates with. |
-| spotify_discover_by_mood | Discover tracks for a mood preset or a set of genres. |
+| spotify_discover_by_mood | Discover tracks for a mood preset, a set of genres, or energy/valence targets. |
 | spotify_discover_deep_cuts | Discover album tracks from an artist or album that are not among their best-known songs. |
 | spotify_genre_explorer | Sample tracks across specific genres, or list suggested genres. |
 | spotify_get_recommendations | Recommend tracks from seed tracks, artists and genres (songs by the seeds' collaborators plus genre picks). |
@@ -204,6 +203,29 @@ The FastMCP server exposes **108 registered tools** organized across 7 specializ
 | spotify_remove_saved_tracks | Remove one or more tracks from the current user's Liked Songs library. |
 | spotify_save_albums | Save one or more albums to the current user's library. |
 | spotify_save_tracks | Save one or more tracks to the current user's Liked Songs library. |
+
+</details>
+
+<details>
+<summary><b>Local Library Cache</b> (<code>tools/library_cache.py</code> &mdash; 3 tools)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| spotify_library_stats | Summarize the locally cached library: size, top artists, decades and playlists. Makes no Spotify calls. |
+| spotify_query_library | Search your locally cached library (Liked Songs and your playlists) without calling Spotify. |
+| spotify_sync_library | Download your Liked Songs and your own playlists into a local cache file, so other tools can answer "songs I already like" requests without searching Spotify. Run it once, then again when your library changes. |
+
+</details>
+
+<details>
+<summary><b>Playlist Generators</b> (<code>tools/generators.py</code> &mdash; 4 tools)</summary>
+
+| Tool Name | Description |
+| :--- | :--- |
+| spotify_era_playlist | Build a playlist of songs released in a year range (e.g. 1990-1999), optionally limited to genres or to your cached library. |
+| spotify_radio_playlist | Build an artist radio playlist: the seed artist's songs mixed with songs by the artists they collaborate with. |
+| spotify_time_capsule_playlist | Build a time capsule playlist: the songs you saved in a given year (from your cached library), or, without a year, your all-time top tracks. |
+| spotify_vibe_playlist | Build a playlist for a mood or an energy/valence target, from songs you already like (cached library) or from all of Spotify. Spotify no longer provides audio features, so each song's vibe is estimated from the genres its artist appears under. |
 
 </details>
 

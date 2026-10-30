@@ -131,12 +131,12 @@ def get_recommendations(
         seed_tracks: List of Spotify track IDs or URIs.
         seed_artists: List of Spotify artist IDs or URIs.
         seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
-        target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-        target_valence: Ignored (see target_energy).
-        target_danceability: Ignored (see target_energy).
-        target_acousticness: Ignored (see target_energy).
-        target_instrumentalness: Ignored (see target_energy).
-        target_tempo: Ignored (see target_energy).
+        target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+        target_valence: Optional positivity 0.0-1.0, used the same way.
+        target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+        target_acousticness: Ignored (see target_danceability).
+        target_instrumentalness: Ignored (see target_danceability).
+        target_tempo: Ignored (see target_danceability).
     """
     try:
         sp = get_spotify_client()
@@ -156,7 +156,8 @@ def get_recommendations(
             sp,
             seed_artists=[_clean_spotify_id(a, "artist") for a in seed_artists or []],
             seed_tracks=[_clean_spotify_id(t, "track") for t in seed_tracks or []],
-            seed_genres=seed_genres or [],
+            seed_genres=seed_genres or (discovery.vibe_genres(discovery.vibe_target(None, target_energy, target_valence))
+                                        if target_energy is not None or target_valence is not None else []),
             limit=min(limit, 100),
         )
 
@@ -164,9 +165,10 @@ def get_recommendations(
             return "No recommendations found for the given seeds."
 
         output = [f"Found {len(tracks)} recommendations:"]
-        targets = [target_energy, target_valence, target_danceability, target_acousticness, target_instrumentalness, target_tempo]
-        if any(v is not None for v in targets):
-            output.append("Note: audio-feature targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
+        if (target_energy is not None or target_valence is not None) and not seed_genres:
+            output.append("Energy/valence targets were matched to genres with similar estimated vibes.")
+        if any(v is not None for v in [target_danceability, target_acousticness, target_instrumentalness, target_tempo]):
+            output.append("Note: danceability, acousticness, instrumentalness and tempo targets were ignored; Spotify no longer provides audio features for Development Mode apps.")
         for i, t in enumerate(tracks, 1):
             artists = ", ".join([a.get("name", "Unknown") for a in t.get("artists", [])])
             output.append(f"{i}. {t.get('name')} by {artists} (URI: {t.get('uri')})")

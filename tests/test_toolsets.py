@@ -30,7 +30,7 @@ def test_toolset_combined_registration():
 def test_toolset_all_registration():
     server = MCPServer("test_all")
     registered = register_active_toolsets(server, ["all"])
-    assert len(registered) == 108
+    assert len(registered) == 115
 
 def test_get_active_toolsets_cli_parsing():
     argv_core = ["server.py", "--toolsets=core"]

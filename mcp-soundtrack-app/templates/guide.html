@@ -915,7 +915,7 @@
       <div class="hero-stats">
         <div class="stat-pill">
           <span style="color: var(--spotify-green);">●</span>
-          <span><strong>20+</strong> MCP Tools</span>
+          <span><strong>115</strong> MCP Tools</span>
         </div>
         <div class="stat-pill">
           <span style="color: var(--accent-blue);">●</span>
@@ -959,7 +959,7 @@
             <tr>
               <td class="cap-name">Audio features (energy, valence, tempo&hellip;)</td>
               <td><span class="badge badge-off">Removed</span></td>
-              <td><code>get_audio_features</code> and <code>reorder_playlist_by_audio_features</code> return an "unavailable" message. <code>target_*</code> values are accepted but ignored; moods map to genres.</td>
+              <td><code>get_audio_features</code> and <code>reorder_playlist_by_audio_features</code> return an "unavailable" message. Energy and valence targets pick the genres with the closest estimated vibe; other <code>target_*</code> values are ignored. Moods map to genres.</td>
             </tr>
             <tr>
               <td class="cap-name">Popularity, followers, genres</td>
@@ -1115,11 +1115,15 @@
               </div>
 
               <div class="input-box sliders">
-                <div class="input-box-title">🎚️ Audio Targets (no longer applied)</div>
+                <div class="input-box-title">🎚️ Vibe Targets (0.0 to 1.0)</div>
                 <ul class="input-list">
                   <li>
-                    <code>target_energy</code>, <code>target_valence</code>, <code>target_danceability</code>, <code>target_acousticness</code>, <code>target_instrumentalness</code>, <code>target_tempo</code>
-                    <span>Accepted so older prompts still work, but ignored: Spotify no longer provides audio features to Development Mode apps. The output notes when they were ignored.</span>
+                    <code>target_energy</code>, <code>target_valence</code>
+                    <span>When no seed genres are given, these pick the genres whose estimated energy and valence are closest.</span>
+                  </li>
+                  <li>
+                    <code>target_danceability</code>, <code>target_acousticness</code>, <code>target_instrumentalness</code>, <code>target_tempo</code>
+                    <span>Accepted but ignored: Spotify no longer provides audio features to Development Mode apps. The output notes when they were ignored.</span>
                   </li>
                 </ul>
               </div>
@@ -1190,8 +1194,8 @@
                   </tr>
                   <tr>
                     <td class="cap-name">Numeric Vibe Targets</td>
-                    <td><span class="badge badge-off">Unavailable</span></td>
-                    <td>Spotify no longer provides audio features (valence, energy, danceability, tempo) to Development Mode apps, so these values can't be applied.</td>
+                    <td><span class="badge badge-post">Estimated</span></td>
+                    <td>Spotify no longer provides per-track audio features, so energy and valence targets are matched against estimated values per genre. Danceability, acousticness and tempo can't be applied.</td>
                   </tr>
                   <tr>
                     <td class="cap-name">Text Tag Matching</td>
@@ -1581,6 +1585,62 @@
         <div class="tool-footer">
           <span>Source File: <strong class="tool-file-path">tools/playlists.py</strong></span>
           <span>REST Endpoints: /api/playlist/merge, /split_by_artist, /deduplicate, /export, /diff, /overlaps, /subsets, /absorb</span>
+        </div>
+      </article>
+
+      <!-- TOOL: Local Library Cache & Playlist Generators -->
+      <article class="tool-card" data-category="library" data-keywords="library cache sync local json liked songs offline query stats generators vibe radio era time capsule playlist songs I like">
+        <div class="tool-card-header">
+          <div class="tool-identity">
+            <div class="tool-icon">🗂️</div>
+            <div class="tool-title-group">
+              <h3>Local Library Cache & Playlist Generators (7 Tools)</h3>
+              <span class="tool-code-name">spotify_sync_library, spotify_library_stats, spotify_query_library, spotify_vibe_playlist, spotify_radio_playlist, spotify_era_playlist, spotify_time_capsule_playlist</span>
+            </div>
+          </div>
+          <div class="tool-badges">
+            <span class="badge badge-mcp">7 MCP Tools</span>
+            <span class="badge badge-skill">Agent Only</span>
+          </div>
+        </div>
+
+        <p class="tool-description">
+          <code>spotify_sync_library</code> saves your Liked Songs and the playlists you own to a local JSON file (<code>~/.cache/spotify-mcp/library.json</code>, or <code>%LOCALAPPDATA%\spotify-mcp\library.json</code> on Windows). Queries and stats then run without calling Spotify. The generators build vibe, artist-radio, era and time-capsule playlists, using your cached songs where that helps. They show a preview first and only create the playlist when called with <code>create=True</code>.
+        </p>
+
+        <div class="tool-flow-grid">
+          <div class="flow-pane web">
+            <div class="flow-pane-title">🧠 How Vibes Are Estimated</div>
+            <p>Spotify no longer gives this app audio features or artist genres. Each genre has an estimated energy and valence, and a song gets a vibe from the genre searches its artist appears in, plus words in its track, album and playlist names (a playlist called "Gym" means workout). Songs nothing can be inferred about are skipped. Spotify's genre search mostly covers mainstream Western genres, so naming your playlists by mood helps most for other scenes.</p>
+          </div>
+          <div class="flow-pane agent">
+            <div class="flow-pane-title">🤖 In the AI Agent</div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_sync_library()</span>
+              <button class="copy-btn" onclick="copySnippet('Cache my Spotify library')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_vibe_playlist(mood="workout", from_library=True, create=True)</span>
+              <button class="copy-btn" onclick="copySnippet('Make an upbeat workout playlist from songs I already like')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_radio_playlist(seed="A. R. Rahman", limit=30)</span>
+              <button class="copy-btn" onclick="copySnippet('Make an A. R. Rahman radio playlist')">Copy</button>
+            </div>
+            <div class="code-preview" style="margin-bottom: 6px;">
+              <span>spotify_era_playlist(start_year=1990, end_year=1999, genres=["rock"])</span>
+              <button class="copy-btn" onclick="copySnippet('Make a 90s rock playlist')">Copy</button>
+            </div>
+            <div class="code-preview">
+              <span>spotify_time_capsule_playlist(year=2021)</span>
+              <button class="copy-btn" onclick="copySnippet('Show the songs I saved in 2021')">Copy</button>
+            </div>
+          </div>
+        </div>
+
+        <div class="tool-footer">
+          <span>Source Files: <strong class="tool-file-path">tools/library_cache.py</strong>, <strong class="tool-file-path">tools/generators.py</strong>, <strong class="tool-file-path">tools/discovery.py</strong></span>
+          <span>Toolsets: library (cache), playlists (generators)</span>
         </div>
       </article>
 

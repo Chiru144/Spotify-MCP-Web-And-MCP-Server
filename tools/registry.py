@@ -489,12 +489,12 @@ Args:
     seed_tracks: List of Spotify track IDs or URIs.
     seed_artists: List of Spotify artist IDs or URIs.
     seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
-    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_valence: Ignored (see target_energy).
-    target_danceability: Ignored (see target_energy).
-    target_acousticness: Ignored (see target_energy).
-    target_instrumentalness: Ignored (see target_energy).
-    target_tempo: Ignored (see target_energy)."""
+    target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+    target_valence: Optional positivity 0.0-1.0, used the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_instrumentalness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability)."""
     return _dispatch("tools.taste", "get_recommendations", **locals())
 
 def _stub_spotify_top_tracks(time_range: str = 'medium_term', limit: int = 20, offset: int = 0) -> str:
@@ -624,16 +624,16 @@ Args:
     return _dispatch("tools.search", "spotify_discover_by_artist", **locals())
 
 def _stub_spotify_discover_by_mood(mood: str | None = None, seed_genres: List[str] | None = None, target_valence: float | None = None, target_energy: float | None = None, target_danceability: float | None = None, target_acousticness: float | None = None, target_tempo: float | None = None, limit: int = 20) -> str:
-    """Discover tracks for a mood preset or a set of genres.
+    """Discover tracks for a mood preset, a set of genres, or energy/valence targets.
 
 Args:
     mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
-    target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_energy: Ignored (see target_valence).
-    target_danceability: Ignored (see target_valence).
-    target_acousticness: Ignored (see target_valence).
-    target_tempo: Ignored (see target_valence).
+    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood and targets.
+    target_valence: Optional positivity 0.0-1.0. Matched against estimated genre vibes (Spotify no longer provides per-track audio features).
+    target_energy: Optional intensity 0.0-1.0, matched the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability).
     limit: Number of tracks to discover (default: 20, max: 100)."""
     return _dispatch("tools.search", "spotify_discover_by_mood", **locals())
 
@@ -663,12 +663,12 @@ Args:
     seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
     seed_artists: List of Spotify artist IDs or URIs.
     seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
-    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_valence: Ignored (see target_energy).
-    target_danceability: Ignored (see target_energy).
-    target_acousticness: Ignored (see target_energy).
-    target_instrumentalness: Ignored (see target_energy).
-    target_tempo: Ignored (see target_energy).
+    target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+    target_valence: Optional positivity 0.0-1.0, used the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_instrumentalness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability).
     min_popularity: Ignored. Spotify no longer returns track popularity.
     max_popularity: Ignored (see min_popularity).
     market: Unused; kept for compatibility."""
@@ -807,6 +807,86 @@ def _stub_open_soundtrack_studio() -> str:
 
 Returns the local web application URL and opens it in your default browser."""
     return _dispatch("tools.web_app", "open_soundtrack_studio", **locals())
+
+def _stub_spotify_sync_library(include_playlists: bool = True, max_liked_songs: int = 2000, max_playlists: int = 25) -> str:
+    """Download your Liked Songs and your own playlists into a local cache file, so other tools can answer
+"songs I already like" requests without searching Spotify. Run it once, then again when your library changes.
+
+Args:
+    include_playlists: Also cache the tracks of playlists you own (default: True).
+    max_liked_songs: Most Liked Songs to cache (default: 2000; 50 per Spotify call).
+    max_playlists: Most of your own playlists to cache (default: 25)."""
+    return _dispatch("tools.library_cache", "spotify_sync_library", **locals())
+
+def _stub_spotify_library_stats() -> str:
+    """Summarize the locally cached library: size, top artists, decades and playlists. Makes no Spotify calls."""
+    return _dispatch("tools.library_cache", "spotify_library_stats", **locals())
+
+def _stub_spotify_query_library(query: str | None = None, artist: str | None = None, year_from: int | None = None, year_to: int | None = None, source: str | None = None, explicit: bool | None = None, limit: int = 50) -> str:
+    """Search your locally cached library (Liked Songs and your playlists) without calling Spotify.
+
+Args:
+    query: Optional text matched against track, album and artist names.
+    artist: Optional artist name (partial match).
+    year_from: Optional earliest release year.
+    year_to: Optional latest release year.
+    source: Optional 'liked', 'playlists', or part of a playlist name.
+    explicit: Optional True/False to keep only explicit or clean tracks.
+    limit: Maximum tracks to return (default: 50)."""
+    return _dispatch("tools.library_cache", "spotify_query_library", **locals())
+
+def _stub_spotify_vibe_playlist(mood: str | None = None, target_energy: float | None = None, target_valence: float | None = None, genres: List[str] | None = None, from_library: bool = True, limit: int = 30, create: bool = False, name: str | None = None, public: bool = False) -> str:
+    """Build a playlist for a mood or an energy/valence target, from songs you already like (cached library) or from all of Spotify.
+Spotify no longer provides audio features, so each song's vibe is estimated from the genres its artist appears under.
+
+Args:
+    mood: Optional preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
+    target_energy: Optional intensity 0.0-1.0 (overrides the mood's).
+    target_valence: Optional positivity 0.0-1.0 (overrides the mood's).
+    genres: Optional genres (max 4). With from_library, your songs are checked against these instead of the genres closest to the vibe; without it, songs are picked from these genres.
+    from_library: Pick from your cached Liked Songs and playlists (default: True; run spotify_sync_library first).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: generated from the mood).
+    public: Whether the created playlist is public (default: False)."""
+    return _dispatch("tools.generators", "spotify_vibe_playlist", **locals())
+
+def _stub_spotify_radio_playlist(seed: str, limit: int = 30, create: bool = False, name: str | None = None, public: bool = False) -> str:
+    """Build an artist radio playlist: the seed artist's songs mixed with songs by the artists they collaborate with.
+
+Args:
+    seed: Artist name, ID, URI or link, or a track URI/link (its lead artist is used).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: '<Artist> Radio').
+    public: Whether the created playlist is public (default: False)."""
+    return _dispatch("tools.generators", "spotify_radio_playlist", **locals())
+
+def _stub_spotify_era_playlist(start_year: int, end_year: int | None = None, genres: List[str] | None = None, from_library: bool = False, limit: int = 30, create: bool = False, name: str | None = None, public: bool = False) -> str:
+    """Build a playlist of songs released in a year range (e.g. 1990-1999), optionally limited to genres or to your cached library.
+
+Args:
+    start_year: First release year (e.g. 1990).
+    end_year: Last release year (default: same as start_year).
+    genres: Optional genres for Spotify search (e.g. ['rock', 'pop']); ignored with from_library.
+    from_library: Pick only from your cached Liked Songs and playlists (default: False).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: generated from the years).
+    public: Whether the created playlist is public (default: False)."""
+    return _dispatch("tools.generators", "spotify_era_playlist", **locals())
+
+def _stub_spotify_time_capsule_playlist(year: int | None = None, limit: int = 30, create: bool = False, name: str | None = None, public: bool = False) -> str:
+    """Build a time capsule playlist: the songs you saved in a given year (from your cached library),
+or, without a year, your all-time top tracks.
+
+Args:
+    year: Optional year you saved/added the songs (e.g. 2021). Needs spotify_sync_library first.
+    limit: Number of tracks (default: 30, max: 50 without a year, 100 with one).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: 'Time Capsule <year>' or 'All-Time Favourites').
+    public: Whether the created playlist is public (default: False)."""
+    return _dispatch("tools.generators", "spotify_time_capsule_playlist", **locals())
 
 TOOL_SPECS = {
     "get_current_playback": {
@@ -1568,12 +1648,12 @@ Args:
     seed_tracks: List of Spotify track IDs or URIs.
     seed_artists: List of Spotify artist IDs or URIs.
     seed_genres: List of genres (e.g., 'synthwave', 'indie pop').
-    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_valence: Ignored (see target_energy).
-    target_danceability: Ignored (see target_energy).
-    target_acousticness: Ignored (see target_energy).
-    target_instrumentalness: Ignored (see target_energy).
-    target_tempo: Ignored (see target_energy).""",
+    target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+    target_valence: Optional positivity 0.0-1.0, used the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_instrumentalness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['taste', 'core']
     },
@@ -1771,16 +1851,16 @@ Args:
         "fn": _stub_spotify_discover_by_mood,
         "module": "tools.search",
         "fn_name": "spotify_discover_by_mood",
-        "doc": """Discover tracks for a mood preset or a set of genres.
+        "doc": """Discover tracks for a mood preset, a set of genres, or energy/valence targets.
 
 Args:
     mood: Optional mood preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
-    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood's genres.
-    target_valence: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_energy: Ignored (see target_valence).
-    target_danceability: Ignored (see target_valence).
-    target_acousticness: Ignored (see target_valence).
-    target_tempo: Ignored (see target_valence).
+    seed_genres: Optional list of genres (e.g. ['pop', 'indie', 'electronic']). Max 5. Overrides the mood and targets.
+    target_valence: Optional positivity 0.0-1.0. Matched against estimated genre vibes (Spotify no longer provides per-track audio features).
+    target_energy: Optional intensity 0.0-1.0, matched the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability).
     limit: Number of tracks to discover (default: 20, max: 100).""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['search']
@@ -1822,12 +1902,12 @@ Args:
     seed_tracks: List of Spotify track IDs or URIs (max 5 combined seeds).
     seed_artists: List of Spotify artist IDs or URIs.
     seed_genres: List of genres (e.g. ['pop', 'rock', 'synthwave']).
-    target_energy: Ignored. Spotify no longer provides audio features for Development Mode apps.
-    target_valence: Ignored (see target_energy).
-    target_danceability: Ignored (see target_energy).
-    target_acousticness: Ignored (see target_energy).
-    target_instrumentalness: Ignored (see target_energy).
-    target_tempo: Ignored (see target_energy).
+    target_energy: Optional intensity 0.0-1.0. If no seed genres are given, adds the genres whose estimated vibe is closest (Spotify no longer provides per-track audio features).
+    target_valence: Optional positivity 0.0-1.0, used the same way.
+    target_danceability: Ignored. Spotify no longer provides audio features for Development Mode apps.
+    target_acousticness: Ignored (see target_danceability).
+    target_instrumentalness: Ignored (see target_danceability).
+    target_tempo: Ignored (see target_danceability).
     min_popularity: Ignored. Spotify no longer returns track popularity.
     max_popularity: Ignored (see min_popularity).
     market: Unused; kept for compatibility.""",
@@ -2035,6 +2115,114 @@ Args:
 Returns the local web application URL and opens it in your default browser.""",
         "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
         "toolsets": ['web_app', 'core']
+    },
+    "spotify_sync_library": {
+        "fn": _stub_spotify_sync_library,
+        "module": "tools.library_cache",
+        "fn_name": "spotify_sync_library",
+        "doc": """Download your Liked Songs and your own playlists into a local cache file, so other tools can answer
+"songs I already like" requests without searching Spotify. Run it once, then again when your library changes.
+
+Args:
+    include_playlists: Also cache the tracks of playlists you own (default: True).
+    max_liked_songs: Most Liked Songs to cache (default: 2000; 50 per Spotify call).
+    max_playlists: Most of your own playlists to cache (default: 25).""",
+        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=True, open_world_hint=True),
+        "toolsets": ['library']
+    },
+    "spotify_library_stats": {
+        "fn": _stub_spotify_library_stats,
+        "module": "tools.library_cache",
+        "fn_name": "spotify_library_stats",
+        "doc": """Summarize the locally cached library: size, top artists, decades and playlists. Makes no Spotify calls.""",
+        "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False),
+        "toolsets": ['library']
+    },
+    "spotify_query_library": {
+        "fn": _stub_spotify_query_library,
+        "module": "tools.library_cache",
+        "fn_name": "spotify_query_library",
+        "doc": """Search your locally cached library (Liked Songs and your playlists) without calling Spotify.
+
+Args:
+    query: Optional text matched against track, album and artist names.
+    artist: Optional artist name (partial match).
+    year_from: Optional earliest release year.
+    year_to: Optional latest release year.
+    source: Optional 'liked', 'playlists', or part of a playlist name.
+    explicit: Optional True/False to keep only explicit or clean tracks.
+    limit: Maximum tracks to return (default: 50).""",
+        "annotations": ToolAnnotations(read_only_hint=True, destructive_hint=False, idempotent_hint=True, open_world_hint=False),
+        "toolsets": ['library']
+    },
+    "spotify_vibe_playlist": {
+        "fn": _stub_spotify_vibe_playlist,
+        "module": "tools.generators",
+        "fn_name": "spotify_vibe_playlist",
+        "doc": """Build a playlist for a mood or an energy/valence target, from songs you already like (cached library) or from all of Spotify.
+Spotify no longer provides audio features, so each song's vibe is estimated from the genres its artist appears under.
+
+Args:
+    mood: Optional preset ('happy', 'sad', 'chill', 'energetic', 'focus', 'party', 'dark', 'romantic', 'workout').
+    target_energy: Optional intensity 0.0-1.0 (overrides the mood's).
+    target_valence: Optional positivity 0.0-1.0 (overrides the mood's).
+    genres: Optional genres (max 4). With from_library, your songs are checked against these instead of the genres closest to the vibe; without it, songs are picked from these genres.
+    from_library: Pick from your cached Liked Songs and playlists (default: True; run spotify_sync_library first).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: generated from the mood).
+    public: Whether the created playlist is public (default: False).""",
+        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True),
+        "toolsets": ['playlists']
+    },
+    "spotify_radio_playlist": {
+        "fn": _stub_spotify_radio_playlist,
+        "module": "tools.generators",
+        "fn_name": "spotify_radio_playlist",
+        "doc": """Build an artist radio playlist: the seed artist's songs mixed with songs by the artists they collaborate with.
+
+Args:
+    seed: Artist name, ID, URI or link, or a track URI/link (its lead artist is used).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: '<Artist> Radio').
+    public: Whether the created playlist is public (default: False).""",
+        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True),
+        "toolsets": ['playlists']
+    },
+    "spotify_era_playlist": {
+        "fn": _stub_spotify_era_playlist,
+        "module": "tools.generators",
+        "fn_name": "spotify_era_playlist",
+        "doc": """Build a playlist of songs released in a year range (e.g. 1990-1999), optionally limited to genres or to your cached library.
+
+Args:
+    start_year: First release year (e.g. 1990).
+    end_year: Last release year (default: same as start_year).
+    genres: Optional genres for Spotify search (e.g. ['rock', 'pop']); ignored with from_library.
+    from_library: Pick only from your cached Liked Songs and playlists (default: False).
+    limit: Number of tracks (default: 30, max: 100).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: generated from the years).
+    public: Whether the created playlist is public (default: False).""",
+        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True),
+        "toolsets": ['playlists']
+    },
+    "spotify_time_capsule_playlist": {
+        "fn": _stub_spotify_time_capsule_playlist,
+        "module": "tools.generators",
+        "fn_name": "spotify_time_capsule_playlist",
+        "doc": """Build a time capsule playlist: the songs you saved in a given year (from your cached library),
+or, without a year, your all-time top tracks.
+
+Args:
+    year: Optional year you saved/added the songs (e.g. 2021). Needs spotify_sync_library first.
+    limit: Number of tracks (default: 30, max: 50 without a year, 100 with one).
+    create: Save the result as a new playlist (default: False = preview only).
+    name: Playlist name when creating (default: 'Time Capsule <year>' or 'All-Time Favourites').
+    public: Whether the created playlist is public (default: False).""",
+        "annotations": ToolAnnotations(read_only_hint=False, destructive_hint=False, idempotent_hint=False, open_world_hint=True),
+        "toolsets": ['playlists']
     },
 }
 

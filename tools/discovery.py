@@ -31,6 +31,41 @@ MOOD_GENRES = {
     "workout": ["workout", "edm"],
 }
 
+# Estimated (energy, valence) per genre, 0.0-1.0. Spotify no longer gives this app audio features,
+# so energy/valence targets are matched against these genre estimates instead of per-track values.
+GENRE_VIBES = {
+    "acoustic": (0.30, 0.50), "afrobeat": (0.75, 0.80), "alternative": (0.65, 0.45),
+    "ambient": (0.15, 0.40), "blues": (0.45, 0.40), "bollywood": (0.65, 0.70), "chill": (0.30, 0.55),
+    "classical": (0.20, 0.40), "country": (0.55, 0.65), "dance pop": (0.80, 0.80), "disco": (0.80, 0.85),
+    "drum and bass": (0.95, 0.50), "dubstep": (0.95, 0.35), "edm": (0.90, 0.65), "electronic": (0.75, 0.55),
+    "filmi": (0.60, 0.65), "folk": (0.35, 0.50), "funk": (0.75, 0.85), "gospel": (0.55, 0.75),
+    "hip hop": (0.70, 0.55), "house": (0.85, 0.70), "indie": (0.55, 0.50), "indie pop": (0.60, 0.60),
+    "industrial": (0.90, 0.20), "j-pop": (0.75, 0.75), "jazz": (0.35, 0.55), "k-pop": (0.80, 0.75),
+    "kannada": (0.60, 0.65), "latin": (0.80, 0.80), "lo-fi": (0.25, 0.50), "malayalam": (0.55, 0.60),
+    "metal": (0.95, 0.25), "party": (0.85, 0.80), "pop": (0.70, 0.70), "punk": (0.90, 0.45),
+    "r&b": (0.50, 0.55), "reggae": (0.55, 0.75), "reggaeton": (0.80, 0.75), "rock": (0.75, 0.50),
+    "romantic": (0.40, 0.60), "sad": (0.25, 0.15), "soul": (0.50, 0.60), "synthwave": (0.70, 0.45),
+    "tamil": (0.60, 0.65), "techno": (0.90, 0.45), "telugu": (0.65, 0.65), "trance": (0.85, 0.55),
+    "workout": (0.95, 0.65),
+}
+
+# Target (energy, valence) per mood, used when ranking genres and cached tracks by vibe
+MOOD_VIBES = {
+    "happy": (0.75, 0.85), "sad": (0.25, 0.15), "chill": (0.30, 0.55), "energetic": (0.90, 0.70),
+    "focus": (0.20, 0.45), "party": (0.85, 0.80), "dark": (0.85, 0.20), "romantic": (0.40, 0.65),
+    "workout": (0.95, 0.65),
+}
+
+# Words in track, album or playlist names that hint at a genre (e.g. "Unplugged" -> acoustic, a "Gym" playlist -> workout)
+NAME_HINTS = {
+    "acoustic": "acoustic", "unplugged": "acoustic", "piano": "classical", "lofi": "lo-fi", "lo-fi": "lo-fi",
+    "remix": "edm", "club mix": "house", "extended mix": "house", "instrumental": "ambient",
+    "sad": "sad", "heartbreak": "sad", "love": "romantic", "romance": "romantic", "romantic": "romantic",
+    "melody": "romantic", "party": "party", "dance": "dance pop", "workout": "workout", "gym": "workout",
+    "chill": "chill", "relax": "chill", "sleep": "ambient", "study": "ambient", "focus": "ambient",
+    "edm": "edm", "rock": "rock", "metal": "metal", "jazz": "jazz", "classical": "classical",
+}
+
 
 def _image(obj: Dict[str, Any]) -> Optional[str]:
     images = obj.get("images") or []
@@ -166,3 +201,98 @@ def deep_cuts(sp, artist_or_album: str, limit: int = 15) -> Dict[str, Any]:
     hits = {t["uri"] for t in sp.search(q=album["name"], type="track", limit=10).get("tracks", {}).get("items", []) if t}
     cuts = [dict(t, album=album) for t in sp.album_tracks(album["id"], limit=50).get("items", []) if t.get("uri") not in hits]
     return {"name": album.get("name"), "image": _image(album), "tracks": cuts[:limit]}
+
+
+def vibe_target(mood: Optional[str] = None, energy: Optional[float] = None,
+                valence: Optional[float] = None) -> Optional[tuple]:
+    """(energy, valence) to aim for: explicit values win, then the mood's preset. None if neither is given."""
+    base = MOOD_VIBES.get((mood or "").lower().strip())
+    if energy is None and valence is None and not base:
+        return None
+    e = energy if energy is not None else (base[0] if base else None)
+    v = valence if valence is not None else (base[1] if base else None)
+    return (None if e is None else max(0.0, min(1.0, float(e))),
+            None if v is None else max(0.0, min(1.0, float(v))))
+
+
+def _vibe_distance(vibe: tuple, target: tuple) -> float:
+    return sum((a - b) ** 2 for a, b in zip(vibe, target) if b is not None) ** 0.5
+
+
+def vibe_genres(target: tuple, count: int = 2, pool: Optional[Iterable[str]] = None) -> List[str]:
+    """Genres whose estimated (energy, valence) is closest to `target`."""
+    candidates = [g for g in (pool or GENRE_VIBES) if g in GENRE_VIBES]
+    return sorted(candidates, key=lambda g: _vibe_distance(GENRE_VIBES[g], target))[:count]
+
+
+def estimate_vibe(genres: Iterable[str]) -> Optional[tuple]:
+    """Average estimated (energy, valence) of the known genres, or None."""
+    vibes = [GENRE_VIBES[g] for g in genres if g in GENRE_VIBES]
+    if not vibes:
+        return None
+    return (sum(e for e, _ in vibes) / len(vibes), sum(v for _, v in vibes) / len(vibes))
+
+
+def name_genres(track: Dict[str, Any]) -> List[str]:
+    """Genres hinted at by words in the track's or album's name, or in the names of the user's
+    playlists that hold it (cached tracks list those as `sources`, e.g. "playlist:Gym Hits")."""
+    album = track.get("album")
+    playlists = " ".join(s[len("playlist:"):] for s in track.get("sources", []) if s.startswith("playlist:"))
+    text = f"{track.get('name', '')} {album.get('name', '') if isinstance(album, dict) else album or ''} {playlists}".lower()
+    return sorted({genre for word, genre in NAME_HINTS.items() if word in text})
+
+
+def genre_artist_ids(sp, genre: str, limit: int = 30) -> set:
+    """IDs of artists on the top `genre:` search results. Spotify returns null genres for
+    artists and an empty `genre:` artist search, so a genre's artists are learned from its tracks."""
+    items = sp.search(q=f'genre:"{genre}"', type="track", limit=limit).get("tracks", {}).get("items", [])
+    return {a["id"] for t in items if t for a in t.get("artists", []) if a.get("id")}
+
+
+def tag_tracks(sp, tracks: List[Dict[str, Any]], genres: List[str], per_genre: int = 30) -> Dict[str, List[str]]:
+    """Estimated genres per track URI: genres whose search results include one of the track's
+    artists, plus genres hinted at by its name. Makes one paged search per genre (max 4 genres)."""
+    tags = {t["uri"]: name_genres(t) for t in tracks if t.get("uri")}
+    for genre in genres[:4]:
+        ids = genre_artist_ids(sp, genre, per_genre)
+        for t in tracks:
+            if t.get("uri") in tags and genre not in tags[t["uri"]] and any(
+                    a.get("id") in ids for a in t.get("artists", [])):
+                tags[t["uri"]].append(genre)
+    return tags
+
+
+def pick_by_vibe(sp, tracks: List[Dict[str, Any]], target: tuple, limit: int = 30,
+                 max_distance: float = 0.35, genres: Optional[List[str]] = None,
+                 report: Optional[Dict[str, Any]] = None) -> List[Dict[str, Any]]:
+    """Tracks (e.g. from the user's library) whose estimated vibe is close to `target`, closest first.
+    `genres` are the genres to check the tracks against (default: the 4 closest to `target`).
+    Each track gets `vibe_genres` and `vibe` keys; tracks with no estimate are left out.
+    If `report` is given, it is filled with the probed genres and how many tracks got an estimate."""
+    probe = [g for g in (genres or []) if g][:4] or vibe_genres(target, count=4)
+    tags = tag_tracks(sp, tracks, probe)
+    if report is not None:
+        report.update(genres=probe, placed=sum(1 for g in tags.values() if estimate_vibe(g) is not None))
+    scored = []
+    for t in tracks:
+        vibe = estimate_vibe(tags.get(t.get("uri"), []))
+        if vibe is not None and _vibe_distance(vibe, target) <= max_distance:
+            scored.append((_vibe_distance(vibe, target), dict(t, vibe_genres=tags[t["uri"]], vibe=vibe)))
+    scored.sort(key=lambda x: x[0])
+    return [t for _, t in scored[:limit]]
+
+
+def era_tracks(sp, start_year: int, end_year: int, genres: Optional[List[str]] = None,
+               limit: int = 30) -> List[Dict[str, Any]]:
+    """Songs released between two years via search's `year:` filter, optionally per genre."""
+    years = f"{min(start_year, end_year)}-{max(start_year, end_year)}"
+    queries = [f'year:{years} genre:"{g}"' for g in (genres or [])[:3]] or [f"year:{years}"]
+    per_query = max(1, -(-limit // len(queries)))
+    out, seen = [], set()
+    for q in queries:
+        for t in sp.search(q=q, type="track", limit=min(per_query, 50)).get("tracks", {}).get("items", []):
+            if t and t.get("uri") not in seen:
+                seen.add(t["uri"])
+                out.append(t)
+    random.shuffle(out)
+    return out[:limit]

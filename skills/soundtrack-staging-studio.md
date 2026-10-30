@@ -17,4 +17,4 @@ Interactive visual curation workflow for launching, previewing, and staging soun
    - **Send Box**: Stage tracks from any search or filmography query into an in-memory staging area.
    - **30-Second Previews**: Listen to playable track snippets before committing them to playlists.
    - **One-Click Playlist Sync**: Commit all staged tracks directly to a new or existing Spotify playlist.
-   - **Interactive Tool Guide**: Browse and trigger all 108 MCP endpoints visually at `http://127.0.0.1:8000/tools`.
+   - **Interactive Tool Guide**: Browse and trigger all 115 MCP tools visually at `http://127.0.0.1:8000/tools`.

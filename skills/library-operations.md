@@ -1,7 +1,7 @@
 # Library & Liked Media Operations Skill
 
 ## Overview
-Comprehensive management of the user's Spotify personal library, including Liked Songs (saved tracks) and saved album collections.
+Comprehensive management of the user's Spotify personal library, including Liked Songs (saved tracks), saved album collections, and a local cache of the library for fast offline queries.
 
 ## Tools Included
 
@@ -44,6 +44,19 @@ Comprehensive management of the user's Spotify personal library, including Liked
 - **Purpose**: Verify whether specific albums exist in user library.
 - **REST Endpoint**: `POST /api/library/albums/check` & `GET /api/library/albums/check?album_ids=...`
 - **Output**: Status per album (`🟢 Saved (In Library)` or `⚪ Not Saved`).
+
+## Local Library Cache
+
+### 9. `spotify_sync_library(include_playlists=True, max_liked_songs=2000, max_playlists=25)`
+- **Purpose**: Save Liked Songs and the user's own playlists to `~/.cache/spotify-mcp/library.json` (`%LOCALAPPDATA%\spotify-mcp\library.json` on Windows). Run once, then again when the library changes. About one Spotify call per 50 songs, plus one or more per playlist.
+
+### 10. `spotify_library_stats()`
+- **Purpose**: Size, top artists, decades and playlists of the cached library. No Spotify calls.
+
+### 11. `spotify_query_library(query, artist, year_from, year_to, source, explicit, limit)`
+- **Purpose**: Search the cached library by text, artist, release years, source (`liked`, `playlists` or part of a playlist name) or explicit flag. No Spotify calls.
+
+Use these for "songs I already like" requests, and pass `from_library=True` to `spotify_vibe_playlist` or `spotify_era_playlist` to build playlists from the cache.
 
 ## UI Location
 Open `http://127.0.0.1:8000/tools` and navigate to the **📚 Library & Saved Media Studio** section.

@@ -80,12 +80,17 @@ def test_spotify_search_discovery_tools(mock_clients):
     assert "Rec Track 1" in res_disc_art
     assert "Top Track 1" in res_disc_art
 
-    # 4. spotify_discover_by_mood -> genre search; audio targets are reported as ignored
-    res_mood = search.spotify_discover_by_mood(mood="chill", target_valence=0.5, target_energy=0.3, limit=10)
+    # 4. spotify_discover_by_mood -> genre search; the mood preset picks the genres
+    res_mood = search.spotify_discover_by_mood(mood="chill", target_tempo=90, limit=10)
     assert "Mood Discovery Results" in res_mood
     assert "chill, lo-fi" in res_mood
     assert "ignored" in res_mood
     assert any('genre:"chill"' in c.kwargs.get("q", "") for c in sp_mock.search.call_args_list)
+
+    # energy/valence targets pick the genres with the closest estimated vibe
+    res_vibe = search.spotify_discover_by_mood(target_energy=0.95, target_valence=0.25, limit=5)
+    assert "Genres: metal" in res_vibe
+    assert "matched to genres" in res_vibe
 
     # 5. spotify_genre_explorer -> built-in genre list, then genre search
     res_genres_all = search.spotify_genre_explorer()
@@ -111,7 +116,11 @@ def test_spotify_search_discovery_tools(mock_clients):
     assert "Spotify Recommendations" in res_recs
     assert "Rec Track 1" in res_recs
     assert "Genre Song" in res_recs
-    assert "ignored" in res_recs
+    assert "matched to genres" not in res_recs  # seed genres given, so the energy target isn't used
+
+    res_vibe_recs = search.spotify_get_recommendations(target_energy=0.2, target_valence=0.45, limit=5)
+    assert "Genres: ambient" in res_vibe_recs or "Genres: classical" in res_vibe_recs
+    assert "matched to genres" in res_vibe_recs
 
     for name in removed:
         getattr(sp_mock, name).assert_not_called()

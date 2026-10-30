@@ -24,7 +24,7 @@ def test_taste_tools(mock_clients):
     assert "Artist" in taste.get_artist_network("Artist Name")
     taste.get_saved_tracks()
     sp_mock.search.return_value = {"tracks": {"items": [{"name": "Song 1", "artists": [{"name": "Artist 1"}], "uri": "spotify:track:1"}]}}
-    res = taste.get_recommendations(limit=5, seed_genres=["rock"], target_energy=0.5)
+    res = taste.get_recommendations(limit=5, seed_genres=["rock"], target_tempo=120)
     assert "Song 1" in res
     assert "ignored" in res
     assert sp_mock.search.call_args.kwargs["q"] == 'genre:"rock"'
