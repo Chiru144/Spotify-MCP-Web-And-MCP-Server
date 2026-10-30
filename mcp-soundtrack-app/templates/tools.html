@@ -147,30 +147,6 @@
     </header>
 
     <div class="tool-section">
-      <h2>🔀 Playlist Shuffler (To New Playlist)</h2>
-      <p>Enter a Spotify Playlist URL or ID. We will mix its songs and save them to a completely new playlist with the same name.</p>
-      <div class="input-group" style="flex-direction: column;">
-        <select id="myPlaylistsShuffle" onchange="if(this.value) document.getElementById('shuffleInput').value = this.value;" style="padding: 12px 16px; background: var(--bg-surface); color: #fff; border: 1px solid var(--border-subtle); border-radius: var(--radius-md); font-family: inherit; width: 100%; outline: none; box-sizing: border-box;">
-          <option value="">-- Choose Your Playlist --</option>
-        </select>
-        <div style="display: flex; width: 100%; gap: 12px; align-items: center;">
-            <div style="flex: 1; border-top: 1px solid var(--border-subtle);"></div>
-            <span style="color: var(--text-muted); font-size: 12px; text-transform: uppercase;">OR paste a link</span>
-            <div style="flex: 1; border-top: 1px solid var(--border-subtle);"></div>
-        </div>
-        <input type="text" id="shuffleInput" placeholder="e.g. spotify:playlist:37i9dQZF1DXcBWIGoYBM5M" style="width: 100%; box-sizing: border-box;" />
-        <input type="text" id="newPlaylistName" placeholder="New Playlist Name (leave blank for default)" style="width: 100%; box-sizing: border-box; margin-top: 8px;" />
-        <div style="display: flex; flex-direction: column; gap: 8px; margin-top: 12px; width: 100%;">
-          <button id="shuffleNewBtn" onclick="shufflePlaylist(false)" style="width: 100%;">Create New Shuffled Playlist</button>
-          <button id="shuffleInPlaceBtn" onclick="shufflePlaylist(true)" style="width: 100%;">Shuffle In-Place (Owner Only)</button>
-        </div>
-      </div>
-    </div>
-
-
-
-
-    <div class="tool-section">
       <h2>🧹 Playlist Duplicate Remover</h2>
       <p>Select a playlist or paste a link. We will scan for songs with the exact same name and artist and remove duplicates in-place.</p>
       <div class="input-group" style="flex-direction: column;">
@@ -767,71 +743,6 @@
 
     </div>
 
-    <!-- SECTION 13: PLAYBACK & DEVICE CONTROLLER -->
-    <div class="tool-section">
-      <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 8px;">
-        <h2>🕹️ Universal Spotify Playback & Device Controller</h2>
-        <span style="font-size: 11px; padding: 4px 8px; border-radius: 20px; background: rgba(34, 197, 94, 0.15); color: var(--spotify-green); font-weight: 600;">Active Session</span>
-      </div>
-      <p>Direct control over playback, device routing, track skipping, queue management, volume, and playback modes.</p>
-
-      <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 16px;">
-        <!-- Status & Transport -->
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-          <h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 10px;">Transport Controls</h4>
-          <div id="playerStatusSummary" style="font-size: 13px; color: var(--text-muted); margin-bottom: 14px; min-height: 40px;">
-            Checking Spotify playback state...
-          </div>
-          <div style="display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px;">
-            <button onclick="controlPlayer('previous')" style="padding: 8px 14px; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff;">⏮️ Previous</button>
-            <button onclick="controlPlayer('pause')" style="padding: 8px 14px; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff;">⏸️ Pause</button>
-            <button onclick="controlPlayer('resume')" style="padding: 8px 14px; font-size: 13px; background: rgba(29,185,84,0.2); color: var(--spotify-green);">▶️ Resume</button>
-            <button onclick="controlPlayer('next')" style="padding: 8px 14px; font-size: 13px; background: rgba(255,255,255,0.08); color: #fff;">⏭️ Next</button>
-            <button onclick="refreshPlayerStatus()" style="padding: 8px 12px; font-size: 13px; background: rgba(255,255,255,0.05); color: var(--text-muted);">🔄 Refresh</button>
-          </div>
-          <div style="display: flex; gap: 8px; align-items: center;">
-            <input type="text" id="playUriInput" placeholder="Enter track URI to play (e.g. spotify:track:...)" style="font-size: 12px; padding: 8px 10px;" />
-            <button onclick="playCustomUri()" style="padding: 8px 14px; font-size: 12px; white-space: nowrap;">▶️ Play Track</button>
-          </div>
-        </div>
-
-        <!-- Volume, Modes & Devices -->
-        <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-          <h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 10px;">Volume & Modes</h4>
-          <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 14px;">
-            <span style="font-size: 13px; color: var(--text-muted);">🔊 Volume:</span>
-            <input type="range" id="playerVolumeSlider" min="0" max="100" value="50" onchange="setVolumeSlider(this.value)" style="flex: 1; accent-color: var(--spotify-green);" />
-            <span id="playerVolumeLabel" style="font-size: 13px; font-weight: 700; width: 35px;">50%</span>
-          </div>
-          <div style="display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap;">
-            <button onclick="togglePlayerShuffle()" id="shuffleToggleBtn" style="padding: 6px 12px; font-size: 12px; background: rgba(255,255,255,0.08); color: #fff;">🔀 Shuffle</button>
-            <button onclick="cyclePlayerRepeat()" id="repeatCycleBtn" style="padding: 6px 12px; font-size: 12px; background: rgba(255,255,255,0.08); color: #fff;">🔁 Repeat (off)</button>
-          </div>
-          <h4 style="font-size: 14px; color: var(--spotify-green); margin-bottom: 8px;">Devices & Transfer</h4>
-          <div style="display: flex; gap: 8px;">
-            <select id="playerDeviceSelect" style="flex: 1; padding: 8px; background: var(--bg-surface); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); color: #fff; font-size: 12px;">
-              <option value="">Detecting devices...</option>
-            </select>
-            <button onclick="transferToSelectedDevice()" style="padding: 8px 12px; font-size: 12px;">Transfer</button>
-            <button onclick="loadDevicesList()" style="padding: 8px 10px; font-size: 12px; background: rgba(255,255,255,0.06); color: var(--text-muted);">🔄</button>
-          </div>
-        </div>
-      </div>
-
-      <!-- Queue Management -->
-      <div style="background: rgba(255,255,255,0.02); border: 1px solid var(--border-subtle); border-radius: var(--radius-md); padding: 16px;">
-        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; flex-wrap: wrap; gap: 8px;">
-          <h4 style="font-size: 14px; color: var(--spotify-green);">Queue Management</h4>
-          <div style="display: flex; gap: 8px;">
-            <input type="text" id="addQueueInput" placeholder="Enter track URI to queue..." style="font-size: 12px; padding: 6px 10px; width: 220px;" />
-            <button onclick="addToQueueFromInput()" style="padding: 6px 12px; font-size: 12px;">+ Queue Track</button>
-            <button onclick="loadPlayerQueue()" style="padding: 6px 12px; font-size: 12px; background: rgba(255,255,255,0.08); color: #fff;">Inspect Queue</button>
-          </div>
-        </div>
-        <div id="playerQueueResult" style="display: none; max-height: 200px; overflow-y: auto; font-size: 12px;"></div>
-      </div>
-    </div>
-
   </div>
 
   <div id="toastContainer" class="toast-container"></div>
@@ -849,43 +760,6 @@
       t.innerHTML = `<span>✨</span><span>${msg}</span>`;
       c.appendChild(t);
       setTimeout(() => { t.style.opacity = 0; setTimeout(() => t.remove(), 300); }, 4000);
-    }
-
-    async function shufflePlaylist(inPlace = false) {
-      const input = document.getElementById('shuffleInput').value.trim();
-      const newName = document.getElementById('newPlaylistName').value.trim();
-      if (!input) return alert('Enter a playlist ID or URL');
-      
-      const inPlaceBtn = document.getElementById('shuffleInPlaceBtn');
-      const newBtn = document.getElementById('shuffleNewBtn');
-      const activeBtn = inPlace ? inPlaceBtn : newBtn;
-      const originalText = activeBtn.textContent;
-      
-      inPlaceBtn.disabled = true;
-      newBtn.disabled = true;
-      activeBtn.textContent = 'Shuffling...';
-      
-      try {
-        const res = await fetch('/api/playlist/shuffle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ playlist_id: input, in_place: inPlace, new_name: newName || null })
-        });
-        const data = await res.json();
-        if (data.success) {
-          showToast(data.message);
-          document.getElementById('shuffleInput').value = '';
-          loadUserPlaylists();
-        } else {
-          alert('Error: ' + data.error);
-        }
-      } catch (e) {
-        alert('Error: ' + e.message);
-      } finally {
-        activeBtn.textContent = originalText;
-        inPlaceBtn.disabled = false;
-        newBtn.disabled = false;
-      }
     }
 
     let userPlaylistOptionsHTML = '';
@@ -1594,7 +1468,6 @@
         const res = await fetch('/api/user/playlists');
         const data = await res.json();
         if (data.authenticated && data.playlists) {
-          const shuffleSelect = document.getElementById('myPlaylistsShuffle');
           const dedupeSelect = document.getElementById('dedupePlaylistsSelect');
           const inspectSelect = document.getElementById('inspectPlaylistsSelect');
           const splitSelect = document.getElementById('powerSplitSelect');
@@ -1604,7 +1477,6 @@
           const absorbSrc = document.getElementById('powerAbsorbSourceSelect');
           const absorbTgt = document.getElementById('powerAbsorbTargetSelect');
           
-          shuffleSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
           if (dedupeSelect) dedupeSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
           if (inspectSelect) inspectSelect.innerHTML = '<option value="">-- Choose Your Playlist --</option>';
           if (splitSelect) splitSelect.innerHTML = '<option value="">-- Choose Playlist to Split --</option>';
@@ -1622,7 +1494,6 @@
             const safeName = String(p.name).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;');
             opt.innerHTML = `${safeName} (${p.total_tracks} songs)`;
             
-            shuffleSelect.appendChild(opt.cloneNode(true));
             if (dedupeSelect) dedupeSelect.appendChild(opt.cloneNode(true));
             if (inspectSelect) inspectSelect.appendChild(opt.cloneNode(true));
             if (splitSelect) splitSelect.appendChild(opt.cloneNode(true));
@@ -2814,184 +2685,8 @@
       }
     }
 
-    // ==========================================
-    // PLAYBACK & TRANSPORT CONTROLLER
-    // ==========================================
-    let currentShuffleState = false;
-    let currentRepeatIndex = 0;
-    const repeatModes = ['off', 'context', 'track'];
-
-    async function controlPlayer(cmd) {
-      try {
-        const res = await fetch(`/api/player/${cmd}`, { method: 'POST' });
-        const data = await res.json();
-        showToast(`Player: ${cmd}`);
-        setTimeout(refreshPlayerStatus, 500);
-      } catch (err) {
-        showToast(`Playback error: ${err.message}`);
-      }
-    }
-
-    async function playCustomUri() {
-      const uri = document.getElementById('playUriInput').value.trim();
-      if (!uri) return alert('Please enter a track URI or context URI.');
-      try {
-        const res = await fetch('/api/player/play', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uri: uri })
-        });
-        showToast('Playback triggered!');
-        setTimeout(refreshPlayerStatus, 800);
-      } catch (err) {
-        showToast(`Play error: ${err.message}`);
-      }
-    }
-
-    async function refreshPlayerStatus() {
-      const statusEl = document.getElementById('playerStatusSummary');
-      if (!statusEl) return;
-      try {
-        const res = await fetch('/api/player/state');
-        const data = await res.json();
-        if (data.is_playing || data.track) {
-          const t = data.track || {};
-          const statusTxt = data.is_playing ? '▶️ Playing' : '⏸️ Paused';
-          const dev = data.device ? `${data.device.name} (${data.device.volume_percent}%)` : 'Active Device';
-          statusEl.innerHTML = `
-            <div style="font-weight: 700; color: #fff;">${statusTxt}: <span style="color: var(--spotify-green);">${t.name || 'Unknown Track'}</span> by ${t.artist || 'Unknown Artist'}</div>
-            <div style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">Device: ${dev} • Repeat: ${data.repeat_state || 'off'} • Shuffle: ${data.shuffle_state ? 'On' : 'Off'}</div>
-          `;
-          if (data.device && data.device.volume_percent != null) {
-            document.getElementById('playerVolumeSlider').value = data.device.volume_percent;
-            document.getElementById('playerVolumeLabel').textContent = `${data.device.volume_percent}%`;
-          }
-          currentShuffleState = Boolean(data.shuffle_state);
-          document.getElementById('shuffleToggleBtn').style.color = currentShuffleState ? 'var(--spotify-green)' : '#fff';
-        } else {
-          statusEl.innerHTML = '<span style="color: var(--text-muted);">Spotify is currently inactive or paused. Open Spotify to play!</span>';
-        }
-      } catch (err) {
-        statusEl.innerHTML = '<span style="color: #94a3b8;">Unable to poll playback state.</span>';
-      }
-    }
-
-    async function setVolumeSlider(val) {
-      document.getElementById('playerVolumeLabel').textContent = `${val}%`;
-      try {
-        await fetch('/api/player/volume', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ volume_percent: parseInt(val) })
-        });
-      } catch (err) { }
-    }
-
-    async function togglePlayerShuffle() {
-      currentShuffleState = !currentShuffleState;
-      try {
-        await fetch('/api/player/shuffle', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: currentShuffleState })
-        });
-        document.getElementById('shuffleToggleBtn').style.color = currentShuffleState ? 'var(--spotify-green)' : '#fff';
-        showToast(`Shuffle set to ${currentShuffleState ? 'ON' : 'OFF'}`);
-      } catch (err) { }
-    }
-
-    async function cyclePlayerRepeat() {
-      currentRepeatIndex = (currentRepeatIndex + 1) % repeatModes.length;
-      const mode = repeatModes[currentRepeatIndex];
-      try {
-        await fetch('/api/player/repeat', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ state: mode })
-        });
-        document.getElementById('repeatCycleBtn').textContent = `🔁 Repeat (${mode})`;
-        showToast(`Repeat mode: ${mode}`);
-      } catch (err) { }
-    }
-
-    async function loadDevicesList() {
-      const select = document.getElementById('playerDeviceSelect');
-      if (!select) return;
-      try {
-        const res = await fetch('/api/player/devices');
-        const data = await res.json();
-        const devices = data.devices || [];
-        if (!devices.length) {
-          select.innerHTML = '<option value="">No active devices found</option>';
-          return;
-        }
-        select.innerHTML = devices.map(d => `<option value="${d.id}">${d.is_active ? '🟢 ' : ''}${d.name} (${d.type})</option>`).join('');
-      } catch (err) {
-        select.innerHTML = '<option value="">Failed to load devices</option>';
-      }
-    }
-
-    async function transferToSelectedDevice() {
-      const select = document.getElementById('playerDeviceSelect');
-      const devId = select.value;
-      if (!devId) return alert('Please select a device.');
-      try {
-        await fetch('/api/player/transfer', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ device_id: devId, play: true })
-        });
-        showToast('Playback transferred!');
-        setTimeout(refreshPlayerStatus, 500);
-      } catch (err) {
-        showToast('Transfer failed: ' + err.message);
-      }
-    }
-
-    async function addToQueueFromInput() {
-      const uri = document.getElementById('addQueueInput').value.trim();
-      if (!uri) return alert('Please enter a track URI to queue.');
-      try {
-        const res = await fetch('/api/player/queue', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ uris: [uri] })
-        });
-        showToast('Track queued successfully!');
-        document.getElementById('addQueueInput').value = '';
-      } catch (err) {
-        showToast('Queue failed: ' + err.message);
-      }
-    }
-
-    async function loadPlayerQueue() {
-      const resContainer = document.getElementById('playerQueueResult');
-      resContainer.style.display = 'block';
-      resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 8px;">Fetching playback queue...</div>';
-      try {
-        const res = await fetch('/api/player/queue');
-        const data = await res.json();
-        const queue = data.queue || [];
-        if (!queue.length) {
-          resContainer.innerHTML = '<div style="color: var(--text-muted); padding: 8px;">Playback queue is currently empty.</div>';
-          return;
-        }
-        resContainer.innerHTML = queue.slice(0, 15).map((t, idx) => `
-          <div style="display: flex; justify-content: space-between; padding: 6px 8px; border-bottom: 1px solid var(--border-subtle);">
-            <span>${idx+1}. <strong style="color: #fff;">${t.name}</strong> - ${t.artist || (t.artists && t.artists[0] ? t.artists[0].name : 'Unknown')}</span>
-            <span style="color: var(--spotify-green); font-family: monospace;">${t.duration || ''}</span>
-          </div>
-        `).join('');
-      } catch (err) {
-        resContainer.innerHTML = `<div style="color: #ef4444; padding: 8px;">Error loading queue: ${err.message}</div>`;
-      }
-    }
-
-
     window.addEventListener('load', () => {
       loadUserPlaylists();
-      refreshPlayerStatus();
-      loadDevicesList();
     });
   </script>
 </body>
