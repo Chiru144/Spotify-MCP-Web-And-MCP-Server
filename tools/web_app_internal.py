@@ -33,31 +33,42 @@ def start_background_web_app(default_port: int = 8000, open_browser: bool = True
         def run_server():
             try:
                 import uvicorn
-                web_server_file = Path(__file__).parent.parent / "mcp-soundtrack-app" / "server.py"
-                if not web_server_file.exists():
-                    sys.stderr.write(f"[Web App] Could not find web app at {web_server_file}\n")
+                app = None
+                web_server_file = Path(__file__).resolve().parent.parent / "mcp-soundtrack-app" / "server.py"
+                if web_server_file.exists():
+                    # Source checkout: load the studio from the repository
+                    spec = importlib.util.spec_from_file_location("soundtrack_web_app", web_server_file)
+                    if spec and spec.loader:
+                        web_module = importlib.util.module_from_spec(spec)
+                        spec.loader.exec_module(web_module)
+                        app = getattr(web_module, "app", None)
+                else:
+                    # Installed from PyPI: the studio ships as the optional spotify-mcp-web package
+                    try:
+                        from spotify_mcp_web.app import create_app
+                    except ImportError:
+                        sys.stderr.write(
+                            "[Web App] Soundtrack Studio is not installed. "
+                            "Run `pip install spotify-mcp-web` to enable it.\n"
+                        )
+                        return
+                    app = create_app()
+
+                if not app:
+                    sys.stderr.write("[Web App] 'app' not found in web server module.\n")
                     return
 
-                spec = importlib.util.spec_from_file_location("soundtrack_web_app", web_server_file)
-                if spec and spec.loader:
-                    web_module = importlib.util.module_from_spec(spec)
-                    spec.loader.exec_module(web_module)
-                    app = getattr(web_module, "app", None)
-                    if not app:
-                        sys.stderr.write("[Web App] 'app' not found in web server module.\n")
-                        return
-
-                    config = uvicorn.Config(
-                        app=app,
-                        host="127.0.0.1",
-                        port=port,
-                        log_level="warning",
-                        access_log=False
-                    )
-                    server = uvicorn.Server(config)
-                    sys.stderr.write(f"\n[Soundtrack Studio] Web App active at http://127.0.0.1:{port}\n")
-                    sys.stderr.flush()
-                    server.run()
+                config = uvicorn.Config(
+                    app=app,
+                    host="127.0.0.1",
+                    port=port,
+                    log_level="warning",
+                    access_log=False
+                )
+                server = uvicorn.Server(config)
+                sys.stderr.write(f"\n[Soundtrack Studio] Web App active at http://127.0.0.1:{port}\n")
+                sys.stderr.flush()
+                server.run()
             except Exception as e:
                 sys.stderr.write(f"[Web App] Failed to run web server: {e}\n")
                 sys.stderr.flush()

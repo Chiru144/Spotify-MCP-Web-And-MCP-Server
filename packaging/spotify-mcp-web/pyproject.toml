@@ -1,0 +1,55 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spotify-mcp-web"
+version = "1.1.0"
+description = "Soundtrack Curator & Staging Studio — a self-hosted FastAPI web app for Spotify playlist curation, TMDB filmography, and MCP tools management."
+readme = "README.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.10"
+authors = [{ name = "Chiru144" }]
+keywords = ["spotify", "fastapi", "soundtrack", "tmdb", "playlist", "web", "mcp", "studio"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "Intended Audience :: End Users/Desktop",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Internet :: WWW/HTTP :: WSGI :: Application",
+]
+dependencies = [
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+    "spotipy>=2.26.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.32.0",
+    "beautifulsoup4>=4.13.0",
+    "ddgs>=9.0.0",
+    "pydantic>=2.0.0",
+    "spotify-soundtrack-mcp>=1.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
+Repository = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
+"Bug Tracker" = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server/issues"
+
+[project.scripts]
+soundtrack-studio = "spotify_mcp_web.cli:run"
+
+[tool.hatch.build.targets.wheel]
+packages = ["spotify_mcp_web"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "spotify_mcp_web/",
+    "README.md",
+    "LICENSE.md",
+    ".env.sample",
+]

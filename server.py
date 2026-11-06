@@ -1,4 +1,4 @@
-from tools.core import mcp, SPOTIFY_SCOPES, get_spotify_client
+from tools.core import mcp, SPOTIFY_SCOPES, get_spotify_client, get_token_cache_path
 from tools.registry import register_active_toolsets, get_active_toolsets
 from tools.web_app_internal import start_background_web_app
 from tools import prompts
