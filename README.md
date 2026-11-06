@@ -158,6 +158,17 @@ soundtrack-studio
 
 This starts the studio at `http://127.0.0.1:8000` and opens your browser. Set `PORT` to use a different port, or `OPEN_BROWSER=false` to stop it from opening the browser. The tool guide is at `/guide` and the advanced tools are at `/tools`.
 
+## Run with Docker
+
+The [`Dockerfile`](Dockerfile) builds the MCP server from this repository and runs it over stdio (MCP directories such as Glama use it to inspect the server):
+
+```bash
+docker build -t spotify-soundtrack-mcp .
+docker run -i --rm -e SPOTIPY_CLIENT_ID=your_spotify_client_id -e TMDB_API_KEY=your_tmdb_api_key spotify-soundtrack-mcp
+```
+
+All 115 tools load by default (`SPOTIFY_TOOLSETS=all`); pass `-e SPOTIFY_TOOLSETS=core` for the smaller set.
+
 ## Prerequisites
 
 To run from source instead of PyPI, make sure you have the following installed:
@@ -299,6 +310,7 @@ python mcp.py --toolsets=core
 
 ```text
 Spotify-MCP-Web-And-MCP-Server/
+├── Dockerfile                 # Container image that runs the MCP server over stdio
 ├── server.json                # MCP Registry listing (io.github.Chiru144/spotify-soundtrack-mcp)
 ├── server.py                  # FastMCP server entry point & SSE ASGI app
 ├── mcp.py                     # Stdio FastMCP runner with PKCE GUI OAuth popup

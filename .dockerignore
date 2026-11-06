@@ -1,0 +1,16 @@
+.git
+.github
+.venv
+venv
+env
+build
+dist
+**/__pycache__
+**/*.pyc
+.pytest_cache
+.env
+.env.*
+!.env.sample
+**/.spotipyoauthcache
+.cursor
+.agents
