@@ -2,12 +2,12 @@
 
 <!-- mcp-name: io.github.Chiru144/spotify-soundtrack-mcp -->
 
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144/spotify-soundtrack-mcp)
-[![PyPI: spotify-soundtrack-mcp](https://img.shields.io/pypi/v/spotify-soundtrack-mcp?label=spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
-[![PyPI: spotify-mcp-web](https://img.shields.io/pypi/v/spotify-mcp-web?label=spotify-mcp-web)](https://pypi.org/project/spotify-mcp-web/)
-[![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-mcp-server)
+[![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-and-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-and-mcp-server)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-115%20Registered-1DB954?style=flat&logo=spotify)](tools/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-20%20Packaged-8A2BE2?style=flat)](skills/)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144%2Fspotify-soundtrack-mcp)
+[![PyPI: spotify-soundtrack-mcp](https://img.shields.io/pypi/v/spotify-soundtrack-mcp?label=spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
+[![PyPI: spotify-mcp-web](https://img.shields.io/pypi/v/spotify-mcp-web?label=spotify-mcp-web)](https://pypi.org/project/spotify-mcp-web/)
 
 This repository contains a FastMCP application that connects Spotify with TMDB (The Movie Database). It has **115 registered MCP tools** and **20 autonomous agent skills**, and lets you build movie soundtrack playlists, automate playlist curation, explore your listening taste, and use a local web app, the Soundtrack Curator & Staging Studio.
 
