@@ -1,5 +1,10 @@
 # Spotify & TMDB Web and MCP Server
 
+<!-- mcp-name: io.github.Chiru144/spotify-soundtrack-mcp -->
+
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144/spotify-soundtrack-mcp)
+[![PyPI: spotify-soundtrack-mcp](https://img.shields.io/pypi/v/spotify-soundtrack-mcp?label=spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
+[![PyPI: spotify-mcp-web](https://img.shields.io/pypi/v/spotify-mcp-web?label=spotify-mcp-web)](https://pypi.org/project/spotify-mcp-web/)
 [![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-mcp-server)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-115%20Registered-1DB954?style=flat&logo=spotify)](tools/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-20%20Packaged-8A2BE2?style=flat)](skills/)
@@ -52,7 +57,7 @@ For an in-depth breakdown of the features, a feature comparison table, and the c
 
 ## Install from PyPI
 
-The server and the web studio are published as two Python packages:
+The MCP server is listed in the [official MCP Registry](https://registry.modelcontextprotocol.io) as **`io.github.Chiru144/spotify-soundtrack-mcp`** (metadata in [`server.json`](server.json)), so registry-aware MCP clients can find and install it. The server and the web studio are published as two Python packages:
 
 | Package | What it gives you | Commands |
 | :--- | :--- | :--- |
@@ -118,6 +123,22 @@ If the client can't find `spotify-mcp` on your PATH, use the full path printed b
 }
 ```
 
+From version 1.1.0, the package-named command also runs over stdio when given `--transport stdio`. This is the command MCP Registry clients run:
+
+```json
+{
+  "mcpServers": {
+    "spotify": {
+      "command": "uvx",
+      "args": ["spotify-soundtrack-mcp", "--transport", "stdio"],
+      "env": {
+        "SPOTIPY_CLIENT_ID": "your_spotify_client_id"
+      }
+    }
+  }
+}
+```
+
 While `spotify-mcp` is running, it also starts the web studio at `http://127.0.0.1:8000` if `spotify-mcp-web` is installed.
 
 To serve MCP over HTTP (SSE) for remote clients instead, run:
@@ -126,7 +147,7 @@ To serve MCP over HTTP (SSE) for remote clients instead, run:
 spotify-soundtrack-mcp
 ```
 
-It listens on `0.0.0.0:8080`; set `HOST` and `PORT` to change this.
+It listens on `0.0.0.0:8080`; set `HOST` and `PORT` to change this. `spotify-soundtrack-mcp --transport stdio` (or `MCP_TRANSPORT=stdio`) runs it over stdio instead, and `spotify-soundtrack-mcp --version` prints the installed version.
 
 ### 5. Open the web studio on its own
 
@@ -153,8 +174,8 @@ Follow these steps to run the project locally:
 ### 1. Clone the repository
 
 ```bash
-git clone https://github.com/Chiru144/Spotify-MCP-Web-MCP-Server.git
-cd Spotify-MCP-Web-MCP-Server
+git clone https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server.git
+cd Spotify-MCP-Web-And-MCP-Server
 ```
 
 ### 2. Create and activate a virtual environment
@@ -276,7 +297,8 @@ python mcp.py --toolsets=core
 ## Repository Structure
 
 ```text
-Spotify-MCP-Web-MCP-Server/
+Spotify-MCP-Web-And-MCP-Server/
+├── server.json                # MCP Registry listing (io.github.Chiru144/spotify-soundtrack-mcp)
 ├── server.py                  # FastMCP server entry point & SSE ASGI app
 ├── mcp.py                     # Stdio FastMCP runner with PKCE GUI OAuth popup
 ├── auth_spotify.py            # CLI helper to verify the Spotify OAuth connection
@@ -305,6 +327,10 @@ Spotify-MCP-Web-MCP-Server/
 │       ├── tools.html         # Advanced tools dashboard
 │       └── guide.html         # Tool guide & documentation
 ├── skills/                    # 20 autonomous agent skills for AI assistants
+├── packaging/                 # PyPI packaging for both packages
+│   ├── build_packages.py      # Builds the wheels, checks and bumps versions
+│   ├── spotify-soundtrack-mcp/ # pyproject, PyPI README and CLI of the MCP server package
+│   └── spotify-mcp-web/       # pyproject, PyPI README and CLI of the web studio package
 ├── tests/                     # Pytest unit & integration tests
 │   ├── test_browse.py
 │   ├── test_discovery.py
@@ -321,7 +347,7 @@ Spotify-MCP-Web-MCP-Server/
 │   └── test_web_app.py
 ├── .cursor/rules/             # Cursor IDE rules
 ├── .agents/rules/             # Agent / Antigravity IDE rules
-└── .github/                   # GitHub Copilot instructions
+└── .github/                   # Copilot instructions & the release workflow (workflows/publish.yml)
 ```
 
 ## API Limits
@@ -334,3 +360,33 @@ Keep in mind the rate limits of the external APIs this project uses:
 ## MCP Integration
 
 This project is built with `fastmcp`. Once it is running over `stdio` (or SSE, if configured), any MCP client can use its tools.
+
+## Publishing a Release (PyPI & MCP Registry)
+
+The two PyPI packages are built from this repository by [`packaging/build_packages.py`](packaging/build_packages.py), which copies `tools/`, `skills/`, `SPOTIFY_RULES.md` and `mcp-soundtrack-app/` into the package layouts and rewrites the `tools.*` imports to `spotify_soundtrack_mcp.tools.*`.
+
+```bash
+pip install build
+python packaging/build_packages.py --check              # versions, server.json and mcp-name agree
+python packaging/build_packages.py                      # build wheels and sdists into dist/
+python packaging/build_packages.py --set-version 1.2.0  # bump both packages and server.json
+```
+
+Pushing a tag such as `v1.2.0` runs [`.github/workflows/publish.yml`](.github/workflows/publish.yml), which tests and builds both packages, uploads them to PyPI, and then publishes `server.json` to the MCP Registry.
+
+One-time setup:
+
+1. **PyPI trusted publishing**: on PyPI, open each project (`spotify-soundtrack-mcp` and `spotify-mcp-web`) → *Manage* → *Publishing* → *Add a new publisher* → GitHub, with owner `Chiru144`, repository `Spotify-MCP-Web-And-MCP-Server`, workflow `publish.yml` and environment `pypi`.
+2. **GitHub environment**: in the repository settings, create an environment named `pypi`.
+3. **MCP Registry**: nothing to configure. The workflow signs in with GitHub OIDC, which allows publishing names under `io.github.Chiru144/`.
+
+The registry confirms you own the PyPI package by finding `mcp-name: io.github.Chiru144/spotify-soundtrack-mcp` in its PyPI description, which comes from [`packaging/spotify-soundtrack-mcp/README.md`](packaging/spotify-soundtrack-mcp/README.md). Keep that line when editing the README.
+
+To publish by hand instead:
+
+```bash
+python packaging/build_packages.py
+twine upload dist/spotify-soundtrack-mcp/* dist/spotify-mcp-web/*
+mcp-publisher login github     # https://github.com/modelcontextprotocol/registry/releases
+mcp-publisher publish          # run from the repository root, next to server.json
+```

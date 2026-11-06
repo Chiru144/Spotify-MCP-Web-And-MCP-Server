@@ -1,0 +1,68 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "spotify-soundtrack-mcp"
+version = "1.1.0"
+description = "Spotify & TMDB FastMCP server with 115 tools — filmography playlists, smart curation, playback control, and a built-in Soundtrack Studio web UI."
+readme = "README.md"
+license = { file = "LICENSE.md" }
+requires-python = ">=3.10"
+authors = [{ name = "Chiru144" }]
+keywords = ["spotify", "mcp", "fastmcp", "tmdb", "playlist", "ai", "claude", "cursor", "agent"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Multimedia :: Sound/Audio",
+    "Topic :: Internet :: WWW/HTTP :: HTTP Servers",
+]
+dependencies = [
+    "fastmcp>=4.0.0",
+    "spotipy>=2.26.0",
+    "python-dotenv>=1.0.0",
+    "requests>=2.32.0",
+    "beautifulsoup4>=4.13.0",
+    "ddgs>=9.0.0",
+    "fastapi>=0.115.0",
+    "uvicorn>=0.30.0",
+]
+
+[project.optional-dependencies]
+web = [
+    "spotify-mcp-web>=1.1.0",
+]
+dev = [
+    "pytest>=8.0.0",
+    "pytest-asyncio>=0.23.0",
+]
+all = [
+    "spotify-mcp-web>=1.1.0",
+]
+
+[project.urls]
+Homepage = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
+Repository = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
+"Bug Tracker" = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server/issues"
+"MCP Registry" = "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144/spotify-soundtrack-mcp"
+
+[project.scripts]
+spotify-mcp        = "spotify_soundtrack_mcp.cli:run_mcp"
+spotify-soundtrack-mcp = "spotify_soundtrack_mcp.cli:run_server"
+spotify-mcp-auth   = "spotify_soundtrack_mcp.cli:run_auth"
+
+[tool.hatch.build.targets.wheel]
+packages = ["spotify_soundtrack_mcp"]
+
+[tool.hatch.build.targets.sdist]
+include = [
+    "spotify_soundtrack_mcp/",
+    "README.md",
+    "LICENSE.md",
+    ".env.sample",
+]

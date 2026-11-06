@@ -21,7 +21,7 @@ def gui_input(prompt):
 def check_and_authenticate():
     client_id = os.getenv("SPOTIPY_CLIENT_ID") or os.getenv("SPOTIFY_CLIENT_ID")
     redirect_uri = os.getenv("SPOTIPY_REDIRECT_URI") or os.getenv("SPOTIFY_REDIRECT_URI") or "http://127.0.0.1:8888/callback"
-    cache_path = str(Path(server.__file__).parent / ".spotipyoauthcache")
+    cache_path = str(server.get_token_cache_path())
 
     auth_manager = SpotifyPKCE(
         client_id=client_id,

@@ -1,0 +1,71 @@
+{
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
+  "name": "io.github.Chiru144/spotify-soundtrack-mcp",
+  "title": "Spotify Soundtrack MCP",
+  "description": "Spotify + TMDB tools: movie soundtrack playlists, playlist curation, taste stats and playback.",
+  "version": "1.1.0",
+  "websiteUrl": "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server",
+  "repository": {
+    "url": "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server",
+    "source": "github"
+  },
+  "packages": [
+    {
+      "registryType": "pypi",
+      "registryBaseUrl": "https://pypi.org",
+      "identifier": "spotify-soundtrack-mcp",
+      "version": "1.1.0",
+      "runtimeHint": "uvx",
+      "transport": {
+        "type": "stdio"
+      },
+      "packageArguments": [
+        {
+          "type": "named",
+          "name": "--transport",
+          "value": "stdio",
+          "description": "Run the MCP server over stdio."
+        }
+      ],
+      "environmentVariables": [
+        {
+          "name": "SPOTIPY_CLIENT_ID",
+          "description": "Client ID of your Spotify app (https://developer.spotify.com/dashboard). Sign-in uses PKCE, so no client secret is needed.",
+          "isRequired": true,
+          "isSecret": false,
+          "format": "string"
+        },
+        {
+          "name": "SPOTIPY_REDIRECT_URI",
+          "description": "Redirect URI registered for your Spotify app.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "http://127.0.0.1:8888/callback"
+        },
+        {
+          "name": "TMDB_API_KEY",
+          "description": "TMDB v3 API key for movie, cast and filmography lookups. Set this or TMDB_READ_ACCESS_TOKEN.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "TMDB_READ_ACCESS_TOKEN",
+          "description": "TMDB v4 Read Access Token, an alternative to TMDB_API_KEY.",
+          "isRequired": false,
+          "isSecret": true,
+          "format": "string"
+        },
+        {
+          "name": "SPOTIFY_TOOLSETS",
+          "description": "Comma-separated toolsets to load: core, playback, playlists, search, taste, library, browse or all.",
+          "isRequired": false,
+          "isSecret": false,
+          "format": "string",
+          "default": "core"
+        }
+      ]
+    }
+  ]
+}

@@ -78,7 +78,9 @@ public_sp = None
 
 
 # User OAuth Manager for authenticated actions (using shared root cache via PKCE)
-_cache_file = BASE_DIR.parent / ".spotipyoauthcache"
+from tools.core import get_token_cache_path
+
+_cache_file = get_token_cache_path()
 if not _cache_file.exists() and (BASE_DIR / ".spotipyoauthcache").exists():
     _cache_file = BASE_DIR / ".spotipyoauthcache"
 

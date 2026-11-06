@@ -61,6 +61,24 @@ SPOTIFY_SCOPES = [
 TMDB_BASE_URL = os.getenv("TMDB_BASE_URL", "https://api.themoviedb.org/3")
 
 
+def get_token_cache_path() -> Path:
+    """Spotify token cache shared by the MCP server and the web studio.
+
+    Set SPOTIFY_MCP_CACHE_PATH to choose the file. Otherwise a source checkout keeps
+    the token in the repository root, and an installed package (spotify-soundtrack-mcp)
+    keeps it in ~/.spotify-mcp/, outside site-packages, so it survives reinstalls.
+    """
+    override = os.getenv("SPOTIFY_MCP_CACHE_PATH")
+    if override:
+        cache_file = Path(override).expanduser()
+    elif __name__.startswith("spotify_soundtrack_mcp."):
+        cache_file = Path.home() / ".spotify-mcp" / ".spotipyoauthcache"
+    else:
+        cache_file = Path(__file__).resolve().parent.parent / ".spotipyoauthcache"
+    cache_file.parent.mkdir(parents=True, exist_ok=True)
+    return cache_file
+
+
 def get_spotify_client(allow_interactive: bool = False):
     """Initialize and return an authenticated Spotipy client using PKCE OAuth (no client secret needed).
     In MCP server mode (allow_interactive=False), it never blocks on stdin. If unauthenticated,
@@ -74,7 +92,7 @@ def get_spotify_client(allow_interactive: bool = False):
     if not client_id or "your_spotify_client_id" in client_id:
         raise ValueError("Missing SPOTIPY_CLIENT_ID in .env. Please configure your Spotify Client ID.")
 
-    cache_file = Path(__file__).parent.parent / ".spotipyoauthcache"
+    cache_file = get_token_cache_path()
     cache_path = str(cache_file)
 
     auth_manager = SpotifyPKCE(
