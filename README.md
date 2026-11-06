@@ -5,7 +5,7 @@
 [![M8ven Score](https://m8ven.ai/badge/mcp/chiru144/spotify-mcp-web-and-mcp-server)](https://m8ven.ai/mcp/chiru144/spotify-mcp-web-and-mcp-server)
 [![MCP Tools](https://img.shields.io/badge/MCP%20Tools-115%20Registered-1DB954?style=flat&logo=spotify)](tools/)
 [![Agent Skills](https://img.shields.io/badge/Agent%20Skills-20%20Packaged-8A2BE2?style=flat)](skills/)
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144%2Fspotify-soundtrack-mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/?q=io.github.Chiru144%2Fspotify-soundtrack-mcp)
 [![PyPI: spotify-soundtrack-mcp](https://img.shields.io/pypi/v/spotify-soundtrack-mcp?label=spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
 [![PyPI: spotify-mcp-web](https://img.shields.io/pypi/v/spotify-mcp-web?label=spotify-mcp-web)](https://pypi.org/project/spotify-mcp-web/)
 

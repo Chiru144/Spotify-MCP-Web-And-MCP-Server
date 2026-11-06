@@ -49,7 +49,7 @@ all = [
 Homepage = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
 Repository = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server"
 "Bug Tracker" = "https://github.com/Chiru144/Spotify-MCP-Web-And-MCP-Server/issues"
-"MCP Registry" = "https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144/spotify-soundtrack-mcp"
+"MCP Registry" = "https://registry.modelcontextprotocol.io/?q=io.github.Chiru144%2Fspotify-soundtrack-mcp"
 
 [project.scripts]
 spotify-mcp        = "spotify_soundtrack_mcp.cli:run_mcp"

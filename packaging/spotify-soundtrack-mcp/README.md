@@ -2,7 +2,7 @@
 
 <!-- mcp-name: io.github.Chiru144/spotify-soundtrack-mcp -->
 
-[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/v0/servers?search=io.github.Chiru144/spotify-soundtrack-mcp)
+[![MCP Registry](https://img.shields.io/badge/MCP%20Registry-io.github.Chiru144%2Fspotify--soundtrack--mcp-1DB954)](https://registry.modelcontextprotocol.io/?q=io.github.Chiru144%2Fspotify-soundtrack-mcp)
 [![PyPI](https://img.shields.io/pypi/v/spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
 [![Python](https://img.shields.io/pypi/pyversions/spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green.svg)](LICENSE.md)
