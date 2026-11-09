@@ -9,6 +9,7 @@
 [![PyPI: spotify-soundtrack-mcp](https://img.shields.io/pypi/v/spotify-soundtrack-mcp?label=spotify-soundtrack-mcp)](https://pypi.org/project/spotify-soundtrack-mcp/)
 [![PyPI: spotify-mcp-web](https://img.shields.io/pypi/v/spotify-mcp-web?label=spotify-mcp-web)](https://pypi.org/project/spotify-mcp-web/)
 [![Listed on MCP Market](https://mcpmarket.com/badge/server/spotify-web.svg)](https://mcpmarket.com/server/spotify-web?utm_source=readme&utm_medium=badge)
+[![Spotify Soundtrack MCP server](https://mcprush.com/badge/spotify-soundtrack-mcp/card.svg)](https://mcprush.com/to/spotify-soundtrack-mcp?ref=badge)
 
 This repository contains a FastMCP application that connects Spotify with TMDB (The Movie Database). It has **115 registered MCP tools** and **20 autonomous agent skills**, and lets you build movie soundtrack playlists, automate playlist curation, explore your listening taste, and use a local web app, the Soundtrack Curator & Staging Studio.
 
